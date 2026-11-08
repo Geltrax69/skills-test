@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en" data-type="software" data-radius="soft" data-buttons="solid" data-motion="quiet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="page-type" content="software">
+<meta name="site-kind" content="software">
+<title>Class 8-A dashboard — Greenwood High</title>
+<!--
+  UI Forge Experiment 32 — taste-skill + emil-design-eng
+  Kind: software (a school management app). The dashboard itself is the
+  app-frame: live HTML showing the school's own data, per taste-skill §2.
+  Deal: palette hand-set (no dealt scripts — task forbids npm/external
+  fonts); one accent, deep green; flat grounds; soft radius; equal edges.
+  Motion: Emil — transform/opacity only, custom ease-out, under 300ms,
+  press scale(0.97); no entrance stagger, no scroll reveal (taste-skill
+  Never + Emil frequency rule: a dashboard is opened many times a day).
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: auto; }
+
+  :root {
+    /* One system: warm paper ground, near-black ink, one accent (never violet). */
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --surface-alt: #efede6;
+    --ink: #1b2420;
+    --muted: #5b665f;          /* 5.9:1 on --bg, 4.6:1 on white */
+    --line: rgba(27, 36, 32, .14);
+    --accent: #0b6e4f;         /* 5.4:1 on white; white label 5.4:1 on it */
+    --accent-soft: #e3efe9;
+    --warn: #a85b12;           /* amber-brown for 90–94% attendance */
+    --low: #a83c14;            /* burnt orange for under 90% */
+    --r-lg: 12px;
+    --r-md: 8px;
+    --nav-h: 64px;
+    --bar-h: 0px;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --gut: 24px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: var(--bar-h);
+  }
+
+  /* Equal edges: one .wrap line for header, content and footer. */
+  .wrap { width: min(100% - (2 * var(--gut)), 1200px); margin-inline: auto; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .skip-link {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap;
+  }
+  .skip-link:focus {
+    position: fixed; top: 8px; left: 8px; z-index: 100; width: auto; height: auto;
+    clip-path: none; padding: 10px 16px; background: var(--ink); color: #fff; border-radius: var(--r-md);
+  }
+
+  /* ---------- Header ---------- */
+  header.topbar {
+    position: sticky; top: 0; z-index: 20;
+    height: var(--nav-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .wrap { height: var(--nav-h); display: flex; align-items: center; gap: 16px; }
+  .menu-btn {
+    display: none; flex: none; width: 44px; height: 44px;
+    border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface);
+    font-size: 20px; line-height: 1; color: var(--ink); cursor: pointer;
+    transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  }
+  .menu-btn:active { transform: scale(0.97); }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: none; }
+  .mark {
+    flex: none; width: 40px; height: 40px; border-radius: var(--r-md);
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+  }
+  .brand-name { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; white-space: nowrap; }
+  .brand-sub { font-size: 13px; color: var(--muted); line-height: 1.2; white-space: nowrap; }
+  .search { flex: 1 1 auto; min-width: 0; max-width: 360px; margin-left: auto; }
+  .search input {
+    width: 100%; height: 40px; padding: 0 14px;
+    font: inherit; font-size: 15px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md);
+  }
+  .search input::placeholder { color: var(--muted); }
+  .bell-wrap { position: relative; flex: none; }
+  .bell-btn {
+    position: relative; width: 44px; height: 44px;
+    border: 1px solid var(--line); border-radius: 50%; background: var(--surface);
+    font-size: 19px; line-height: 1; color: var(--ink); cursor: pointer;
+    transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  }
+  .bell-btn:active { transform: scale(0.97); }
+  .bell-count {
+    position: absolute; top: -4px; right: -4px;
+    min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px;
+    background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 600; line-height: 19px; text-align: center;
+    border: 2px solid var(--surface);
+  }
+  /* Origin-aware popover (Emil): scales from its trigger, top right. */
+  .bell-pop {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    width: min(320px, calc(100vw - 32px));
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+    box-shadow: 0 12px 32px rgba(27, 36, 32, .16);
+    padding: 8px 0; z-index: 30;
+    transform-origin: top right;
+    transform: scale(0.95); opacity: 0; visibility: hidden;
+    transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out), visibility 0s linear 180ms;
+  }
+  .bell-pop.open {
+    transform: scale(1); opacity: 1; visibility: visible;
+    transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out), visibility 0s linear 0s;
+  }
+  .bell-pop h2 { font-size: 14px; font-weight: 600; margin: 0; padding: 8px 16px 6px; }
+  .bell-pop ul { list-style: none; margin: 0; padding: 0; }
+  .bell-pop li { padding: 10px 16px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.45; }
+  .bell-pop li span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  /* ---------- Layout: sidebar + main ---------- */
+  .layout { display: flex; gap: 24px; align-items: flex-start; padding-top: 32px; }
+  .sidebar {
+    flex: none; width: 224px;
+    position: sticky; top: calc(var(--nav-h) + 24px);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+    padding: 12px;
+  }
+  .sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-link {
+    display: block; padding: 11px 12px; border-radius: var(--r-md);
+    color: var(--ink); font-size: 15px; font-weight: 500; text-decoration: none;
+    transition: background-color 160ms var(--ease-out), transform 160ms var(--ease-out);
+  }
+  .nav-link:hover { background: var(--surface-alt); text-decoration: none; }
+  .nav-link:active { transform: scale(0.98); }
+  .nav-link[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+  .side-note { margin: 12px 12px 4px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  main { flex: 1 1 auto; min-width: 0; }
+  section { margin-bottom: 32px; }
+  h1 {
+    font-size: 32px; line-height: 1.15; letter-spacing: -0.02em; font-weight: 600;
+    margin: 0 0 8px;
+  }
+  h2 {
+    font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .section-intro { color: var(--muted); margin: 0 0 16px; font-size: 15px; }
+  .head-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .head-row .head-text { max-width: 620px; }
+  .head-row .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+  /* One button pair, one style each. Step on hover, press on click. */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 44px; padding: 0 20px; border-radius: var(--r-md);
+    font: inherit; font-size: 16px; font-weight: 500; line-height: 1;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .btn--primary { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+  .btn--primary:hover { text-decoration: none; }
+  .btn--secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+  .btn--secondary:hover { text-decoration: none; border-color: var(--ink); }
+  .btn:active { transform: scale(0.97); }
+  .link { font-size: 15px; font-weight: 500; }
+
+  /* ---------- Stat cards: one card style ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+    padding: 20px;
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+  }
+  .stat-label { font-size: 13px; font-weight: 500; color: var(--muted); margin: 0 0 8px; }
+  .stat-value { font-size: 32px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .stat-sub { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.45; }
+
+  /* ---------- Chart: CSS bars only ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+    padding: 24px;
+  }
+  .chart { display: flex; gap: 20px; height: 208px; }
+  .chart-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+  .chart-val { font-size: 14px; font-weight: 600; line-height: 1.2; margin-bottom: 8px; white-space: nowrap; }
+  .chart-track {
+    flex: 1 1 auto; width: 100%; min-height: 0;
+    display: flex; align-items: flex-end; justify-content: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .chart-bar {
+    width: min(56px, 72%); height: calc(var(--v) * 1%);
+    background: var(--accent); border-radius: 6px 6px 0 0;
+  }
+  .chart-bar.today { background: #084d37; }
+  .chart-day { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.2; }
+  .chart-foot { font-size: 14px; color: var(--muted); margin: 16px 0 0; }
+
+  /* ---------- Student table ---------- */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; min-width: 560px; border-collapse: collapse; }
+  th, td { text-align: left; padding: 13px 16px; font-size: 15px; }
+  th {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { border-top: 1px solid var(--line); }
+  tbody tr:first-child td { border-top: none; }
+  tbody tr { transition: background-color 160ms var(--ease-out); }
+  tbody tr:hover { background: var(--surface-alt); }
+  .student-cell { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .avatar {
+    flex: none; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+  }
+  .student-name { font-weight: 500; white-space: nowrap; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .meter { display: inline-flex; align-items: center; gap: 10px; }
+  .meter-track { width: 72px; height: 6px; border-radius: 999px; background: #e4e1d8; overflow: hidden; flex: none; }
+  .meter-fill { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
+  .meter-fill.warn { background: var(--warn); }
+  .meter-fill.low { background: var(--low); }
+  .pct-warn { color: var(--warn); }
+  .pct-low { color: var(--low); }
+  .table-count { font-size: 14px; color: var(--muted); margin: 0; }
+  .empty-row td { color: var(--muted); text-align: center; padding: 28px 16px; }
+
+  /* ---------- Notices ---------- */
+  .notice-list { list-style: none; margin: 0; padding: 0; }
+  .notice-list li {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 16px 0; border-top: 1px solid var(--line);
+  }
+  .notice-list li:first-child { border-top: none; padding-top: 4px; }
+  .notice-list li:last-child { padding-bottom: 4px; }
+  .tag {
+    flex: none; margin-top: 2px; padding: 3px 10px;
+    border: 1px solid var(--line); border-radius: 999px;
+    font-size: 13px; font-weight: 500; color: var(--ink); background: var(--surface-alt);
+    white-space: nowrap;
+  }
+  .notice-title { font-size: 16px; font-weight: 500; margin: 0 0 2px; line-height: 1.4; }
+  .notice-meta { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.45; }
+
+  /* ---------- Footer ---------- */
+  footer.closing {
+    border-top: 1px solid var(--line);
+    padding: 24px 0 calc(24px + var(--bar-h));
+    font-size: 14px; color: var(--muted);
+  }
+
+  /* ---------- Bottom nav (mobile) ---------- */
+  .bottom-nav { display: none; }
+
+  .scrim {
+    position: fixed; inset: 0; z-index: 25;
+    background: rgba(27, 36, 32, .36);
+    opacity: 0; visibility: hidden;
+    transition: opacity 200ms var(--ease-out), visibility 0s linear 200ms;
+  }
+  .scrim.show { opacity: 1; visibility: visible; transition: opacity 200ms var(--ease-out), visibility 0s linear 0s; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1080px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+    .sidebar {
+      position: fixed; top: 0; bottom: 0; left: 0; z-index: 30;
+      width: 272px; border-radius: 0; border-right: 1px solid var(--line);
+      padding: 20px 12px; overflow-y: auto;
+      transform: translateX(-105%); visibility: hidden;
+      transition: transform 250ms var(--ease-out), visibility 0s linear 250ms;
+    }
+    .sidebar.open { transform: translateX(0); visibility: visible; transition: transform 250ms var(--ease-out), visibility 0s linear 0s; }
+    .layout { padding-top: 24px; }
+  }
+  @media (max-width: 640px) {
+    :root { --gut: 16px; --bar-h: calc(56px + env(safe-area-inset-bottom, 0px)); }
+    .menu-btn { display: none; }
+    .brand-sub { display: none; }
+    .brand-name { font-size: 17px; }
+    .topbar .wrap { gap: 10px; }
+    .search { max-width: none; }
+    h1 { font-size: 28px; }
+    .head-row { align-items: flex-start; flex-direction: column; }
+    .btn-row .btn { width: 100%; }
+    .btn-row { width: 100%; }
+    .stats { gap: 12px; }
+    .stat-card { padding: 16px; }
+    .stat-value { font-size: 28px; }
+    .card { padding: 20px 16px; }
+    .chart { gap: 10px; height: 188px; }
+    .chart-val { font-size: 13px; }
+    .bottom-nav {
+      display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+      height: var(--bar-h);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      background: var(--surface); border-top: 1px solid var(--line);
+    }
+    .bottom-nav a {
+      flex: 1 1 0; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--ink); text-decoration: none;
+      transition: background-color 160ms var(--ease-out);
+    }
+    .bottom-nav a[aria-current="page"] { color: var(--accent); }
+    .bottom-nav a:active { background: var(--surface-alt); }
+    section { margin-bottom: 24px; }
+  }
+
+  /* Hover micro-interactions only where a pointer can hover (Emil). */
+  @media (hover: hover) and (pointer: fine) {
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(27, 36, 32, .08); }
+    .btn--primary:hover { transform: translateY(-1px); }
+    .btn--secondary:hover { transform: translateY(-1px); }
+    .bell-btn:hover { background: var(--surface-alt); }
+    .menu-btn:hover { background: var(--surface-alt); }
+  }
+
+  /* Reduced motion: movement off, comprehension kept (Emil). */
+  @media (prefers-reduced-motion: reduce) {
+    .stat-card, .btn, .btn--primary, .btn--secondary, .bell-btn, .menu-btn,
+    .nav-link, .bell-pop, .sidebar, .scrim, tbody tr, .bottom-nav a {
+      transition: none !important;
+    }
+    .stat-card:hover, .btn:hover { transform: none; }
+  }
+</style>
+</head>
+<body id="top">
+<a class="skip-link" href="#overview">Skip to dashboard</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <button class="menu-btn" id="menuBtn" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">&#9776;</button>
+    <div class="brand">
+      <span class="mark" aria-hidden="true">G</span>
+      <span>
+        <span class="brand-name">Greenwood High</span><br>
+        <span class="brand-sub">Class 8-A &middot; 2025&ndash;26</span>
+      </span>
+    </div>
+    <div class="search" role="search">
+      <input type="search" id="searchInput" placeholder="Search" aria-label="Search students by name or roll number">
+    </div>
+    <div class="bell-wrap">
+      <button class="bell-btn" id="bellBtn" aria-label="Notifications, 3 unread" aria-expanded="false" aria-controls="bellPop">&#128276;</button>
+      <span class="bell-count" aria-hidden="true">3</span>
+      <div class="bell-pop" id="bellPop" role="dialog" aria-label="Notifications">
+        <h2>Notifications</h2>
+        <ul>
+          <li>Science fair on Friday<span>Friday</span></li>
+          <li>Fee deadline 20 Nov<span>Fees &middot; 20 Nov</span></li>
+          <li>Parent-teacher meet 25 Nov<span>Meeting &middot; 25 Nov</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <aside class="sidebar" id="sidebar" aria-label="Dashboard navigation">
+    <nav>
+      <a class="nav-link" href="#overview" aria-current="page">Overview</a>
+      <a class="nav-link" href="#students">Students</a>
+      <a class="nav-link" href="#attendance">Attendance</a>
+      <a class="nav-link" href="#notices">Notices</a>
+    </nav>
+    <p class="side-note">Class 8-A &middot; 12 students<br>Academic year 2025&ndash;26</p>
+  </aside>
+
+  <main>
+    <section id="overview" aria-labelledby="pageTitle">
+      <div class="head-row">
+        <div class="head-text">
+          <h1 id="pageTitle">Student dashboard for Class 8-A</h1>
+          <p class="section-intro">Greenwood High &middot; 1,188 of 1,248 students present today.</p>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn--primary" href="#students">Take attendance</a>
+          <a class="link" href="#notices">See all notices</a>
+        </div>
+      </div>
+
+      <h2>Today at Greenwood High</h2>
+      <p class="section-intro">School totals for today.</p>
+      <div class="stats">
+        <article class="stat-card">
+          <p class="stat-label">Students</p>
+          <p class="stat-value num">1,248</p>
+          <p class="stat-sub">12 in Class 8-A</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Teachers</p>
+          <p class="stat-value num">72</p>
+          <p class="stat-sub">Across all classes</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Attendance today</p>
+          <p class="stat-value num">95.2%</p>
+          <p class="stat-sub">1,188 present &middot; 60 absent</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Fees collected</p>
+          <p class="stat-value num">84%</p>
+          <p class="stat-sub">&#8377;25.2L of &#8377;30L</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="attendance" aria-labelledby="attendanceTitle">
+      <h2 id="attendanceTitle">Attendance this week</h2>
+      <p class="section-intro">Share of students present, Monday to Friday.</p>
+      <div class="card">
+        <div class="chart" role="img" aria-label="Attendance trend: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent.">
+          <div class="chart-col">
+            <span class="chart-val num">94%</span>
+            <div class="chart-track"><div class="chart-bar" style="--v: 94"></div></div>
+            <span class="chart-day">Mon</span>
+          </div>
+          <div class="chart-col">
+            <span class="chart-val num">96%</span>
+            <div class="chart-track"><div class="chart-bar" style="--v: 96"></div></div>
+            <span class="chart-day">Tue</span>
+          </div>
+          <div class="chart-col">
+            <span class="chart-val num">93%</span>
+            <div class="chart-track"><div class="chart-bar" style="--v: 93"></div></div>
+            <span class="chart-day">Wed</span>
+          </div>
+          <div class="chart-col">
+            <span class="chart-val num">97%</span>
+            <div class="chart-track"><div class="chart-bar" style="--v: 97"></div></div>
+            <span class="chart-day">Thu</span>
+          </div>
+          <div class="chart-col">
+            <span class="chart-val num">95%</span>
+            <div class="chart-track"><div class="chart-bar today" style="--v: 95"></div></div>
+            <span class="chart-day">Fri</span>
+          </div>
+        </div>
+        <p class="chart-foot">Highest on Thursday, 97%. Lowest on Wednesday, 93%.</p>
+      </div>
+    </section>
+
+    <section id="students" aria-labelledby="studentsTitle">
+      <div class="head-row">
+        <div class="head-text">
+          <h2 id="studentsTitle">Students in Class 8-A</h2>
+          <p class="section-intro" style="margin-bottom:0">Attendance and marks for the class.</p>
+        </div>
+        <p class="table-count" id="studentCount">12 students</p>
+      </div>
+      <div class="card" style="padding: 8px 8px 12px;">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll no.</th><th scope="col">Attendance</th><th scope="col">Marks</th></tr>
+            </thead>
+            <tbody id="studentBody">
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">AS</span><span class="student-name">Aarav Sharma</span></span></td><td class="num">8A-01</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:96%"></i></span><span class="num">96%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:88%"></i></span><span class="num">88%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">DP</span><span class="student-name">Diya Patel</span></span></td><td class="num">8A-02</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:94%"></i></span><span class="num">94%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:91%"></i></span><span class="num">91%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">KS</span><span class="student-name">Kabir Singh</span></span></td><td class="num">8A-03</td><td><span class="meter"><span class="meter-track"><i class="meter-fill warn" style="width:89%"></i></span><span class="num pct-warn">89%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill warn" style="width:76%"></i></span><span class="num">76%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">AG</span><span class="student-name">Ananya Gupta</span></span></td><td class="num">8A-04</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:98%"></i></span><span class="num">98%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:93%"></i></span><span class="num">93%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">RM</span><span class="student-name">Rohan Mehta</span></span></td><td class="num">8A-05</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:92%"></i></span><span class="num">92%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:82%"></i></span><span class="num">82%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">IV</span><span class="student-name">Ishita Verma</span></span></td><td class="num">8A-06</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:97%"></i></span><span class="num">97%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:89%"></i></span><span class="num">89%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">AN</span><span class="student-name">Arjun Nair</span></span></td><td class="num">8A-07</td><td><span class="meter"><span class="meter-track"><i class="meter-fill warn" style="width:90%"></i></span><span class="num pct-warn">90%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill warn" style="width:79%"></i></span><span class="num">79%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">SR</span><span class="student-name">Sneha Reddy</span></span></td><td class="num">8A-08</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:95%"></i></span><span class="num">95%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:86%"></i></span><span class="num">86%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">VJ</span><span class="student-name">Vikram Joshi</span></span></td><td class="num">8A-09</td><td><span class="meter"><span class="meter-track"><i class="meter-fill low" style="width:88%"></i></span><span class="num pct-low">88%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill low" style="width:74%"></i></span><span class="num">74%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">PD</span><span class="student-name">Priya Das</span></span></td><td class="num">8A-10</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:99%"></i></span><span class="num">99%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:95%"></i></span><span class="num">95%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">AR</span><span class="student-name">Aditya Rao</span></span></td><td class="num">8A-11</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:93%"></i></span><span class="num">93%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:84%"></i></span><span class="num">84%</span></span></td></tr>
+              <tr><td><span class="student-cell"><span class="avatar" aria-hidden="true">KI</span><span class="student-name">Kavya Iyer</span></span></td><td class="num">8A-12</td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:96%"></i></span><span class="num">96%</span></span></td><td><span class="meter"><span class="meter-track"><i class="meter-fill" style="width:90%"></i></span><span class="num">90%</span></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="notices" aria-labelledby="noticesTitle">
+      <h2 id="noticesTitle">Notices</h2>
+      <p class="section-intro">Three notices for Class 8-A.</p>
+      <div class="card">
+        <ul class="notice-list">
+          <li>
+            <span class="tag">Event</span>
+            <div>
+              <p class="notice-title">Science fair on Friday</p>
+              <p class="notice-meta">Friday</p>
+            </div>
+          </li>
+          <li>
+            <span class="tag">Fees</span>
+            <div>
+              <p class="notice-title">Fee deadline 20 Nov</p>
+              <p class="notice-meta">20 Nov</p>
+            </div>
+          </li>
+          <li>
+            <span class="tag">Meeting</span>
+            <div>
+              <p class="notice-title">Parent-teacher meet 25 Nov</p>
+              <p class="notice-meta">25 Nov</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Dashboard navigation">
+  <a href="#overview" aria-current="page">Overview</a>
+  <a href="#students">Students</a>
+  <a href="#attendance">Attendance</a>
+  <a href="#notices">Notices</a>
+</nav>
+
+<footer class="closing">
+  <div class="wrap">Fictional demo data &mdash; UI Forge Experiment 1</div>
+</footer>
+
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+
+<script>
+(function () {
+  var searchInput = document.getElementById('searchInput');
+  var tbody = document.getElementById('studentBody');
+  var countEl = document.getElementById('studentCount');
+  var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+  var emptyRow = document.createElement('tr');
+  emptyRow.className = 'empty-row';
+  emptyRow.innerHTML = '<td colspan="4">No students match that search.</td>';
+
+  searchInput.addEventListener('input', function () {
+    var q = searchInput.value.trim().toLowerCase();
+    var shown = 0;
+    rows.forEach(function (row) {
+      var hit = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+      row.style.display = hit ? '' : 'none';
+      if (hit) shown += 1;
+    });
+    if (shown === 0) {
+      tbody.appendChild(emptyRow);
+    } else if (emptyRow.parentNode) {
+      emptyRow.parentNode.removeChild(emptyRow);
+    }
+    countEl.textContent = q ? shown + ' of 12 students' : '12 students';
+  });
+
+  /* Bell popover: origin-aware, closes on Escape or outside tap. */
+  var bellBtn = document.getElementById('bellBtn');
+  var bellPop = document.getElementById('bellPop');
+  function closeBell() {
+    bellPop.classList.remove('open');
+    bellBtn.setAttribute('aria-expanded', 'false');
+  }
+  bellBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = bellPop.classList.toggle('open');
+    bellBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function (e) {
+    if (!bellPop.contains(e.target)) closeBell();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeBell(); closeDrawer(); }
+  });
+
+  /* Sidebar drawer (under 900px): transform only, no layout animation. */
+  var menuBtn = document.getElementById('menuBtn');
+  var sidebar = document.getElementById('sidebar');
+  var scrim = document.getElementById('scrim');
+  function closeDrawer() {
+    sidebar.classList.remove('open');
+    scrim.classList.remove('show');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }
+  menuBtn.addEventListener('click', function () {
+    var open = sidebar.classList.toggle('open');
+    scrim.classList.toggle('show', open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  scrim.addEventListener('click', closeDrawer);
+  sidebar.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', closeDrawer);
+  });
+
+  /* One current page at a time, across sidebar and bottom nav. */
+  var navLinks = document.querySelectorAll('.nav-link, .bottom-nav a');
+  navLinks.forEach(function (link) {
+    link.addEventListener('click', function () {
+      navLinks.forEach(function (l) { l.removeAttribute('aria-current'); });
+      document.querySelectorAll('[href="' + link.getAttribute('href') + '"]').forEach(function (l) {
+        l.setAttribute('aria-current', 'page');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

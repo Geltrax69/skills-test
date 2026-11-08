@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" data-type="software" data-radius="soft" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="page-type" content="software">
+<meta name="site-kind" content="software">
+<title>Greenwood High — Student Dashboard · Class 8-A</title>
+<style>
+  /* One system (taste): one radius scale, one card style, one button pair, one link look.
+     Palette dealt for a software page: ink navy, paper ground, teal accent. */
+  :root{
+    --bg:#f4f6f8; --surface:#ffffff; --ink:#101828; --muted:#667085; --line:#e4e7ec;
+    --accent:#0e7c66; --accent-ink:#ffffff; --accent-soft:#e6f4f0;
+    --amber:#b54708; --amber-soft:#fffaeb; --red:#b42318; --red-soft:#fef3f2;
+    --green-soft:#ecfdf3; --radius:12px; --radius-sm:8px;
+    --sidebar:232px; --wrap:1180px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  button{font:inherit;cursor:pointer}
+  h1,h2,h3{line-height:1.25;margin:0}
+  p{margin:0}
+
+  /* Header: equal left/right edges via the shared wrap. */
+  .topbar{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--line)}
+  .topbar-inner{max-width:var(--wrap);margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+  .menu-btn{display:none;border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-sm);width:40px;height:40px;font-size:20px;line-height:1}
+  .brand{display:flex;flex-direction:column;min-width:0}
+  .brand strong{font-size:18px;white-space:nowrap}
+  .brand span{font-size:13px;color:var(--muted);white-space:nowrap}
+  .search{flex:1;max-width:420px;margin-left:auto}
+  .search input{width:100%;height:40px;padding:0 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg);font:inherit;font-size:15px;color:var(--ink)}
+  .search input:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--surface)}
+  .bell{position:relative;border:1px solid var(--line);background:var(--surface);border-radius:50%;width:40px;height:40px;font-size:18px;line-height:1;flex:none}
+  .bell:hover{border-color:var(--accent)}
+  .bell .dot{position:absolute;top:6px;right:7px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center}
+  .bell-panel{position:absolute;top:48px;right:0;width:300px;max-width:calc(100vw - 32px);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 12px 32px rgba(16,24,40,.16);padding:12px;display:none;text-align:left}
+  .bell-panel.open{display:block}
+  .bell-panel h3{font-size:14px;margin-bottom:8px}
+  .bell-panel ul{list-style:none;margin:0;padding:0}
+  .bell-panel li{font-size:14px;color:var(--muted);padding:8px 0;border-top:1px solid var(--line)}
+  .bell-wrap{position:relative;flex:none}
+
+  .shell{max-width:var(--wrap);margin:0 auto;padding:24px;display:flex;gap:24px;align-items:flex-start}
+  /* Sidebar (ECC composition: one nav component, one link look). */
+  .sidebar{flex:none;width:var(--sidebar);position:sticky;top:73px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+  .sidebar nav{display:flex;flex-direction:column;gap:2px}
+  .sidebar a{display:block;padding:10px 12px;border-radius:var(--radius-sm);color:var(--ink);font-weight:600;font-size:15px}
+  .sidebar a:hover{background:var(--accent-soft);text-decoration:none}
+  .sidebar a.active{background:var(--accent-soft);color:var(--accent)}
+  .sidebar .side-note{margin:12px 4px 4px;font-size:13px;color:var(--muted)}
+  main{flex:1;min-width:0;display:flex;flex-direction:column;gap:24px}
+  .page-head h1{font-size:26px}
+  .page-head p{color:var(--muted);margin-top:4px}
+
+  /* Card composition (ECC Card / CardHeader / CardBody, adapted to HTML classes). */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:20px 20px 0}
+  .card-head h2{font-size:18px}
+  .card-head p{font-size:13px;color:var(--muted)}
+  .card-body{padding:20px}
+  .card:hover{transform:translateY(-2px)} /* taste rule 5: linked card lifts 2px */
+  .card{transition:transform .15s ease, box-shadow .15s ease}
+  .card:hover{box-shadow:0 6px 20px rgba(16,24,40,.08)}
+
+  /* Stat cards: one card style, equal edges. */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{padding:20px}
+  .stat .label{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  .stat .value{font-size:32px;font-weight:800;line-height:1.2;margin-top:6px}
+  .stat .sub{font-size:13px;color:var(--muted);margin-top:4px}
+  .meter{height:8px;border-radius:4px;background:var(--bg);border:1px solid var(--line);margin-top:12px;overflow:hidden}
+  .meter i{display:block;height:100%;background:var(--accent)}
+
+  /* Chart: CSS bars only. Heights are value x 1.25px, so value labels + day labels fit the 200px plot. */
+  .chart{display:flex;align-items:flex-end;gap:24px;height:200px;padding:8px 4px 0}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+  .bar-val{font-size:13px;font-weight:700;margin-bottom:6px}
+  .bar{width:100%;max-width:56px;border-radius:6px 6px 0 0;background:var(--accent)}
+  .bar.today{background:#0a5c4d}
+  .bar-day{font-size:13px;color:var(--muted);margin-top:8px}
+  .chart-note{font-size:13px;color:var(--muted);margin-top:12px}
+
+  /* Student table: scrolls inside its card on narrow screens, never the page. */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;min-width:560px;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{font-size:13px;text-transform:uppercase;letter-spacing:.02em;color:var(--muted)}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:var(--accent-soft)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:13px;font-weight:700}
+  .pill.good{background:var(--green-soft);color:#067647}
+  .pill.warn{background:var(--amber-soft);color:var(--amber)}
+  .pill.low{background:var(--red-soft);color:var(--red)}
+  .empty{padding:24px 8px;color:var(--muted);text-align:center}
+  .btn{display:inline-block;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:var(--radius-sm);padding:9px 16px;font-weight:700;font-size:15px}
+  .btn:hover{background:#0a6a58}
+  .btn:active{transform:translateY(1px)}
+
+  .grid-2{display:grid;grid-template-columns:1.6fr 1fr;gap:24px;align-items:start}
+  .notices{list-style:none;margin:0;padding:0}
+  .notices li{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .notices li:last-child{border-bottom:0}
+  .notices .mark{flex:none;width:10px;height:10px;margin-top:7px;border-radius:50%;background:var(--accent)}
+  .notices strong{display:block;font-size:15px}
+  .notices span{font-size:13px;color:var(--muted)}
+
+  footer{border-top:1px solid var(--line);background:var(--surface)}
+  footer .foot-inner{max-width:var(--wrap);margin:0 auto;padding:20px 24px;font-size:13px;color:var(--muted)}
+
+  .bottomnav{display:none}
+
+  @media (max-width:1020px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .grid-2{grid-template-columns:1fr}
+  }
+  @media (max-width:820px){
+    .topbar-inner{padding:12px 16px;gap:12px}
+    .shell{padding:16px;flex-direction:column}
+    .menu-btn{display:block}
+    .brand strong{font-size:16px}
+    .search{max-width:none}
+    .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:60;width:264px;max-width:84vw;border-radius:0;border-right:1px solid var(--line);transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto}
+    .sidebar.open{transform:translateX(0)}
+    .scrim{position:fixed;inset:0;z-index:55;background:rgba(16,24,40,.45);display:none}
+    .scrim.open{display:block}
+    .bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+    .bottomnav a{flex:1;text-align:center;padding:8px 2px;font-size:12px;font-weight:600;color:var(--muted);border-radius:var(--radius-sm)}
+    .bottomnav a.active{color:var(--accent);background:var(--accent-soft)}
+    .bottomnav a:hover{text-decoration:none}
+    body{padding-bottom:56px}
+  }
+  @media (max-width:560px){
+    .stats{grid-template-columns:repeat(2,1fr);gap:12px}
+    .stat{padding:16px}
+    .stat .value{font-size:26px}
+    .page-head h1{font-size:22px}
+    .chart{gap:12px}
+    .search input{font-size:14px}
+    .brand span{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important}
+    .card:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="menu-btn" id="menuBtn" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">☰</button>
+    <div class="brand">
+      <strong>Greenwood High</strong>
+      <span>Class 8-A · 2025–26</span>
+    </div>
+    <label class="search">
+      <span hidden>Search students</span>
+      <input id="searchInput" type="search" placeholder="Search students by name or roll…" autocomplete="off">
+    </label>
+    <div class="bell-wrap">
+      <button class="bell" id="bellBtn" aria-label="Notifications, 3 unread" aria-expanded="false" aria-controls="bellPanel">🔔<span class="dot">3</span></button>
+      <div class="bell-panel" id="bellPanel" role="region" aria-label="Notifications">
+        <h3>Notifications</h3>
+        <ul>
+          <li>Science fair on Friday</li>
+          <li>Fee deadline 20 Nov</li>
+          <li>Parent-teacher meet 25 Nov</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <nav>
+      <a href="#" class="active" aria-current="page">Dashboard</a>
+      <a href="#students">Students</a>
+      <a href="#attendance">Attendance</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#notices">Notices</a>
+      <a href="#fees">Fees</a>
+    </nav>
+    <p class="side-note">Class 8-A · 12 students · 2025–26</p>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main>
+    <div class="page-head">
+      <h1>Class 8-A Dashboard</h1>
+      <p>Attendance, student profiles and analytics for Greenwood High.</p>
+    </div>
+
+    <section class="stats" aria-label="School statistics">
+      <article class="card stat"><p class="label">Students</p><p class="value">1,248</p><p class="sub">12 in Class 8-A</p></article>
+      <article class="card stat"><p class="label">Teachers</p><p class="value">72</p><p class="sub">Across Greenwood High</p></article>
+      <article class="card stat" id="attendance"><p class="label">Attendance today</p><p class="value">95.2%</p><p class="sub">1,188 present · 60 absent</p><div class="meter" role="img" aria-label="Attendance 95.2 percent"><i style="width:95.2%"></i></div></article>
+      <article class="card stat" id="fees"><p class="label">Fees collected</p><p class="value">84%</p><p class="sub">₹25.2L of ₹30L</p><div class="meter" role="img" aria-label="Fees collected 84 percent"><i style="width:84%"></i></div></article>
+    </section>
+
+    <section class="card" id="analytics" aria-labelledby="trendTitle">
+      <div class="card-head"><h2 id="trendTitle">Attendance trend</h2><p>Mon–Fri · this week</p></div>
+      <div class="card-body">
+        <div class="chart" role="img" aria-label="Attendance trend: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95">
+          <div class="bar-col"><span class="bar-val">94%</span><div class="bar" style="height:118px"></div><span class="bar-day">Mon</span></div>
+          <div class="bar-col"><span class="bar-val">96%</span><div class="bar" style="height:120px"></div><span class="bar-day">Tue</span></div>
+          <div class="bar-col"><span class="bar-val">93%</span><div class="bar" style="height:116px"></div><span class="bar-day">Wed</span></div>
+          <div class="bar-col"><span class="bar-val">97%</span><div class="bar" style="height:121px"></div><span class="bar-day">Thu</span></div>
+          <div class="bar-col"><span class="bar-val">95%</span><div class="bar today" style="height:119px"></div><span class="bar-day">Fri</span></div>
+        </div>
+        <p class="chart-note">Weekly average 95.0%. Thursday was the strongest day at 97%.</p>
+      </div>
+    </section>
+
+    <section class="card" id="students" aria-labelledby="studentsTitle">
+      <div class="card-head"><h2 id="studentsTitle">Students · Class 8-A</h2><p id="studentCount">12 students</p></div>
+      <div class="card-body table-wrap">
+        <table>
+          <thead><tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th></tr></thead>
+          <tbody id="studentRows"></tbody>
+        </table>
+        <p class="empty" id="emptyMsg" hidden>No students match your search.</p>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <section class="card" aria-labelledby="profilesTitle">
+        <div class="card-head"><h2 id="profilesTitle">Student profiles</h2><p>Top of Class 8-A</p></div>
+        <div class="card-body">
+          <p><strong>Priya Das (8A-10)</strong> leads the class at 99% attendance and 95% marks, followed by Ananya Gupta (8A-04) at 98% attendance and 93% marks.</p>
+          <p style="margin-top:12px"><a class="btn" href="#students">View all students</a></p>
+        </div>
+      </section>
+      <section class="card" id="notices" aria-labelledby="noticesTitle">
+        <div class="card-head"><h2 id="noticesTitle">Notices</h2><p>3 notices</p></div>
+        <div class="card-body">
+          <ul class="notices">
+            <li><span class="mark" aria-hidden="true"></span><div><strong>Science fair on Friday</strong></div></li>
+            <li><span class="mark" aria-hidden="true"></span><div><strong>Fee deadline 20 Nov</strong></div></li>
+            <li><span class="mark" aria-hidden="true"></span><div><strong>Parent-teacher meet 25 Nov</strong></div></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<nav class="bottomnav" aria-label="Mobile navigation">
+  <a href="#" class="active">Dashboard</a>
+  <a href="#students">Students</a>
+  <a href="#attendance">Attendance</a>
+  <a href="#analytics">Analytics</a>
+  <a href="#notices">Notices</a>
+</nav>
+
+<footer>
+  <div class="foot-inner">Fictional demo data — UI Forge Experiment 1</div>
+</footer>
+
+<script>
+  // Single typed data model (ECC model-the-domain; pstack sequence-verifiable-units).
+  // The source array is never mutated: search derives a new filtered array.
+  var STUDENTS = [
+    {name:"Aarav Sharma", roll:"8A-01", attendance:96, marks:88},
+    {name:"Diya Patel", roll:"8A-02", attendance:94, marks:91},
+    {name:"Kabir Singh", roll:"8A-03", attendance:89, marks:76},
+    {name:"Ananya Gupta", roll:"8A-04", attendance:98, marks:93},
+    {name:"Rohan Mehta", roll:"8A-05", attendance:92, marks:82},
+    {name:"Ishita Verma", roll:"8A-06", attendance:97, marks:89},
+    {name:"Arjun Nair", roll:"8A-07", attendance:90, marks:79},
+    {name:"Sneha Reddy", roll:"8A-08", attendance:95, marks:86},
+    {name:"Vikram Joshi", roll:"8A-09", attendance:88, marks:74},
+    {name:"Priya Das", roll:"8A-10", attendance:99, marks:95},
+    {name:"Aditya Rao", roll:"8A-11", attendance:93, marks:84},
+    {name:"Kavya Iyer", roll:"8A-12", attendance:96, marks:90}
+  ];
+  function pill(value){
+    return value >= 95 ? "good" : (value >= 90 ? "warn" : "low");
+  }
+  function renderStudents(list){
+    var tbody = document.getElementById("studentRows");
+    var html = "";
+    list.forEach(function(s){
+      html += "<tr><td><strong>" + s.name + "</strong></td><td>" + s.roll + "</td>" +
+        "<td><span class='pill " + pill(s.attendance) + "'>" + s.attendance + "%</span></td>" +
+        "<td><span class='pill " + pill(s.marks) + "'>" + s.marks + "%</span></td></tr>";
+    });
+    tbody.innerHTML = html;
+    document.getElementById("emptyMsg").hidden = list.length !== 0;
+    document.getElementById("studentCount").textContent = list.length + (list.length === 1 ? " student" : " students");
+  }
+  renderStudents(STUDENTS);
+
+  // Debounced search (ECC useDebounce pattern, adapted to vanilla JS).
+  var searchTimer = null;
+  document.getElementById("searchInput").addEventListener("input", function(e){
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function(){
+      var q = e.target.value.trim().toLowerCase();
+      if (!q) { renderStudents(STUDENTS); return; }
+      renderStudents(STUDENTS.filter(function(s){
+        return s.name.toLowerCase().indexOf(q) !== -1 || s.roll.toLowerCase().indexOf(q) !== -1;
+      }));
+    }, 200);
+  });
+
+  // Nav state machine: closed <-> open, one boolean, Escape closes (ECC focus/keyboard pattern).
+  var sidebar = document.getElementById("sidebar");
+  var scrim = document.getElementById("scrim");
+  var menuBtn = document.getElementById("menuBtn");
+  function setNav(open){
+    sidebar.classList.toggle("open", open);
+    scrim.classList.toggle("open", open);
+    menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+  }
+  menuBtn.addEventListener("click", function(){ setNav(!sidebar.classList.contains("open")); });
+  scrim.addEventListener("click", function(){ setNav(false); });
+  sidebar.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", function(){ setNav(false); }); });
+
+  var bellBtn = document.getElementById("bellBtn");
+  var bellPanel = document.getElementById("bellPanel");
+  bellBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    var open = !bellPanel.classList.contains("open");
+    bellPanel.classList.toggle("open", open);
+    bellBtn.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("click", function(){ bellPanel.classList.remove("open"); bellBtn.setAttribute("aria-expanded", "false"); });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") { setNav(false); bellPanel.classList.remove("open"); bellBtn.setAttribute("aria-expanded", "false"); }
+  });
+</script>
+</body>
+</html>
