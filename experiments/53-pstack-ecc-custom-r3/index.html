@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* Tokens: one neutral ramp, one accent ramp, two status ramps (better-colors).
+     Hex throughout, semantic tokens only in components. */
+  :root {
+    --color-bg-page: #f4f6f8;
+    --color-bg-surface: #ffffff;
+    --color-bg-subtle: #eef1f4;
+    --color-bg-accent-solid: #1d4ed8;
+    --color-bg-accent-soft: #dbeafe;
+    --color-text-primary: #111827;
+    --color-text-secondary: #4b5563;
+    --color-text-on-accent: #ffffff;
+    --color-border: #d9dee5;
+    --color-border-strong: #b9c2ce;
+    --color-success: #15803d;
+    --color-success-bg: #dcfce7;
+    --color-warning: #92400e;
+    --color-warning-bg: #fef3c7;
+    --color-focus: #1d4ed8;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --radius-card: 12px;
+    --radius-inner: 8px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgb(17 24 39 / 0.06), 0 4px 12px rgb(17 24 39 / 0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-padding-block-start: 64px;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg-page);
+    color: var(--color-text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* better-accessibility: visible focus ring, browser default style kept */
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .skip-link {
+    position: absolute;
+    inset-inline-start: 16px;
+    top: -48px;
+    z-index: 60;
+    padding: 8px 16px;
+    background: var(--color-bg-accent-solid);
+    color: var(--color-text-on-accent);
+    border-radius: var(--radius-inner);
+    transition: top 150ms var(--ease-out);
+  }
+  .skip-link:focus { top: 8px; }
+
+  /* ---------- Layout shell (better-layout: group with space, shared edges) ---------- */
+  .shell {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    min-height: 100dvh;
+  }
+
+  /* ---------- Sidebar (desktop) ---------- */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    background: var(--color-bg-surface);
+    border-inline-end: 1px solid var(--color-border);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    flex: none;
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    background: var(--color-bg-accent-solid);
+    color: var(--color-text-on-accent);
+    font-weight: 700;
+    font-size: 1.125rem;
+    border-radius: var(--radius-inner);
+  }
+  .brand-name {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .brand-sub { margin: 0; font-size: 0.8125rem; line-height: 1.4; color: var(--color-text-secondary); }
+
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-label {
+    margin: 0 0 8px;
+    padding-inline-start: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: var(--radius-inner);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+  }
+  .nav-link[aria-current="page"] {
+    background: var(--color-bg-accent-soft);
+    color: var(--color-bg-accent-solid);
+    font-weight: 700;
+  }
+  .nav-link .nav-icon { flex: none; font-size: 1.125rem; line-height: 1; }
+
+  .sidebar-foot {
+    margin-top: auto;
+    padding: 12px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-inner);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+  }
+  .sidebar-foot strong { color: var(--color-text-primary); }
+
+  /* ---------- Main column ---------- */
+  .main { min-width: 0; display: flex; flex-direction: column; }
+
+  /* ---------- Header ---------- */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 64px;
+    padding: 12px 24px;
+    background: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .page-title { margin: 0; font-size: 1.25rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+  .page-sub { margin: 0; font-size: 0.875rem; line-height: 1.4; color: var(--color-text-secondary); }
+
+  .search { flex: 1 1 auto; display: flex; justify-content: center; min-width: 0; }
+  .search-box { position: relative; width: min(100%, 420px); }
+  .search-box input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px 10px 40px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--color-text-primary);
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+  }
+  .search-box input::placeholder { color: var(--color-text-secondary); }
+  .search-icon {
+    position: absolute;
+    inset-inline-start: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    pointer-events: none;
+  }
+
+  .bell-wrap { position: relative; flex: none; }
+  .bell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px; height: 44px;
+    padding: 0;
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-text-primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out);
+  }
+  .bell-dot {
+    position: absolute;
+    top: 10px; inset-inline-end: 10px;
+    width: 9px; height: 9px;
+    background: #dc2626;
+    border: 2px solid var(--color-bg-surface);
+    border-radius: 50%;
+  }
+  .bell-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    inset-inline-end: 0;
+    width: 280px;
+    max-width: calc(100vw - 32px);
+    padding: 8px;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transform-origin: top right;
+  }
+  .bell-panel[hidden] { display: none; }
+  .bell-panel h2 { margin: 8px 12px; font-size: 0.875rem; line-height: 1.4; }
+  .bell-panel ul { margin: 0; padding: 0; list-style: none; }
+  .bell-panel li {
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* ---------- Content ---------- */
+  .content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1120px;
+    width: 100%;
+    margin-inline: auto;
+  }
+
+  .section-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .section-head h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .section-head p { margin: 0; font-size: 0.875rem; line-height: 1.4; color: var(--color-text-secondary); }
+
+  /* ---------- Stat cards (ECC composition: one Card, four instances) ---------- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--color-bg-surface);
+    border: 1px solid transparent;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  .stat-card { padding: 20px; }
+  .stat-label { margin: 0 0 8px; font-size: 0.875rem; line-height: 1.4; font-weight: 600; color: var(--color-text-secondary); }
+  .stat-value {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-note { margin: 8px 0 0; font-size: 0.875rem; line-height: 1.4; color: var(--color-text-secondary); }
+  .stat-note .up { color: var(--color-success); font-weight: 600; }
+
+  /* ---------- Two-column row: chart + notices ---------- */
+  .duo {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+  .panel { padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .panel h2 { margin: 0; font-size: 1.125rem; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; }
+  .panel .panel-sub { margin: 0; font-size: 0.875rem; line-height: 1.4; color: var(--color-text-secondary); }
+
+  /* Chart: CSS bars only, values labelled in text (better-accessibility: never color alone) */
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    min-height: 180px;
+    padding-top: 8px;
+  }
+  .bar-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+  .bar-value { font-size: 0.875rem; line-height: 1.4; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .bar {
+    width: 100%;
+    max-width: 56px;
+    background: var(--color-bg-accent-solid);
+    border-radius: 6px 6px 0 0;
+  }
+  .bar.today { background: var(--color-success); }
+  .bar-day { font-size: 0.875rem; line-height: 1.4; color: var(--color-text-secondary); }
+  .chart-note { margin: 0; font-size: 0.875rem; line-height: 1.5; color: var(--color-text-secondary); }
+
+  /* Notices */
+  .notice-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .notice-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-inner);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .notice-dot { flex: none; width: 10px; height: 10px; margin-top: 7px; border-radius: 50%; background: var(--color-bg-accent-solid); }
+  .notice-list li:nth-child(2) .notice-dot { background: var(--color-warning); }
+  .notice-list li:nth-child(3) .notice-dot { background: var(--color-success); }
+  .notice-list time { display: block; font-size: 0.8125rem; line-height: 1.4; color: var(--color-text-secondary); }
+
+  /* ---------- Student table ---------- */
+  .table-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .table-card h2 { margin: 0; font-size: 1.125rem; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; }
+  .table-scroll { overflow-x: auto; overscroll-behavior: contain; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; line-height: 1.5; }
+  caption { text-align: start; padding-bottom: 12px; font-size: 0.875rem; line-height: 1.4; color: var(--color-text-secondary); }
+  th, td { padding: 12px; text-align: start; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  thead th {
+    font-size: 0.8125rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid var(--color-border-strong);
+  }
+  tbody th { font-weight: 600; }
+  tbody tr { border-bottom: 1px solid var(--color-border); }
+  tbody tr:last-child { border-bottom: 0; }
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .pill-good { background: var(--color-success-bg); color: var(--color-success); }
+  .pill-watch { background: var(--color-warning-bg); color: var(--color-warning); }
+  .empty-row { text-align: center; color: var(--color-text-secondary); }
+
+  .footer {
+    padding: 24px;
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Bottom nav: mobile only */
+  .bottom-nav { display: none; }
+
+  /* ---------- Motion (emil + better-ui) ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    @media (hover: hover) and (pointer: fine) {
+      .nav-link:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+      .bell:hover { background: var(--color-bg-accent-soft); }
+      tbody tr:hover { background: var(--color-bg-subtle); }
+    }
+    .bell:active { transform: scale(0.96); }
+    .stat-card, .panel, .table-card {
+      animation: rise 300ms var(--ease-out) both;
+    }
+    .stats .stat-card:nth-child(2) { animation-delay: 100ms; }
+    .stats .stat-card:nth-child(3) { animation-delay: 200ms; }
+    .stats .stat-card:nth-child(4) { animation-delay: 300ms; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .bell-panel { transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out); }
+    .bell-panel[hidden] { opacity: 0; transform: scale(0.95); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  /* ---------- Responsive: hold desktop until it breaks (better-layout) ---------- */
+  @media (max-width: 960px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .duo { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 700px) {
+    .shell { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { display: none; }
+    .header { padding: 12px 16px; gap: 12px; }
+    .page-sub { display: none; }
+    .page-title { font-size: 1.125rem; }
+    .search { order: 3; flex-basis: 100%; }
+    .header { flex-wrap: wrap; }
+    .content { padding: 16px 16px 96px; gap: 16px; }
+    .stat-value { font-size: 1.75rem; }
+
+    .bottom-nav {
+      display: flex;
+      position: fixed;
+      inset-inline: 0;
+      bottom: 0;
+      z-index: 50;
+      background: var(--color-bg-surface);
+      border-top: 1px solid var(--color-border);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .bottom-nav a {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-height: 56px;
+      padding: 8px 4px;
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-size: 0.75rem;
+      line-height: 1.3;
+      font-weight: 500;
+    }
+    .bottom-nav a[aria-current="page"] { color: var(--color-bg-accent-solid); font-weight: 700; }
+    .bottom-nav .nav-icon { font-size: 1.25rem; line-height: 1; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="shell">
+  <!-- Sidebar navigation (desktop) -->
+  <nav class="sidebar" aria-label="Main">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <div>
+        <p class="brand-name">Greenwood High</p>
+        <p class="brand-sub">Class 8-A &middot; 2025&ndash;26</p>
+      </div>
+    </div>
+    <div class="nav">
+      <p class="nav-label" id="nav-label">Menu</p>
+      <a class="nav-link" href="#main" aria-current="page"><span class="nav-icon" aria-hidden="true">&#8962;</span>Dashboard</a>
+      <a class="nav-link" href="#students"><span class="nav-icon" aria-hidden="true">&#128100;</span>Students</a>
+      <a class="nav-link" href="#attendance"><span class="nav-icon" aria-hidden="true">&#10003;</span>Attendance</a>
+      <a class="nav-link" href="#notices"><span class="nav-icon" aria-hidden="true">&#128276;</span>Notices</a>
+      <a class="nav-link" href="#fees"><span class="nav-icon" aria-hidden="true">&#8377;</span>Fees</a>
+    </div>
+    <p class="sidebar-foot"><strong>Class 8-A</strong><br>12 students &middot; 72 teachers school-wide<br>Academic year 2025&ndash;26</p>
+  </nav>
+
+  <div class="main">
+    <header class="header">
+      <div>
+        <h1 class="page-title">Class 8-A Dashboard</h1>
+        <p class="page-sub">Greenwood High &middot; Academic year 2025&ndash;26</p>
+      </div>
+      <div class="search">
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">&#128269;</span>
+          <label class="visually-hidden" for="student-search">Search students by name or roll number</label>
+          <input type="search" id="student-search" placeholder="Search students by name or roll&hellip;" autocomplete="off">
+        </div>
+      </div>
+      <div class="bell-wrap">
+        <button class="bell" type="button" id="bell-btn" aria-label="Notifications, 3 unread" aria-expanded="false" aria-controls="bell-panel">
+          <span aria-hidden="true">&#128276;</span>
+          <span class="bell-dot" aria-hidden="true"></span>
+        </button>
+        <div class="bell-panel" id="bell-panel" hidden>
+          <h2>Notifications</h2>
+          <ul>
+            <li>Science fair on Friday</li>
+            <li>Fee deadline 20 Nov</li>
+            <li>Parent-teacher meet 25 Nov</li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="content" id="main" tabindex="-1">
+      <!-- Stat cards -->
+      <section aria-labelledby="stats-heading">
+        <h2 id="stats-heading" class="visually-hidden">School at a glance</h2>
+        <div class="stats">
+          <article class="card stat-card">
+            <p class="stat-label">Students</p>
+            <p class="stat-value">1,248</p>
+            <p class="stat-note">12 in Class 8-A</p>
+          </article>
+          <article class="card stat-card">
+            <p class="stat-label">Teachers</p>
+            <p class="stat-value">72</p>
+            <p class="stat-note">Across all classes</p>
+          </article>
+          <article class="card stat-card" id="attendance">
+            <p class="stat-label">Attendance today</p>
+            <p class="stat-value">95.2%</p>
+            <p class="stat-note"><span class="up">1,188 present</span> &middot; 60 absent</p>
+          </article>
+          <article class="card stat-card" id="fees">
+            <p class="stat-label">Fees collected</p>
+            <p class="stat-value">84%</p>
+            <p class="stat-note">&#8377;25.2L of &#8377;30L</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Chart + notices -->
+      <div class="duo">
+        <section class="card panel" aria-labelledby="trend-heading">
+          <h2 id="trend-heading">Attendance trend</h2>
+          <p class="panel-sub">This week, Monday to Friday &middot; percentage present</p>
+          <div class="chart" role="img" aria-label="Attendance trend: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent.">
+            <div class="bar-col"><span class="bar-value">94%</span><div class="bar" style="height: 94px"></div><span class="bar-day">Mon</span></div>
+            <div class="bar-col"><span class="bar-value">96%</span><div class="bar" style="height: 96px"></div><span class="bar-day">Tue</span></div>
+            <div class="bar-col"><span class="bar-value">93%</span><div class="bar" style="height: 93px"></div><span class="bar-day">Wed</span></div>
+            <div class="bar-col"><span class="bar-value">97%</span><div class="bar" style="height: 97px"></div><span class="bar-day">Thu</span></div>
+            <div class="bar-col"><span class="bar-value">95%</span><div class="bar today" style="height: 95px"></div><span class="bar-day">Fri</span></div>
+          </div>
+          <p class="chart-note">Highest attendance on Thursday at 97%. Friday, today, is 95%.</p>
+        </section>
+
+        <section class="card panel" id="notices" aria-labelledby="notices-heading">
+          <h2 id="notices-heading">Notices</h2>
+          <p class="panel-sub">Three notices for Class 8-A</p>
+          <ul class="notice-list">
+            <li><span class="notice-dot" aria-hidden="true"></span><span>Science fair on Friday<time datetime="2025-11-14">This Friday</time></span></li>
+            <li><span class="notice-dot" aria-hidden="true"></span><span>Fee deadline 20 Nov<time datetime="2025-11-20">Due 20 November</time></span></li>
+            <li><span class="notice-dot" aria-hidden="true"></span><span>Parent-teacher meet 25 Nov<time datetime="2025-11-25">25 November</time></span></li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Student table -->
+      <section class="card table-card" id="students" aria-labelledby="students-heading">
+        <div class="section-head">
+          <h2 id="students-heading">Students &mdash; Class 8-A</h2>
+          <p id="result-count" role="status">12 students</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <caption>Attendance and marks for every student in Class 8-A.</caption>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody id="student-rows">
+              <tr><th scope="row">Aarav Sharma</th><td>8A-01</td><td>96%</td><td>88%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Diya Patel</th><td>8A-02</td><td>94%</td><td>91%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Kabir Singh</th><td>8A-03</td><td>89%</td><td>76%</td><td><span class="pill pill-watch">Watch</span></td></tr>
+              <tr><th scope="row">Ananya Gupta</th><td>8A-04</td><td>98%</td><td>93%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Rohan Mehta</th><td>8A-05</td><td>92%</td><td>82%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Ishita Verma</th><td>8A-06</td><td>97%</td><td>89%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Arjun Nair</th><td>8A-07</td><td>90%</td><td>79%</td><td><span class="pill pill-watch">Watch</span></td></tr>
+              <tr><th scope="row">Sneha Reddy</th><td>8A-08</td><td>95%</td><td>86%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Vikram Joshi</th><td>8A-09</td><td>88%</td><td>74%</td><td><span class="pill pill-watch">Watch</span></td></tr>
+              <tr><th scope="row">Priya Das</th><td>8A-10</td><td>99%</td><td>95%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Aditya Rao</th><td>8A-11</td><td>93%</td><td>84%</td><td><span class="pill pill-good">Good</span></td></tr>
+              <tr><th scope="row">Kavya Iyer</th><td>8A-12</td><td>96%</td><td>90%</td><td><span class="pill pill-good">Good</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">Fictional demo data &mdash; UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- Bottom navigation (mobile) -->
+<nav class="bottom-nav" aria-label="Main mobile">
+  <a href="#main" aria-current="page"><span class="nav-icon" aria-hidden="true">&#8962;</span>Home</a>
+  <a href="#students"><span class="nav-icon" aria-hidden="true">&#128100;</span>Students</a>
+  <a href="#attendance"><span class="nav-icon" aria-hidden="true">&#10003;</span>Attendance</a>
+  <a href="#notices"><span class="nav-icon" aria-hidden="true">&#128276;</span>Notices</a>
+  <a href="#fees"><span class="nav-icon" aria-hidden="true">&#8377;</span>Fees</a>
+</nav>
+
+<script>
+  // ECC debounce pattern, adapted to plain JS: filter the student table as you type.
+  (function () {
+    var input = document.getElementById('student-search');
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#student-rows tr'));
+    var count = document.getElementById('result-count');
+    var timer = null;
+
+    function applyFilter() {
+      var q = input.value.trim().toLowerCase();
+      var visible = 0;
+      rows.forEach(function (row) {
+        var match = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+        row.style.display = match ? '' : 'none';
+        if (match) visible += 1;
+      });
+      count.textContent = visible === 1 ? '1 student' : visible + ' students';
+      if (visible === 0) {
+        count.textContent = 'No students match "' + input.value.trim() + '". Clear the search.';
+      }
+    }
+
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(applyFilter, 200);
+    });
+
+    // Bell panel: native button, Escape closes, focus returns to the trigger.
+    var bell = document.getElementById('bell-btn');
+    var panel = document.getElementById('bell-panel');
+    function setOpen(open, returnFocus) {
+      panel.hidden = !open;
+      bell.setAttribute('aria-expanded', String(open));
+      if (!open && returnFocus) bell.focus();
+    }
+    bell.addEventListener('click', function () {
+      setOpen(panel.hidden, false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !panel.hidden) setOpen(false, true);
+    });
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !e.target.closest('.bell-wrap')) setOpen(false, false);
+    });
+  })();
+</script>
+</body>
+</html>

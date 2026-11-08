@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Student Management Dashboard | PanelUI web (r3)</title>
+<style>
+/* PanelUI web (panelui-web 0.15.0) adapted to single-file HTML.
+   Semantic tokens only: colour is a ROLE, never a value, per
+   panelui-web SKILL.md / theming. Hex appears only in the token
+   definitions below (the shadcn token layer); every component below
+   colours itself with var(--primary | --success | --warning |
+   --destructive | --info | --muted …), picked by meaning. */
+:root{
+  --background:#fafaf9; --card:#ffffff; --foreground:#18181b;
+  --muted:#f4f4f5; --muted-foreground:#71717a; --border:#e4e4e7;
+  --primary:#18181b; --primary-foreground:#fafafa;
+  --success:#15803d; --success-bg:#dcfce7;
+  --warning:#b45309; --warning-bg:#fef3c7;
+  --destructive:#b91c1c; --destructive-bg:#fee2e2;
+  --info:#1d4ed8; --info-bg:#dbeafe;
+  --accent:#eef2ff; --radius:12px;
+  --rail-w:15rem; --rail-collapsed-w:3.5rem;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--background);color:var(--foreground);font-size:15px;line-height:1.5}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;background:none;border:0;color:inherit}
+:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+
+/* ---- App shell: NavRail + content (NavRail expandedWidth 15rem) ---- */
+.shell{display:flex;min-height:100vh}
+
+/* NavRail — variant="tonal": quiet primary tint + short accent bar on the
+   active row. collapsedWidth 3.5rem. Folding is the app's decision. */
+.nav-rail{width:var(--rail-w);flex:0 0 var(--rail-w);background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;transition:width .2s ease,flex-basis .2s ease}
+.nav-rail.collapsed{width:var(--rail-collapsed-w);flex-basis:var(--rail-collapsed-w)}
+.nav-rail__header{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--border)}
+.nav-rail__brand{display:flex;align-items:center;gap:10px;min-width:0;font-weight:700;font-size:15px;white-space:nowrap}
+.nav-rail__brand .mark{flex:0 0 36px;width:36px;height:36px;border-radius:9px;background:var(--primary);color:var(--primary-foreground);display:grid;place-items:center;font-size:17px;font-weight:800}
+.nav-rail__brand span{overflow:hidden;text-overflow:ellipsis}
+.nav-rail__trigger{margin-left:auto;flex:0 0 32px;width:32px;height:32px;border:1px solid var(--border);border-radius:8px;color:var(--muted-foreground);font-size:15px}
+.nav-rail.collapsed .nav-rail__brand span{display:none}
+.nav-rail.collapsed .nav-rail__trigger{margin-left:0}
+.nav-rail__group{padding:14px 10px;flex:1;overflow-y:auto}
+.nav-rail__label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground);padding:0 10px 8px;white-space:nowrap}
+.nav-rail.collapsed .nav-rail__label{font-size:0;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.nav-rail__item{position:relative;display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:9px;color:var(--muted-foreground);font-weight:500;text-align:left;white-space:nowrap;margin-bottom:2px}
+.nav-rail__item .ico{flex:0 0 20px;width:20px;text-align:center;font-size:16px}
+.nav-rail__item .txt{overflow:hidden;text-overflow:ellipsis}
+.nav-rail__item:hover{background:var(--muted);color:var(--foreground)}
+.nav-rail__item.active{background:var(--accent);color:var(--foreground);font-weight:650}
+.nav-rail__item.active::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--primary)}
+.nav-rail__item .nav-badge{margin-left:auto}
+.nav-rail.collapsed .nav-rail__item{justify-content:center;padding:9px 0}
+.nav-rail.collapsed .nav-rail__item .txt,.nav-rail.collapsed .nav-rail__item .nav-badge{display:none}
+.nav-rail__footer{padding:12px 10px;border-top:1px solid var(--border)}
+.nav-rail__user{display:flex;align-items:center;gap:10px;padding:4px 6px;min-width:0}
+.avatar{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:var(--info-bg);color:var(--info);display:grid;place-items:center;font-size:12px;font-weight:700}
+.nav-rail__user .who{min-width:0}
+.nav-rail__user .who b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-rail__user .who small{color:var(--muted-foreground);white-space:nowrap}
+.nav-rail.collapsed .nav-rail__user .who{display:none}
+
+/* Badge — variant by meaning: success/info/warning/destructive/default */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:650;line-height:1.6;white-space:nowrap}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.success{background:var(--success-bg);color:var(--success)}
+.badge.info{background:var(--info-bg);color:var(--info)}
+.badge.warning{background:var(--warning-bg);color:var(--warning)}
+.badge.destructive{background:var(--destructive-bg);color:var(--destructive)}
+.badge.default{background:var(--primary);color:var(--primary-foreground)}
+.badge.outline{background:transparent;border:1px solid var(--border);color:var(--muted-foreground)}
+
+/* ---- Main column ---- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;background:var(--background);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:12px 24px}
+.topbar h1{font-size:19px;font-weight:750;letter-spacing:-.01em;white-space:nowrap}
+.topbar .sub{font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.title-block{min-width:0}
+.title-block .sub{overflow:hidden;text-overflow:ellipsis}
+/* Input.Group — one box round input + addons, focus ring round all of it */
+.input-group{flex:1;max-width:460px;margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0 4px 0 12px;height:38px}
+.input-group:focus-within{outline:2px solid var(--info);outline-offset:1px}
+.input-group .addon{color:var(--muted-foreground);font-size:14px;flex:0 0 auto}
+.input-group input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:14px}
+.input-group kbd{flex:0 0 auto;font:11px system-ui,sans-serif;color:var(--muted-foreground);border:1px solid var(--border);border-radius:5px;padding:2px 6px;background:var(--muted)}
+.bell{position:relative;flex:0 0 38px;width:38px;height:38px;border:1px solid var(--border);border-radius:50%;background:var(--card);font-size:17px}
+.bell .ping{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--destructive);border:2px solid var(--card)}
+.bell .count{position:absolute;top:-4px;right:-6px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--destructive);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center}
+
+.content{padding:24px;display:flex;flex-direction:column;gap:20px;max-width:1180px;width:100%;margin:0 auto}
+.crumb{font-size:12px;color:var(--muted-foreground)}
+.crumb b{color:var(--foreground);font-weight:600}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.page-head h2{font-size:24px;font-weight:750;letter-spacing:-.02em}
+.page-head p{color:var(--muted-foreground);font-size:13px}
+
+/* Frame — lead with a frame: muted band + title, round an inner
+   bordered card (Frame variant="band"). */
+.frame{background:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:10px}
+.frame__header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:2px 6px 10px}
+.frame__title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)}
+.frame__action{font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.frame__panel{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:18px}
+.frame__panel > * + *{border-top:1px solid var(--border)}
+
+/* Kpi.Group — four metrics, one panel, rules between each */
+.kpi-group{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.kpi{padding:4px 18px;min-width:0}
+.kpi:first-child{padding-left:4px}
+.kpi:last-child{padding-right:4px}
+.kpi + .kpi{border-left:1px solid var(--border)}
+.kpi__header{display:flex;align-items:center;gap:8px}
+.kpi__icon{flex:0 0 30px;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:15px}
+.kpi__icon.primary{background:var(--accent);color:var(--foreground)}
+.kpi__icon.info{background:var(--info-bg);color:var(--info)}
+.kpi__icon.success{background:var(--success-bg);color:var(--success)}
+.kpi__icon.warning{background:var(--warning-bg);color:var(--warning)}
+.kpi__title{font-size:13px;font-weight:600;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi__value{font-size:32px;font-weight:750;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi__value .unit{font-size:16px;font-weight:600;color:var(--muted-foreground);margin-left:2px}
+.kpi__trend{font-size:12px;font-weight:650}
+.kpi__trend.success{color:var(--success)}
+.kpi__trend.warning{color:var(--warning)}
+.kpi__trend.info{color:var(--info)}
+.kpi__trend .cap{color:var(--muted-foreground);font-weight:500}
+.kpi__foot{font-size:12px;color:var(--muted-foreground);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi__progress{height:6px;border-radius:99px;background:var(--muted);margin-top:10px;overflow:hidden}
+.kpi__progress i{display:block;height:100%;border-radius:99px;background:var(--warning)}
+.kpi__spark{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:10px}
+.kpi__spark i{flex:1;border-radius:2px 2px 0 0;background:var(--info);opacity:.35}
+.kpi__spark i:last-child{opacity:1}
+
+/* Two-column row: chart frame + notices frame */
+.duo{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+
+/* BarChart — value axis always includes zero, so bar heights are
+   value/100 of the plot. CSS bars only, per task. */
+.chart-plot{display:flex;align-items:flex-end;gap:14px;height:180px;padding:18px 6px 0;border-bottom:1px solid var(--border);position:relative}
+.chart-plot::before{content:"100%";position:absolute;top:2px;left:0;font-size:11px;color:var(--muted-foreground)}
+.bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:0}
+.bar-col .val{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;margin-bottom:6px}
+.bar-col .bar{width:100%;max-width:52px;border-radius:6px 6px 0 0;background:var(--primary);opacity:.85}
+.bar-col.today .bar{background:var(--success)}
+.bar-col.today .val{color:var(--success)}
+.bar-col button{all:unset;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;width:100%;cursor:pointer}
+.bar-col button:focus-visible{outline:2px solid var(--info);border-radius:6px}
+.chart-x{display:flex;gap:14px;padding:8px 6px 0}
+.chart-x span{flex:1;text-align:center;font-size:12px;color:var(--muted-foreground)}
+.chart-readout{margin-top:12px;font-size:13px;color:var(--muted-foreground)}
+.chart-readout b{color:var(--foreground)}
+
+/* Card — one surface, header + body (+ panel footer) */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.card__header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px 0}
+.card__header h3{font-size:16px;font-weight:700}
+.card__header p{font-size:13px;color:var(--muted-foreground);margin-top:2px}
+.card__content{padding:14px 18px 18px}
+.card__footer{border-top:1px solid var(--border);background:var(--muted);border-radius:0 0 var(--radius) var(--radius);padding:10px 18px;font-size:12px;color:var(--muted-foreground)}
+
+/* Table — density comfortable, striped, numbers align="end",
+   header pinned, wider than its container scrolls inside its own box */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:9px}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:14px}
+caption{text-align:left;font-size:12px;color:var(--muted-foreground);padding:10px 12px}
+thead th{position:sticky;top:0;background:var(--muted);text-align:left;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted-foreground);padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+thead th[scope="col"].num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr:nth-child(even){background:var(--background)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--accent)}
+.student{display:flex;align-items:center;gap:10px;min-width:0}
+.student .avatar{flex:0 0 32px}
+.student b{display:block;font-weight:600}
+.student small{color:var(--muted-foreground)}
+.meter{display:inline-block;width:74px;height:6px;border-radius:99px;background:var(--muted);vertical-align:middle;margin-right:8px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px}
+.meter i.good{background:var(--success)}
+.meter i.warn{background:var(--warning)}
+.meter i.bad{background:var(--destructive)}
+.marks{font-weight:650}
+
+/* Frame rows — notices */
+.frame-row{display:flex;align-items:flex-start;gap:12px;padding:13px 2px}
+.frame-row:first-child{border-top:0}
+.frame-row .media{flex:0 0 34px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:16px}
+.frame-row .media.info{background:var(--info-bg);color:var(--info)}
+.frame-row .media.warning{background:var(--warning-bg);color:var(--warning)}
+.frame-row .media.success{background:var(--success-bg);color:var(--success)}
+.frame-row .row-content{flex:1;min-width:0}
+.frame-row .row-content p{font-weight:600;font-size:14px}
+.frame-row .row-content small{display:block;color:var(--muted-foreground);font-size:12px;margin-top:1px}
+.frame-row .badge{flex:0 0 auto;margin-top:2px}
+.attend-strip{display:flex;gap:8px;flex-wrap:wrap;padding:12px 2px 0}
+.attend-strip .chip{flex:1;min-width:110px;background:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--muted-foreground)}
+.attend-strip .chip b{display:block;font-size:15px;color:var(--foreground);font-variant-numeric:tabular-nums}
+
+/* Bottom nav (mobile) — NavRail folded to a bottom bar */
+.bottom-nav{display:none}
+footer.page-footer{border-top:1px solid var(--border);padding:16px 24px 22px;font-size:12px;color:var(--muted-foreground);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%) translateY(8px);background:var(--primary);color:var(--primary-foreground);padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:calc(100vw - 32px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:900px){
+  .kpi-group{grid-template-columns:repeat(2,1fr)}
+  .kpi:nth-child(3){border-left:0}
+  .kpi:nth-child(n+3){border-top:1px solid var(--border);padding-top:14px;margin-top:14px}
+  .kpi:nth-child(odd){padding-left:4px}
+  .duo{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .nav-rail{display:none}
+  .topbar{padding:10px 14px;gap:10px;flex-wrap:wrap}
+  .topbar h1{font-size:17px}
+  .input-group{order:3;flex:1 1 100%;max-width:none;margin-left:0}
+  .input-group kbd{display:none}
+  .content{padding:16px 14px 84px}
+  .page-head h2{font-size:20px}
+  .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:11px;color:var(--muted-foreground);border-radius:8px;min-width:0}
+  .bottom-nav a .ico{font-size:18px;line-height:1}
+  .bottom-nav a.active{color:var(--foreground);font-weight:650;background:var(--accent)}
+  .kpi__value{font-size:26px}
+  .kpi__foot{white-space:normal}
+  .kpi__trend{white-space:normal}
+  .frame__panel{padding:14px}
+  .card__content{padding:12px 12px 14px}
+  .card__header{padding:14px 12px 0}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- NavRail (panelui-web nav-rail): tonal variant, expandedWidth 15rem,
+       collapsedWidth 3.5rem, active pill + accent bar, aria-current="page" -->
+  <nav class="nav-rail" id="navRail" aria-label="Main">
+    <div class="nav-rail__header">
+      <a class="nav-rail__brand" href="#" aria-label="Greenwood High home">
+        <span class="mark" aria-hidden="true">G</span><span>Greenwood High</span>
+      </a>
+      <button class="nav-rail__trigger" id="railTrigger" type="button" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">‹</button>
+    </div>
+    <div class="nav-rail__group">
+      <p class="nav-rail__label" id="grp-school">School</p>
+      <a class="nav-rail__item active" href="#" aria-current="page"><span class="ico" aria-hidden="true">▦</span><span class="txt">Dashboard</span></a>
+      <a class="nav-rail__item" href="#"><span class="ico" aria-hidden="true">◉</span><span class="txt">Students</span><span class="badge info nav-badge">12</span></a>
+      <a class="nav-rail__item" href="#"><span class="ico" aria-hidden="true">✓</span><span class="txt">Attendance</span></a>
+      <a class="nav-rail__item" href="#"><span class="ico" aria-hidden="true">▤</span><span class="txt">Marks &amp; Analytics</span></a>
+      <a class="nav-rail__item" href="#"><span class="ico" aria-hidden="true">₹</span><span class="txt">Fees</span><span class="badge warning nav-badge">84%</span></a>
+      <a class="nav-rail__item" href="#"><span class="ico" aria-hidden="true">✉</span><span class="txt">Notices</span><span class="badge destructive nav-badge">3</span></a>
+    </div>
+    <div class="nav-rail__footer">
+      <a class="nav-rail__item" href="#"><span class="ico" aria-hidden="true">⚙</span><span class="txt">Settings</span></a>
+      <div class="nav-rail__user">
+        <span class="avatar" aria-hidden="true">KT</span>
+        <span class="who"><b>Kavya Teacher</b><small>Class 8-A · Teacher</small></span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="title-block">
+        <h1>Greenwood High</h1>
+        <p class="sub">Class 8-A · Academic year 2025–26</p>
+      </div>
+      <!-- Input.Group: search addon + input + ⌘K addon -->
+      <div class="input-group">
+        <span class="addon" aria-hidden="true">⌕</span>
+        <input id="search" type="search" placeholder="Search students by name or roll…" aria-label="Search students by name or roll number">
+        <kbd>⌘K</kbd>
+      </div>
+      <button class="bell" id="bell" type="button" aria-label="Notifications, 3 unread">🔔<span class="ping" aria-hidden="true"></span><span class="count" aria-hidden="true">3</span></button>
+    </header>
+
+    <main class="content">
+      <p class="crumb">Greenwood High / <b>Dashboard</b> / Class 8-A</p>
+      <div class="page-head">
+        <div>
+          <h2>Good morning, Class 8-A</h2>
+          <p>Attendance, profiles and analytics for today — 12 students, 72 teachers school-wide.</p>
+        </div>
+        <span class="badge success"><span class="dot"></span>Today · 95.2% present</span>
+      </div>
+
+      <!-- (3) Stat cards — Kpi.Group in a Frame band: Kpi.Title / Value /
+           Trend (sign + colour by goodDirection) / Progress / Chart -->
+      <section class="frame" aria-label="Key figures">
+        <div class="frame__header"><span class="frame__title">Overview · Today</span><span class="frame__action">2025–26 · Updated today</span></div>
+        <div class="frame__panel">
+          <div class="kpi-group">
+            <div class="kpi">
+              <div class="kpi__header"><span class="kpi__icon primary" aria-hidden="true">◉</span><span class="kpi__title">Students</span></div>
+              <p class="kpi__value">1,248</p>
+              <p class="kpi__trend info">+12 <span class="cap">this term</span></p>
+              <p class="kpi__foot">12 in Class 8-A</p>
+            </div>
+            <div class="kpi">
+              <div class="kpi__header"><span class="kpi__icon info" aria-hidden="true">⚑</span><span class="kpi__title">Teachers</span></div>
+              <p class="kpi__value">72</p>
+              <p class="kpi__trend info">1 : 17 <span class="cap">teacher–student ratio</span></p>
+              <p class="kpi__foot">Across Greenwood High</p>
+            </div>
+            <div class="kpi">
+              <div class="kpi__header"><span class="kpi__icon success" aria-hidden="true">✓</span><span class="kpi__title">Attendance</span></div>
+              <p class="kpi__value">95.2<span class="unit">%</span></p>
+              <p class="kpi__trend success">▲ 1.1% <span class="cap">vs last week</span></p>
+              <div class="kpi__spark" aria-hidden="true"><i style="height:55%"></i><i style="height:70%"></i><i style="height:48%"></i><i style="height:85%"></i><i style="height:62%"></i></div>
+              <p class="kpi__foot">1,188 present · 60 absent</p>
+            </div>
+            <div class="kpi">
+              <div class="kpi__header"><span class="kpi__icon warning" aria-hidden="true">₹</span><span class="kpi__title">Fees</span></div>
+              <p class="kpi__value">84<span class="unit">%</span></p>
+              <p class="kpi__trend warning">₹25.2L <span class="cap">of ₹30L collected</span></p>
+              <div class="kpi__progress" role="progressbar" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100" aria-label="Fees collected, 84 percent"><i style="width:84%"></i></div>
+              <p class="kpi__foot">₹4.8L outstanding</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="duo">
+        <!-- (4) Attendance trend — BarChart, CSS bars only; value axis
+             includes zero, so height = value% of the plot -->
+        <section class="frame" aria-label="Attendance trend">
+          <div class="frame__header"><span class="frame__title">Attendance trend</span><span class="frame__action">This week · Mon–Fri</span></div>
+          <div class="frame__panel">
+            <div class="chart-plot" role="img" aria-label="Attendance trend Monday to Friday: 94, 96, 93, 97, 95 percent">
+              <div class="bar-col"><button type="button" data-day="Monday" data-val="94"><span class="val">94%</span><span class="bar" style="height:94%"></span></button></div>
+              <div class="bar-col"><button type="button" data-day="Tuesday" data-val="96"><span class="val">96%</span><span class="bar" style="height:96%"></span></button></div>
+              <div class="bar-col"><button type="button" data-day="Wednesday" data-val="93"><span class="val">93%</span><span class="bar" style="height:93%"></span></button></div>
+              <div class="bar-col"><button type="button" data-day="Thursday" data-val="97"><span class="val">97%</span><span class="bar" style="height:97%"></span></button></div>
+              <div class="bar-col today"><button type="button" data-day="Friday" data-val="95"><span class="val">95%</span><span class="bar" style="height:95%"></span></button></div>
+            </div>
+            <div class="chart-x" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+            <p class="chart-readout" id="chartReadout"><b>Friday: 95%</b> — highest this week was Thursday at 97%.</p>
+          </div>
+        </section>
+
+        <!-- (6) Notices — Frame rows: Media + Content + Actions(Badge) -->
+        <section class="frame" aria-label="Notices">
+          <div class="frame__header"><span class="frame__title">Notices</span><span class="frame__action">3 new</span></div>
+          <div class="frame__panel">
+            <div class="frame-row">
+              <span class="media info" aria-hidden="true">⚗</span>
+              <div class="row-content"><p>Science fair on Friday</p><small>Hall A · All classes invited</small></div>
+              <span class="badge info">Event</span>
+            </div>
+            <div class="frame-row">
+              <span class="media warning" aria-hidden="true">₹</span>
+              <div class="row-content"><p>Fee deadline 20 Nov</p><small>₹4.8L outstanding school-wide</small></div>
+              <span class="badge warning"><span class="dot"></span>Due soon</span>
+            </div>
+            <div class="frame-row">
+              <span class="media success" aria-hidden="true">◉</span>
+              <div class="row-content"><p>Parent-teacher meet 25 Nov</p><small>Class 8-A · 10:00 onwards</small></div>
+              <span class="badge success">Meeting</span>
+            </div>
+            <div class="attend-strip">
+              <div class="chip"><b>1,188</b>Present today</div>
+              <div class="chip"><b>60</b>Absent today</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- (5) Students — Table: comfortable density, striped, numbers
+           align="end", header pinned, scrolls inside its own box -->
+      <section class="card" aria-label="Students">
+        <div class="card__header">
+          <div><h3>Students — Class 8-A</h3><p>12 students · Attendance and marks this term</p></div>
+          <span class="badge outline">12 records</span>
+        </div>
+        <div class="card__content">
+          <div class="table-wrap">
+            <table>
+              <caption>Class 8-A students with roll number, attendance and marks. Use the search above to filter by name or roll.</caption>
+              <thead><tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col" class="num">Attendance</th><th scope="col" class="num">Marks</th><th scope="col">Status</th></tr></thead>
+              <tbody id="studentRows">
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">AS</span><div><b>Aarav Sharma</b><small>Class 8-A</small></div></div></td><td>8A-01</td><td class="num"><span class="meter"><i class="good" style="width:96%"></i></span>96%</td><td class="num marks">88%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">DP</span><div><b>Diya Patel</b><small>Class 8-A</small></div></div></td><td>8A-02</td><td class="num"><span class="meter"><i class="good" style="width:94%"></i></span>94%</td><td class="num marks">91%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">KS</span><div><b>Kabir Singh</b><small>Class 8-A</small></div></div></td><td>8A-03</td><td class="num"><span class="meter"><i class="warn" style="width:89%"></i></span>89%</td><td class="num marks">76%</td><td><span class="badge warning">Watch</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">AG</span><div><b>Ananya Gupta</b><small>Class 8-A</small></div></div></td><td>8A-04</td><td class="num"><span class="meter"><i class="good" style="width:98%"></i></span>98%</td><td class="num marks">93%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">RM</span><div><b>Rohan Mehta</b><small>Class 8-A</small></div></div></td><td>8A-05</td><td class="num"><span class="meter"><i class="good" style="width:92%"></i></span>92%</td><td class="num marks">82%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">IV</span><div><b>Ishita Verma</b><small>Class 8-A</small></div></div></td><td>8A-06</td><td class="num"><span class="meter"><i class="good" style="width:97%"></i></span>97%</td><td class="num marks">89%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">AN</span><div><b>Arjun Nair</b><small>Class 8-A</small></div></div></td><td>8A-07</td><td class="num"><span class="meter"><i class="good" style="width:90%"></i></span>90%</td><td class="num marks">79%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">SR</span><div><b>Sneha Reddy</b><small>Class 8-A</small></div></div></td><td>8A-08</td><td class="num"><span class="meter"><i class="good" style="width:95%"></i></span>95%</td><td class="num marks">86%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">VJ</span><div><b>Vikram Joshi</b><small>Class 8-A</small></div></div></td><td>8A-09</td><td class="num"><span class="meter"><i class="warn" style="width:88%"></i></span>88%</td><td class="num marks">74%</td><td><span class="badge warning">Watch</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">PD</span><div><b>Priya Das</b><small>Class 8-A</small></div></div></td><td>8A-10</td><td class="num"><span class="meter"><i class="good" style="width:99%"></i></span>99%</td><td class="num marks">95%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">AR</span><div><b>Aditya Rao</b><small>Class 8-A</small></div></div></td><td>8A-11</td><td class="num"><span class="meter"><i class="good" style="width:93%"></i></span>93%</td><td class="num marks">84%</td><td><span class="badge success">On track</span></td></tr>
+                <tr><td><div class="student"><span class="avatar" aria-hidden="true">KI</span><div><b>Kavya Iyer</b><small>Class 8-A</small></div></div></td><td>8A-12</td><td class="num"><span class="meter"><i class="good" style="width:96%"></i></span>96%</td><td class="num marks">90%</td><td><span class="badge success">On track</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="noResults" hidden style="padding:14px 4px 0;color:var(--muted-foreground);font-size:13px">No students match that search.</p>
+        </div>
+        <div class="card__footer">Showing 12 of 12 students in Class 8-A · Attendance below 90% is flagged “Watch”.</div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <span>Fictional demo data — UI Forge Experiment 1</span>
+      <span>Greenwood High · Class 8-A · 2025–26 · PanelUI web (r3)</span>
+    </footer>
+  </div>
+</div>
+
+<!-- Bottom nav = NavRail folded to mobile (task §2) -->
+<nav class="bottom-nav" aria-label="Main mobile">
+  <a href="#" class="active" aria-current="page"><span class="ico" aria-hidden="true">▦</span>Home</a>
+  <a href="#"><span class="ico" aria-hidden="true">◉</span>Students</a>
+  <a href="#"><span class="ico" aria-hidden="true">✓</span>Attend.</a>
+  <a href="#"><span class="ico" aria-hidden="true">▤</span>Marks</a>
+  <a href="#"><span class="ico" aria-hidden="true">✉</span>Notices</a>
+</nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// NavRail.Trigger: fold/unfold, app-driven (never viewport-driven per skill)
+var rail=document.getElementById('navRail'), trig=document.getElementById('railTrigger');
+trig.addEventListener('click',function(){
+  var c=rail.classList.toggle('collapsed');
+  trig.setAttribute('aria-expanded',String(!c));
+  trig.setAttribute('aria-label',c?'Expand navigation':'Collapse navigation');
+  trig.title=c?'Expand navigation':'Collapse navigation';
+  trig.textContent=c?'›':'‹';
+});
+// Search filters the Table rows by name or roll (Input.Group behaviour)
+var q=document.getElementById('search'), rows=document.querySelectorAll('#studentRows tr'),
+    none=document.getElementById('noResults');
+q.addEventListener('input',function(){
+  var v=q.value.trim().toLowerCase(), n=0;
+  rows.forEach(function(r){var hit=r.textContent.toLowerCase().indexOf(v)>-1;r.style.display=hit?'':'none';if(hit)n++;});
+  none.hidden=n!==0;
+});
+// BarChart readout: clicking a band reads it (BarChart.Tooltip behaviour)
+var out=document.getElementById('chartReadout');
+document.querySelectorAll('.bar-col button').forEach(function(b){
+  b.addEventListener('click',function(){
+    out.innerHTML='<b>'+b.dataset.day+': '+b.dataset.val+'%</b> — highest this week was Thursday at 97%.';
+  });
+});
+// Bell: toast listing the three notices
+var toast=document.getElementById('toast'), t;
+document.getElementById('bell').addEventListener('click',function(){
+  toast.textContent='3 notices: Science fair on Friday · Fee deadline 20 Nov · Parent-teacher meet 25 Nov';
+  toast.classList.add('show'); clearTimeout(t);
+  t=setTimeout(function(){toast.classList.remove('show');},3500);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Student Management Dashboard | Class 8-A</title>
+<style>
+  /* Design tokens (frontend-design-direction: CSS variables, multi-dimensional
+     palette — teal/blue/amber/green, no single-hue dominance, no purple gradient) */
+  :root{
+    --ink:#1b2432; --ink-soft:#47536a; --muted:#6b7688;
+    --paper:#f3f4f1; --card:#ffffff; --line:#dde2e6; --line-soft:#e9edf0;
+    --teal:#0f766e; --teal-soft:#e6f2f0; --blue:#1d4ed8; --blue-soft:#e8eefc;
+    --amber:#b45309; --amber-soft:#fdf0dd; --green:#15803d; --green-soft:#e7f3ea;
+    --red:#b91c1c; --red-soft:#fdecec;
+    --radius:10px; --sidebar-w:232px; --header-h:60px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--paper);color:var(--ink);font-size:15px;line-height:1.45}
+  button{font:inherit;cursor:pointer}
+  a{color:var(--blue);text-decoration:none}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+  /* ---- Layout: sidebar + main (composition: shell > header / nav / main) ---- */
+  .shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
+  .sidebar{grid-column:1;grid-row:1}
+  .main{grid-column:2;grid-row:1}
+  .sidebar{background:#16202e;color:#dbe3ec;padding:18px 14px;position:sticky;top:0;height:100vh;
+    display:flex;flex-direction:column;gap:4px}
+  .sidebar .brand{font-size:17px;font-weight:700;color:#fff;padding:4px 10px 14px;border-bottom:1px solid #2a3648;margin-bottom:12px}
+  .sidebar .brand small{display:block;font-size:12px;font-weight:400;color:#93a3b5;margin-top:2px}
+  .nav-link{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;
+    color:#c6d2df;padding:10px;border-radius:8px;font-size:14px}
+  .nav-link:hover{background:#223145;color:#fff}
+  .nav-link[aria-current="page"]{background:var(--teal);color:#fff;font-weight:600}
+  .nav-link .dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.55;flex:none}
+  .sidebar .side-foot{margin-top:auto;font-size:12px;color:#8fa0b3;padding:10px;line-height:1.5}
+
+  .main{min-width:0;display:flex;flex-direction:column}
+  /* ---- (1) Header ---- */
+  header.topbar{height:var(--header-h);background:var(--card);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:12px;padding:0 20px;position:sticky;top:0;z-index:20}
+  .menu-btn{display:none;background:none;border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;font-size:16px;line-height:1}
+  .school{font-size:17px;font-weight:700;white-space:nowrap}
+  .school span{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+  .search{flex:1 1 auto;min-width:0;max-width:420px;margin-left:auto}
+  .search input{width:100%;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+    font:inherit;background:var(--paper)}
+  .search input::placeholder{color:var(--muted)}
+  .bell{position:relative;background:none;border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;font-size:16px;line-height:1}
+  .bell .badge{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;
+    font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;padding:0 4px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+
+  .content{padding:20px;max-width:1120px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+  .page-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .page-head h1{font-size:22px}
+  .page-head p{color:var(--muted);font-size:14px}
+  /* Today strip — the memorable detail: one scannable attendance line */
+  .today-strip{background:var(--teal-soft);border:1px solid #c8e0dc;border-left:4px solid var(--teal);
+    border-radius:var(--radius);padding:12px 16px;font-size:14px}
+  .today-strip strong{color:var(--teal)}
+
+  /* ---- Card composition (frontend-patterns: Card / CardHeader / CardBody) ---- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .card-header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    padding:14px 16px;border-bottom:1px solid var(--line-soft)}
+  .card-header h2{font-size:16px}
+  .card-header .sub{font-size:13px;color:var(--muted)}
+  .card-body{padding:16px}
+
+  /* ---- (3) Stat cards ---- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .stat{padding:16px}
+  .stat .label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .stat .value{font-size:30px;font-weight:700;margin:4px 0 2px;line-height:1.1}
+  .stat .delta{font-size:13px}
+  .stat .delta.good{color:var(--green)} .stat .delta.warn{color:var(--amber)}
+  .stat.students{border-top:3px solid var(--blue)}
+  .stat.teachers{border-top:3px solid var(--teal)}
+  .stat.attendance{border-top:3px solid var(--green)}
+  .stat.fees{border-top:3px solid var(--amber)}
+
+  /* ---- (4) Attendance chart, CSS bars only ---- */
+  .chart{display:flex;align-items:flex-end;gap:18px;height:190px;padding:8px 4px 0}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end;min-width:0}
+  .bar-val{font-size:13px;font-weight:700}
+  .bar{width:100%;max-width:64px;border-radius:6px 6px 0 0;background:var(--teal)}
+  .bar-col.today .bar{background:var(--blue)}
+  .bar-col.today .bar-val{color:var(--blue)}
+  .bar-day{font-size:13px;color:var(--muted)}
+
+  /* ---- (5) Student table ---- */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:560px;font-size:14px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  th button{background:none;border:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;padding:0}
+  th button:hover{color:var(--ink)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#f7f8f7}
+  .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .pill.good{background:var(--green-soft);color:var(--green)}
+  .pill.mid{background:var(--amber-soft);color:var(--amber)}
+  .meter{width:90px;height:6px;background:var(--line-soft);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+  .meter i{display:block;height:100%;background:var(--teal)}
+  .empty-state{display:none;padding:28px 16px;text-align:center;color:var(--muted)}
+  .empty-state button{margin-top:10px;border:1px solid var(--line);background:var(--card);
+    border-radius:8px;padding:8px 14px}
+
+  /* ---- (6) Notices ---- */
+  .notices{list-style:none}
+  .notices li{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line-soft);align-items:flex-start}
+  .notices li:last-child{border-bottom:0}
+  .notice-tag{flex:none;font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px}
+  .tag-event{background:var(--blue-soft);color:var(--blue)}
+  .tag-fee{background:var(--amber-soft);color:var(--amber)}
+  .tag-meet{background:var(--teal-soft);color:var(--teal)}
+  .notices .when{margin-left:auto;flex:none;font-size:12px;color:var(--muted);white-space:nowrap}
+  .notices.flash{outline:2px solid var(--blue);outline-offset:-2px}
+
+  footer{padding:16px 20px 24px;text-align:center;color:var(--muted);font-size:13px}
+  .bottom-nav{display:none}
+
+  /* ---- Responsive: collapsible sidebar + bottom nav on mobile ---- */
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .sidebar{grid-column:1;grid-row:1}
+    .main{grid-column:1;grid-row:1}
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;z-index:40;
+      transform:translateX(-100%);transition:transform .2s ease;height:100dvh}
+    .sidebar.open{transform:translateX(0)}
+    .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30}
+    .menu-btn{display:block}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .content{padding:16px 14px 84px}
+    .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;
+      background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+    .bottom-nav a,.bottom-nav button{flex:1;background:none;border:0;color:var(--ink-soft);
+      font-size:12px;padding:6px 2px;text-align:center;border-radius:8px}
+    .bottom-nav [aria-current="page"]{color:var(--teal);font-weight:700}
+  }
+  @media (max-width:420px){
+    .school{font-size:15px}
+    .school span{font-size:11px}
+    header.topbar{padding:8px 12px;gap:8px;flex-wrap:wrap;height:auto}
+    .search{order:5;flex-basis:100%;max-width:none;margin-left:0}
+    .search input{padding:8px 10px}
+    .stat .value{font-size:26px}
+    .chart{gap:10px}
+    .notices .when{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="main">
+    <!-- (1) Header -->
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation">&#9776;</button>
+      <div class="school">Greenwood High<span>Student Management &middot; Class 8-A &middot; 2025–26</span></div>
+      <label class="search"><span style="position:absolute;left:-9999px">Search students</span>
+        <input type="search" id="searchInput" placeholder="Search students by name or roll&hellip;" autocomplete="off">
+      </label>
+      <button class="bell" id="bellBtn" aria-label="3 notifications">&#128276;<span class="badge">3</span></button>
+      <div class="avatar" title="Class teacher">KT</div>
+    </header>
+
+    <main class="content">
+      <div class="page-head">
+        <h1>Class 8-A Dashboard</h1>
+        <p>Today&rsquo;s overview for Greenwood High &middot; Academic year 2025–26</p>
+      </div>
+
+      <p class="today-strip"><strong>Attendance today: 95.2%</strong> — 1,188 present, 60 absent out of 1,248 students. 3 notices need attention.</p>
+
+      <!-- (3) Four stat cards -->
+      <section class="stats" aria-label="Key figures">
+        <article class="card stat students"><p class="label">Students</p><p class="value">1,248</p><p class="delta">12 in Class 8-A</p></article>
+        <article class="card stat teachers"><p class="label">Teachers</p><p class="value">72</p><p class="delta">School-wide</p></article>
+        <article class="card stat attendance"><p class="label">Attendance</p><p class="value">95.2%</p><p class="delta good">1,188 present &middot; 60 absent</p></article>
+        <article class="card stat fees"><p class="label">Fees Collected</p><p class="value">84%</p><p class="delta warn">&#8377;25.2L of &#8377;30L</p></article>
+      </section>
+
+      <!-- (4) Attendance trend chart, CSS bars only -->
+      <section class="card" aria-label="Attendance trend">
+        <div class="card-header"><h2>Attendance Trend</h2><span class="sub">This week &middot; Mon–Fri</span></div>
+        <div class="card-body">
+          <div class="chart">
+            <div class="bar-col"><span class="bar-val">94%</span><div class="bar" style="height:94%"></div><span class="bar-day">Mon</span></div>
+            <div class="bar-col"><span class="bar-val">96%</span><div class="bar" style="height:96%"></div><span class="bar-day">Tue</span></div>
+            <div class="bar-col"><span class="bar-val">93%</span><div class="bar" style="height:93%"></div><span class="bar-day">Wed</span></div>
+            <div class="bar-col"><span class="bar-val">97%</span><div class="bar" style="height:97%"></div><span class="bar-day">Thu</span></div>
+            <div class="bar-col today"><span class="bar-val">95%</span><div class="bar" style="height:95%"></div><span class="bar-day">Fri &middot; Today</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- (5) Student table -->
+      <section class="card" aria-label="Class 8-A students">
+        <div class="card-header"><h2>Students — Class 8-A</h2><span class="sub" id="rowCount">12 students</span></div>
+        <div class="table-wrap">
+          <table id="studentTable">
+            <thead><tr>
+              <th><button id="sortName" type="button">Student &#8597;</button></th>
+              <th>Roll</th>
+              <th><button id="sortAtt" type="button">Attendance &#8597;</button></th>
+              <th><button id="sortMarks" type="button">Marks &#8597;</button></th>
+            </tr></thead>
+            <tbody id="studentBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <p>No students match your search.</p>
+            <button type="button" id="clearSearch">Clear search</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- (6) Notices -->
+      <section class="card" id="noticesCard" aria-label="Notices">
+        <div class="card-header"><h2>Notices</h2><span class="sub">3 notices</span></div>
+        <ul class="notices">
+          <li><span class="notice-tag tag-event">Event</span>Science fair on Friday<span class="when">Friday</span></li>
+          <li><span class="notice-tag tag-fee">Fees</span>Fee deadline 20 Nov<span class="when">20 Nov</span></li>
+          <li><span class="notice-tag tag-meet">Meeting</span>Parent-teacher meet 25 Nov<span class="when">25 Nov</span></li>
+        </ul>
+      </section>
+
+      <!-- (7) Footer -->
+      <footer>Fictional demo data — UI Forge Experiment 1</footer>
+    </main>
+  </div>
+  <!-- (2) Responsive nav -->
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand">Greenwood High<small>Class 8-A &middot; 2025–26</small></div>
+    <button class="nav-link" aria-current="page"><span class="dot"></span>Dashboard</button>
+    <button class="nav-link"><span class="dot"></span>Students</button>
+    <button class="nav-link"><span class="dot"></span>Attendance</button>
+    <button class="nav-link"><span class="dot"></span>Marks &amp; Analytics</button>
+    <button class="nav-link"><span class="dot"></span>Fees</button>
+    <button class="nav-link"><span class="dot"></span>Notices</button>
+    <button class="nav-link"><span class="dot"></span>Settings</button>
+    <div class="side-foot">Teacher on duty: Class 8-A<br>12 students &middot; 72 teachers school-wide</div>
+  </nav>
+</div>
+
+<!-- Mobile bottom nav -->
+<nav class="bottom-nav" aria-label="Mobile navigation">
+  <a href="#" aria-current="page">Dashboard</a>
+  <a href="#studentTable">Students</a>
+  <a href="#noticesCard">Notices</a>
+  <button type="button" id="bottomMenu">Menu</button>
+</nav>
+
+<script>
+/* Adapted from frontend-patterns (ECC), vanilla JS, no React:
+   - Single immutable state object + reducer-style dispatch (Context + Reducer pattern).
+     Every update returns a NEW state object; the source array is never mutated
+     (sorting copies it first — the skill's "copy before sorting" rule).
+   - useToggle -> sidebar open/closed boolean in state.
+   - useDebounce -> 300 ms debounced search input.
+   - useMemo-like sorted copy: render derives a sorted copy from state, never the source.
+   - Error/empty state: no-match search shows an empty state with a clear action
+     (frontend-design-direction content-states table).
+*/
+(function () {
+  "use strict";
+  var STUDENTS = [
+    { name: "Aarav Sharma",  roll: "8A-01", attendance: 96, marks: 88 },
+    { name: "Diya Patel",    roll: "8A-02", attendance: 94, marks: 91 },
+    { name: "Kabir Singh",   roll: "8A-03", attendance: 89, marks: 76 },
+    { name: "Ananya Gupta",  roll: "8A-04", attendance: 98, marks: 93 },
+    { name: "Rohan Mehta",   roll: "8A-05", attendance: 92, marks: 82 },
+    { name: "Ishita Verma",  roll: "8A-06", attendance: 97, marks: 89 },
+    { name: "Arjun Nair",    roll: "8A-07", attendance: 90, marks: 79 },
+    { name: "Sneha Reddy",   roll: "8A-08", attendance: 95, marks: 86 },
+    { name: "Vikram Joshi",  roll: "8A-09", attendance: 88, marks: 74 },
+    { name: "Priya Das",     roll: "8A-10", attendance: 99, marks: 95 },
+    { name: "Aditya Rao",    roll: "8A-11", attendance: 93, marks: 84 },
+    { name: "Kavya Iyer",    roll: "8A-12", attendance: 96, marks: 90 }
+  ];
+
+  /* Immutable state + dispatch (reducer pattern, adapted). */
+  var state = { query: "", sortKey: null, sortDir: 1, sidebarOpen: false };
+  function dispatch(action) {
+    var next = Object.assign({}, state);
+    if (action.type === "SET_QUERY") next.query = action.query;
+    else if (action.type === "TOGGLE_SIDEBAR") next.sidebarOpen = !state.sidebarOpen;
+    else if (action.type === "CLOSE_SIDEBAR") next.sidebarOpen = false;
+    else if (action.type === "SET_SORT") {
+      if (state.sortKey === action.key) next.sortDir = -state.sortDir;
+      else { next.sortKey = action.key; next.sortDir = action.key === "name" ? 1 : -1; }
+    }
+    state = next;           /* new object, never mutated in place */
+    render();
+  }
+
+  var body = document.getElementById("studentBody");
+  var rowCount = document.getElementById("rowCount");
+  var emptyState = document.getElementById("emptyState");
+  var table = document.getElementById("studentTable");
+  var sidebar = document.getElementById("sidebar");
+  var menuBtn = document.getElementById("menuBtn");
+
+  function pill(v) { return v >= 90 ? "good" : "mid"; }
+
+  function render() {
+    /* Derive visible rows: filter, then sort a COPY (never mutate STUDENTS). */
+    var q = state.query.trim().toLowerCase();
+    var rows = STUDENTS.filter(function (s) {
+      return !q || s.name.toLowerCase().indexOf(q) !== -1 ||
+        s.roll.toLowerCase().indexOf(q) !== -1;
+    });
+    if (state.sortKey) {
+      var k = state.sortKey, d = state.sortDir;
+      rows = rows.slice().sort(function (a, b) {
+        return a[k] < b[k] ? -d : a[k] > b[k] ? d : 0;
+      });
+    }
+    body.innerHTML = rows.map(function (s) {
+      return "<tr><td><strong>" + s.name + "</strong></td><td>" + s.roll + "</td>" +
+        "<td><span class=\"meter\"><i style=\"width:" + s.attendance + "%\"></i></span>" +
+        "<span class=\"pill " + pill(s.attendance) + "\">" + s.attendance + "%</span></td>" +
+        "<td><span class=\"meter\"><i style=\"width:" + s.marks + "%\"></i></span>" +
+        "<span class=\"pill " + pill(s.marks) + "\">" + s.marks + "%</span></td></tr>";
+    }).join("");
+    rowCount.textContent = rows.length + (rows.length === 1 ? " student" : " students");
+    var empty = rows.length === 0;
+    emptyState.style.display = empty ? "block" : "none";
+    table.style.display = empty ? "none" : "";
+    /* Sidebar (useToggle adaptation) + focus/Escape handling (a11y pattern). */
+    sidebar.classList.toggle("open", state.sidebarOpen);
+    menuBtn.setAttribute("aria-expanded", String(state.sidebarOpen));
+    var scrim = document.querySelector(".scrim");
+    if (state.sidebarOpen && !scrim) {
+      scrim = document.createElement("div");
+      scrim.className = "scrim";
+      scrim.addEventListener("click", function () { dispatch({ type: "CLOSE_SIDEBAR" }); });
+      document.body.appendChild(scrim);
+    } else if (!state.sidebarOpen && scrim) {
+      scrim.remove();
+    }
+  }
+
+  /* Debounced search (useDebounce adaptation, 300 ms). */
+  var timer = null;
+  document.getElementById("searchInput").addEventListener("input", function (e) {
+    clearTimeout(timer);
+    var value = e.target.value;
+    timer = setTimeout(function () { dispatch({ type: "SET_QUERY", query: value }); }, 300);
+  });
+  document.getElementById("clearSearch").addEventListener("click", function () {
+    document.getElementById("searchInput").value = "";
+    dispatch({ type: "SET_QUERY", query: "" });
+    document.getElementById("searchInput").focus();
+  });
+  document.getElementById("sortName").addEventListener("click", function () { dispatch({ type: "SET_SORT", key: "name" }); });
+  document.getElementById("sortAtt").addEventListener("click", function () { dispatch({ type: "SET_SORT", key: "attendance" }); });
+  document.getElementById("sortMarks").addEventListener("click", function () { dispatch({ type: "SET_SORT", key: "marks" }); });
+  menuBtn.addEventListener("click", function () { dispatch({ type: "TOGGLE_SIDEBAR" }); });
+  document.getElementById("bottomMenu").addEventListener("click", function () { dispatch({ type: "TOGGLE_SIDEBAR" }); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && state.sidebarOpen) dispatch({ type: "CLOSE_SIDEBAR" });
+  });
+  /* Bell: scroll to notices and flash it (no modal — keeps controls speaking for themselves). */
+  document.getElementById("bellBtn").addEventListener("click", function () {
+    var card = document.getElementById("noticesCard");
+    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    card.classList.add("flash");
+    setTimeout(function () { card.classList.remove("flash"); }, 1600);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
