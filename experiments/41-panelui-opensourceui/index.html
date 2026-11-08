@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Student Dashboard</title>
+<!--
+  UI Forge Experiment 41 — CONFLICT TEST: PanelUI Web vs OpenSourceUI
+  Adapted to single-file HTML (no npm, no packages installed).
+  PanelUI Web (panelui-web 0.15.0, shadcn tokens): NavRail, Kpi (+Kpi.Group,
+  Kpi.Trend, Kpi.Progress), Table, BarChart, Frame structure.
+  OpenSourceUI (copy-paste, no package): neutral stage, Instrument Serif
+  display + Geist UI, TeamMembersTable pattern, CalendarReminder
+  notification-banner pattern, border-only focus, flat surfaces.
+  Conflict resolutions are recorded in SKILLS_ACTUALLY_READ.md.
+  Tokens in use (winners applied):
+    --paper #ffffff, --paper-tint #fafafa, --ink #171717, --ink-soft #262626,
+    --body #404040, --muted #737373, --border #e5e5e5, --border-subtle #f5f5f5,
+    --success #059669 (emerald), --warning #d97706 (amber),
+    --destructive #f43f5e (rose), --info #0891b2 (cyan — PanelUI's oklch
+    info hue 259.8 was rejected by OpenSourceUI's no-purple rule).
+-->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --paper: #ffffff;
+    --paper-tint: #fafafa;
+    --ink: #171717;
+    --ink-soft: #262626;
+    --body: #404040;
+    --muted: #737373;
+    --faint: #a3a3a3;
+    --border: #e5e5e5;
+    --border-subtle: #f5f5f5;
+    --success: #059669;
+    --warning: #d97706;
+    --destructive: #f43f5e;
+    --info: #0891b2;
+    --accent-cyan: #a5f3fc;
+    --radius-sm: 6px;   /* OpenSourceUI rounded-md — buttons */
+    --radius-md: 8px;   /* OpenSourceUI rounded-lg — fields, small cards */
+    --radius-lg: 16px;  /* OpenSourceUI rounded-2xl — large surfaces */
+    --rail-w: 15rem;    /* PanelUI NavRail expandedWidth default */
+    --rail-w-collapsed: 3.5rem; /* PanelUI NavRail collapsedWidth default */
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; /* Geist fallback */
+    font-size: 1rem; line-height: 1.6; letter-spacing: -0.025em;
+    color: var(--body); background: var(--paper);
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+  input { font: inherit; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; } /* border-only focus per OpenSourceUI; visible keyboard outline kept for a11y */
+
+  /* ---------- PanelUI NavRail (tonal variant, collapsed via app decision) ---------- */
+  .shell { display: flex; min-height: 100vh; }
+  .nav-rail {
+    width: var(--rail-w); flex-shrink: 0;
+    border-right: 1px solid var(--border-subtle);
+    background: var(--paper);
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .nav-rail.collapsed { width: var(--rail-w-collapsed); }
+  .nav-rail__header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 16px 12px 12px;
+  }
+  .nav-rail__brand {
+    display: flex; align-items: center; gap: 10px; min-width: 0;
+    font-family: Georgia, "Instrument Serif", ui-serif, serif; /* OpenSourceUI display voice */
+    font-size: 1.125rem; color: var(--ink); white-space: nowrap;
+  }
+  .nav-rail__brand-mark {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: var(--radius-md);
+    background: var(--ink-soft); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: Georgia, serif; font-size: 1rem;
+  }
+  .nav-rail.collapsed .nav-rail__brand-name { display: none; }
+  .nav-rail__trigger {
+    margin-left: auto; flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: var(--radius-sm);
+    color: var(--muted); font-size: 0.875rem; line-height: 1;
+  }
+  .nav-rail__trigger:hover { background: var(--paper-tint); color: var(--ink); }
+  .nav-rail.collapsed .nav-rail__trigger { margin-left: 0; }
+  .nav-rail__group-label {
+    padding: 8px 16px 4px; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint);
+    white-space: nowrap;
+  }
+  .nav-rail.collapsed .nav-rail__group-label { visibility: hidden; height: 1px; padding: 0; }
+  .nav-rail__item {
+    display: flex; align-items: center; gap: 10px;
+    margin: 2px 8px; padding: 8px 12px; border-radius: var(--radius-md);
+    font-size: 0.875rem; font-weight: 500; color: var(--muted);
+    position: relative; white-space: nowrap; text-align: left; width: calc(100% - 16px);
+  }
+  .nav-rail__item:hover { background: var(--paper-tint); color: var(--ink); }
+  .nav-rail__item[aria-current="page"] {
+    /* PanelUI NavRail tonal variant: quiet primary tint + short accent bar */
+    background: var(--paper-tint); color: var(--ink); font-weight: 600;
+  }
+  .nav-rail__item[aria-current="page"]::before {
+    content: ""; position: absolute; left: -8px; top: 8px; bottom: 8px;
+    width: 3px; border-radius: 2px; background: var(--ink);
+  }
+  .nav-rail__item-icon { flex-shrink: 0; width: 18px; text-align: center; font-size: 1rem; }
+  .nav-rail.collapsed .nav-rail__item-label,
+  .nav-rail.collapsed .nav-rail__badge { display: none; }
+  .nav-rail__badge {
+    margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px;
+    border-radius: 9999px; background: var(--ink-soft); color: #fff;
+    font-size: 0.625rem; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .nav-rail__footer { margin-top: auto; padding: 12px 0; border-top: 1px solid var(--border-subtle); }
+
+  /* ---------- Main column ---------- */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .content { padding: 16px; display: flex; flex-direction: column; gap: 16px; max-width: 1100px; width: 100%; margin: 0 auto; }
+
+  /* ---------- Header ---------- */
+  .page-header {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 16px; border-bottom: 1px solid var(--border-subtle);
+    background: var(--paper); position: sticky; top: 0; z-index: 10;
+  }
+  .page-header__title { min-width: 0; }
+  .page-header__title h1 {
+    font-family: Georgia, "Instrument Serif", ui-serif, serif; /* OpenSourceUI display */
+    font-weight: 400; font-size: 1.875rem; line-height: 1.25; color: var(--ink);
+    white-space: nowrap;
+  }
+  .page-header__title p { font-size: 0.75rem; font-weight: 500; color: var(--muted); }
+  /* OpenSourceUI input: white, rounded-lg, h-10, border-neutral-200, focus border ink, ring-0 */
+  .search {
+    flex: 1; min-width: 160px; max-width: 360px; margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+    height: 40px; padding: 0 14px;
+    background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-md);
+  }
+  .search:focus-within { border-color: var(--ink); }
+  .search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: 0.875rem; color: var(--ink); }
+  .search input::placeholder { color: var(--faint); }
+  .search kbd { font-size: 0.625rem; font-family: ui-monospace, Menlo, monospace; color: var(--faint); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+  .bell {
+    position: relative; flex-shrink: 0; width: 40px; height: 40px;
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.125rem; color: var(--ink-soft); background: var(--paper);
+  }
+  .bell:hover { border-color: var(--ink); }
+  .bell__dot {
+    position: absolute; top: 7px; right: 7px; min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 9999px; background: var(--destructive); color: #fff;
+    font-size: 0.625rem; font-weight: 600; line-height: 16px; text-align: center;
+  }
+
+  /* ---------- Panels (OpenSourceUI flat card wins over PanelUI Frame band) ---------- */
+  .panel {
+    background: var(--paper); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px; /* p-4 */
+  }
+  .panel__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .panel__title {
+    font-family: Georgia, "Instrument Serif", ui-serif, serif; /* OpenSourceUI headline */
+    font-weight: 400; font-size: 1.5rem; line-height: 1.3; color: var(--ink);
+  }
+  .panel__action { font-size: 0.75rem; font-weight: 500; color: var(--muted); white-space: nowrap; }
+
+  /* ---------- PanelUI Kpi.Group (4 stats) ---------- */
+  .kpi-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .kpi {
+    background: var(--paper); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px;
+    display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  }
+  .kpi__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .kpi__title { font-size: 0.875rem; font-weight: 600; color: var(--muted); }
+  .kpi__icon {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: var(--radius-md);
+    background: var(--paper-tint); color: var(--ink-soft);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 0.875rem;
+  }
+  .kpi__value { font-size: 1.875rem; font-weight: 600; line-height: 1.2; color: var(--ink); letter-spacing: -0.02em; }
+  .kpi__trend { font-size: 0.75rem; font-weight: 500; }
+  .kpi__trend--up { color: var(--success); }
+  .kpi__trend--down { color: var(--destructive); }
+  .kpi__trend--flat { color: var(--muted); }
+  .kpi__footer { font-size: 0.75rem; color: var(--muted); }
+  /* Kpi.Progress */
+  .kpi__progress { height: 6px; border-radius: 9999px; background: var(--border-subtle); overflow: hidden; margin-top: 8px; }
+  .kpi__progress-fill { height: 100%; border-radius: 9999px; background: var(--ink-soft); }
+
+  /* ---------- PanelUI BarChart, CSS bars (task: CSS bars only; axis includes zero) ---------- */
+  .chart { display: flex; align-items: flex-end; gap: 12px; height: 180px; padding-top: 8px; }
+  .chart__bar-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .chart__value { font-size: 0.75rem; font-weight: 600; color: var(--ink); }
+  .chart__bar {
+    width: 100%; max-width: 56px; border-radius: 4px 4px 0 0; /* PanelUI BarChart cornerRadius 4 */
+    background: var(--ink-soft); /* color="primary" role; primary token = ink-soft (conflict 2 winner) */
+  }
+  .chart__bar--peak { background: var(--success); } /* highest day reads as success role */
+  .chart__label { font-size: 0.75rem; font-weight: 500; color: var(--muted); }
+  .chart__note { font-size: 0.75rem; color: var(--muted); margin-top: 8px; }
+
+  /* ---------- Students table: OpenSourceUI TeamMembersTable pattern ---------- */
+  .table-scroll { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+  table.students { width: 100%; min-width: 340px; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+  .students thead tr { font-size: 0.75rem; color: var(--muted); }
+  .students th { padding: 10px 12px; font-weight: 500; border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
+  .students td { padding: 12px; border-top: 1px solid var(--border-subtle); white-space: nowrap; }
+  .students tbody tr:hover { background: var(--paper-tint); } /* OSUI hover neutral-50 */
+  .students .num { text-align: right; font-variant-numeric: tabular-nums; } /* PanelUI Table align="end" */
+  .member { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .member__avatar {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 9999px;
+    background: var(--ink-soft); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .member__name { font-weight: 500; color: var(--ink); }
+  .member__roll { font-size: 0.75rem; color: var(--muted); }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--body); }
+  .status__dot { width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0; }
+  .status--good .status__dot { background: var(--success); }
+  .status--watch .status__dot { background: var(--warning); }
+  .status--low .status__dot { background: var(--destructive); }
+  .table-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 4px 0; font-size: 0.75rem; color: var(--muted); }
+  /* OpenSourceUI primary button: ink-soft fill, rounded-md 6px */
+  .btn-primary {
+    background: var(--ink-soft); color: #fff; border-radius: var(--radius-sm);
+    padding: 8px 16px; font-size: 0.875rem; font-weight: 500;
+  }
+  .btn-primary:hover { background: var(--ink); }
+  .empty-row { text-align: center; color: var(--muted); padding: 24px 12px; }
+
+  /* ---------- Notices: OpenSourceUI CalendarReminder banner pattern ---------- */
+  .notice-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+  .notice {
+    display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: start;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px 14px;
+    background: var(--paper);
+  }
+  .notice__tile {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; color: #fff;
+  }
+  .notice__tile--rose { background: var(--destructive); }
+  .notice__tile--amber { background: var(--warning); }
+  .notice__tile--cyan { background: var(--info); }
+  .notice__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .notice__app { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+  .notice__when { flex-shrink: 0; font-size: 0.6875rem; color: var(--faint); white-space: nowrap; }
+  .notice__text { font-size: 0.8125rem; line-height: 1.38; color: var(--body); }
+  .notice__text strong { color: var(--ink); font-weight: 600; }
+  .notice__dismiss {
+    width: 24px; height: 24px; border-radius: 9999px; color: var(--faint);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 0.875rem; line-height: 1;
+  }
+  .notice__dismiss:hover { background: var(--paper-tint); color: var(--ink); }
+  .notice--closing { opacity: 0; transform: translateY(-4px); transition: opacity 0.26s ease, transform 0.26s ease; }
+  .notice__restore { font-size: 0.75rem; font-weight: 500; color: var(--muted); text-decoration: underline; }
+
+  /* ---------- Footer ---------- */
+  .page-footer { padding: 16px; text-align: center; font-size: 0.75rem; color: var(--muted); border-top: 1px solid var(--border-subtle); }
+
+  /* ---------- Mobile bottom nav (NavRail folded to a bottom bar) ---------- */
+  .bottom-nav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--paper); border-top: 1px solid var(--border);
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav__item {
+    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 2px; border-radius: var(--radius-md);
+    font-size: 0.625rem; font-weight: 500; color: var(--muted);
+  }
+  .bottom-nav__item[aria-current="page"] { color: var(--ink); font-weight: 600; background: var(--paper-tint); }
+  .bottom-nav__item-icon { font-size: 1.125rem; line-height: 1; }
+  .bottom-nav__item-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .main--mobile-nav { padding-bottom: 64px; }
+
+  /* ---------- Responsive: base + md: only (OpenSourceUI rule — no sm: breakpoint) ---------- */
+  @media (max-width: 767px) {
+    .nav-rail { display: none; }
+    .page-header__title h1 { font-size: 1.5rem; }
+    .search { order: 3; flex-basis: 100%; max-width: none; margin-left: 0; }
+    .search kbd { display: none; }
+  }
+  @media (min-width: 768px) {
+    .bottom-nav { display: none; }
+    .main--mobile-nav { padding-bottom: 0; }
+    .content { padding: 24px; gap: 24px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: stretch; }
+  }
+  @media (min-width: 1024px) {
+    .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- PanelUI NavRail: aria-label="Main", tonal variant, expandedWidth 15rem, collapsedWidth 3.5rem -->
+  <nav class="nav-rail" id="navRail" aria-label="Main">
+    <div class="nav-rail__header">
+      <a class="nav-rail__brand" href="#" aria-label="Greenwood High">
+        <span class="nav-rail__brand-mark" aria-hidden="true">G</span>
+        <span class="nav-rail__brand-name">Greenwood High</span>
+      </a>
+      <button class="nav-rail__trigger" id="railTrigger" type="button" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">&#8249;</button>
+    </div>
+    <p class="nav-rail__group-label" id="navGroupLabel">School</p>
+    <div role="group" aria-labelledby="navGroupLabel">
+      <a class="nav-rail__item" href="#" aria-current="page"><span class="nav-rail__item-icon" aria-hidden="true">&#8962;</span><span class="nav-rail__item-label">Dashboard</span></a>
+      <a class="nav-rail__item" href="#students"><span class="nav-rail__item-icon" aria-hidden="true">&#128101;</span><span class="nav-rail__item-label">Students</span><span class="nav-rail__badge">12</span></a>
+      <a class="nav-rail__item" href="#attendance"><span class="nav-rail__item-icon" aria-hidden="true">&#10003;</span><span class="nav-rail__item-label">Attendance</span></a>
+      <a class="nav-rail__item" href="#analytics"><span class="nav-rail__item-icon" aria-hidden="true">&#128202;</span><span class="nav-rail__item-label">Analytics</span></a>
+      <a class="nav-rail__item" href="#notices"><span class="nav-rail__item-icon" aria-hidden="true">&#128276;</span><span class="nav-rail__item-label">Notices</span><span class="nav-rail__badge">3</span></a>
+    </div>
+    <div class="nav-rail__footer">
+      <a class="nav-rail__item" href="#"><span class="nav-rail__item-icon" aria-hidden="true">&#9881;</span><span class="nav-rail__item-label">Settings</span></a>
+    </div>
+  </nav>
+
+  <div class="main main--mobile-nav">
+    <!-- (1) Header: school name, search, notification bell -->
+    <header class="page-header">
+      <div class="page-header__title">
+        <h1>Greenwood High</h1>
+        <p>Class 8-A &middot; Academic year 2025&ndash;26</p>
+      </div>
+      <label class="search" for="studentSearch">
+        <span aria-hidden="true">&#128269;</span>
+        <input id="studentSearch" type="search" placeholder="Search students by name or roll&hellip;" aria-label="Search students by name or roll">
+        <kbd>/</kbd>
+      </label>
+      <button class="bell" type="button" aria-label="Notifications, 3 unread" id="bellBtn">
+        <span aria-hidden="true">&#128276;</span>
+        <span class="bell__dot" id="bellCount">3</span>
+      </button>
+    </header>
+
+    <main class="content">
+      <!-- (3) Four stat cards — PanelUI Kpi.Group -->
+      <section class="kpi-grid" aria-label="Key figures">
+        <article class="kpi">
+          <div class="kpi__header"><p class="kpi__title">Students</p><span class="kpi__icon" aria-hidden="true">&#127891;</span></div>
+          <p class="kpi__value">1,248</p>
+          <p class="kpi__trend kpi__trend--flat">12 in Class 8-A</p>
+          <p class="kpi__footer">Across all classes</p>
+        </article>
+        <article class="kpi">
+          <div class="kpi__header"><p class="kpi__title">Teachers</p><span class="kpi__icon" aria-hidden="true">&#128100;</span></div>
+          <p class="kpi__value">72</p>
+          <p class="kpi__trend kpi__trend--flat">6 per class on average</p>
+          <p class="kpi__footer">Full-time faculty</p>
+        </article>
+        <article class="kpi">
+          <div class="kpi__header"><p class="kpi__title">Attendance today</p><span class="kpi__icon" aria-hidden="true">&#10003;</span></div>
+          <p class="kpi__value">95.2%</p>
+          <p class="kpi__trend kpi__trend--up">&#9650; 1.2% vs yesterday</p>
+          <p class="kpi__footer">1,188 present &middot; 60 absent</p>
+        </article>
+        <article class="kpi">
+          <div class="kpi__header"><p class="kpi__title">Fees collected</p><span class="kpi__icon" aria-hidden="true">&#8377;</span></div>
+          <p class="kpi__value">84%</p>
+          <div class="kpi__progress" role="progressbar" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100" aria-label="Fees collected, 84 percent"><div class="kpi__progress-fill" style="width:84%"></div></div>
+          <p class="kpi__footer">&#8377;25.2L of &#8377;30L</p>
+        </article>
+      </section>
+
+      <div class="chart-grid">
+        <!-- (4) Attendance trend — PanelUI BarChart adapted to CSS bars; value axis includes zero -->
+        <section class="panel" id="attendance" aria-label="Attendance trend">
+          <div class="panel__head">
+            <h2 class="panel__title">Attendance trend</h2>
+            <span class="panel__action">This week &middot; Class 8-A</span>
+          </div>
+          <div class="chart" role="img" aria-label="Attendance by day: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent">
+            <div class="chart__bar-wrap"><span class="chart__value">94%</span><div class="chart__bar" style="height:94%"></div><span class="chart__label">Mon</span></div>
+            <div class="chart__bar-wrap"><span class="chart__value">96%</span><div class="chart__bar" style="height:96%"></div><span class="chart__label">Tue</span></div>
+            <div class="chart__bar-wrap"><span class="chart__value">93%</span><div class="chart__bar" style="height:93%"></div><span class="chart__label">Wed</span></div>
+            <div class="chart__bar-wrap"><span class="chart__value">97%</span><div class="chart__bar chart__bar--peak" style="height:97%"></div><span class="chart__label">Thu</span></div>
+            <div class="chart__bar-wrap"><span class="chart__value">95%</span><div class="chart__bar" style="height:95%"></div><span class="chart__label">Fri</span></div>
+          </div>
+          <p class="chart__note">Weekly average 95.0% &middot; bars start at zero, as PanelUI BarChart requires.</p>
+        </section>
+
+        <!-- (6) Notices — OpenSourceUI CalendarReminder banner pattern -->
+        <section class="panel" id="notices" aria-label="Notices">
+          <div class="panel__head">
+            <h2 class="panel__title">Notices</h2>
+            <span class="panel__action" id="noticeCount">3 notices</span>
+          </div>
+          <ul class="notice-list" id="noticeList">
+            <li class="notice">
+              <span class="notice__tile notice__tile--rose" aria-hidden="true">&#128300;</span>
+              <div>
+                <div class="notice__head"><p class="notice__app">Science Fair</p><span class="notice__when">Friday</span></div>
+                <p class="notice__text"><strong>Science fair on Friday</strong> &mdash; projects due at the main hall by 9:00 am.</p>
+              </div>
+              <button class="notice__dismiss" type="button" aria-label="Dismiss notice: Science fair on Friday">&times;</button>
+            </li>
+            <li class="notice">
+              <span class="notice__tile notice__tile--amber" aria-hidden="true">&#8377;</span>
+              <div>
+                <div class="notice__head"><p class="notice__app">Fees Office</p><span class="notice__when">20 Nov</span></div>
+                <p class="notice__text"><strong>Fee deadline 20 Nov</strong> &mdash; please clear pending term fees before the date.</p>
+              </div>
+              <button class="notice__dismiss" type="button" aria-label="Dismiss notice: Fee deadline 20 Nov">&times;</button>
+            </li>
+            <li class="notice">
+              <span class="notice__tile notice__tile--cyan" aria-hidden="true">&#128101;</span>
+              <div>
+                <div class="notice__head"><p class="notice__app">Parent Meet</p><span class="notice__when">25 Nov</span></div>
+                <p class="notice__text"><strong>Parent-teacher meet 25 Nov</strong> &mdash; slots open from 10:00 am to 2:00 pm.</p>
+              </div>
+              <button class="notice__dismiss" type="button" aria-label="Dismiss notice: Parent-teacher meet 25 Nov">&times;</button>
+            </li>
+          </ul>
+          <p style="margin-top:12px"><button class="notice__restore" type="button" id="restoreNotices" hidden>Show dismissed notices</button></p>
+        </section>
+      </div>
+
+      <!-- (5) Student table — OpenSourceUI TeamMembersTable pattern, PanelUI Table align="end" numbers -->
+      <section class="panel" id="students" aria-label="Students in Class 8-A">
+        <div class="panel__head">
+          <h2 class="panel__title">Class 8-A students</h2>
+          <span class="panel__action">12 students</span>
+        </div>
+        <div class="table-scroll">
+          <table class="students">
+            <caption style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;">Students of Class 8-A with roll number, attendance and marks</caption>
+            <thead>
+              <tr>
+                <th scope="col">Student</th>
+                <th scope="col" class="num">Attendance</th>
+                <th scope="col" class="num">Marks</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="studentRows">
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">AS</span><div><p class="member__name">Aarav Sharma</p><p class="member__roll">8A-01</p></div></div></td><td class="num">96%</td><td class="num">88%</td><td><span class="status status--good"><span class="status__dot"></span>Excellent</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">DP</span><div><p class="member__name">Diya Patel</p><p class="member__roll">8A-02</p></div></div></td><td class="num">94%</td><td class="num">91%</td><td><span class="status status--watch"><span class="status__dot"></span>Good</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">KS</span><div><p class="member__name">Kabir Singh</p><p class="member__roll">8A-03</p></div></div></td><td class="num">89%</td><td class="num">76%</td><td><span class="status status--watch"><span class="status__dot"></span>Watch</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">AG</span><div><p class="member__name">Ananya Gupta</p><p class="member__roll">8A-04</p></div></div></td><td class="num">98%</td><td class="num">93%</td><td><span class="status status--good"><span class="status__dot"></span>Excellent</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">RM</span><div><p class="member__name">Rohan Mehta</p><p class="member__roll">8A-05</p></div></div></td><td class="num">92%</td><td class="num">82%</td><td><span class="status status--watch"><span class="status__dot"></span>Good</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">IV</span><div><p class="member__name">Ishita Verma</p><p class="member__roll">8A-06</p></div></div></td><td class="num">97%</td><td class="num">89%</td><td><span class="status status--good"><span class="status__dot"></span>Excellent</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">AN</span><div><p class="member__name">Arjun Nair</p><p class="member__roll">8A-07</p></div></div></td><td class="num">90%</td><td class="num">79%</td><td><span class="status status--watch"><span class="status__dot"></span>Good</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">SR</span><div><p class="member__name">Sneha Reddy</p><p class="member__roll">8A-08</p></div></div></td><td class="num">95%</td><td class="num">86%</td><td><span class="status status--good"><span class="status__dot"></span>Excellent</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">VJ</span><div><p class="member__name">Vikram Joshi</p><p class="member__roll">8A-09</p></div></div></td><td class="num">88%</td><td class="num">74%</td><td><span class="status status--low"><span class="status__dot"></span>Needs support</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">PD</span><div><p class="member__name">Priya Das</p><p class="member__roll">8A-10</p></div></div></td><td class="num">99%</td><td class="num">95%</td><td><span class="status status--good"><span class="status__dot"></span>Excellent</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">AR</span><div><p class="member__name">Aditya Rao</p><p class="member__roll">8A-11</p></div></div></td><td class="num">93%</td><td class="num">84%</td><td><span class="status status--watch"><span class="status__dot"></span>Good</span></td></tr>
+              <tr><td><div class="member"><span class="member__avatar" aria-hidden="true">KI</span><div><p class="member__name">Kavya Iyer</p><p class="member__roll">8A-12</p></div></div></td><td class="num">96%</td><td class="num">90%</td><td><span class="status status--good"><span class="status__dot"></span>Excellent</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-foot">
+          <span id="tableCount">Showing 12 of 12 students</span>
+          <button class="btn-primary" type="button" id="exportBtn">Export list</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- (7) Footer -->
+    <footer class="page-footer">Fictional demo data &mdash; UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- Mobile bottom nav (NavRail folded to a bottom bar) -->
+<nav class="bottom-nav" aria-label="Main mobile">
+  <a class="bottom-nav__item" href="#" aria-current="page"><span class="bottom-nav__item-icon" aria-hidden="true">&#8962;</span><span class="bottom-nav__item-label">Dashboard</span></a>
+  <a class="bottom-nav__item" href="#students"><span class="bottom-nav__item-icon" aria-hidden="true">&#128101;</span><span class="bottom-nav__item-label">Students</span></a>
+  <a class="bottom-nav__item" href="#attendance"><span class="bottom-nav__item-icon" aria-hidden="true">&#10003;</span><span class="bottom-nav__item-label">Attendance</span></a>
+  <a class="bottom-nav__item" href="#notices"><span class="bottom-nav__item-icon" aria-hidden="true">&#128276;</span><span class="bottom-nav__item-label">Notices</span></a>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  /* PanelUI NavRail: folding is the app's decision — trigger toggles collapsed. */
+  var rail = document.getElementById("navRail");
+  var trigger = document.getElementById("railTrigger");
+  trigger.addEventListener("click", function () {
+    var collapsed = rail.classList.toggle("collapsed");
+    trigger.setAttribute("aria-expanded", String(!collapsed));
+    trigger.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
+    trigger.title = collapsed ? "Expand navigation" : "Collapse navigation";
+    trigger.innerHTML = collapsed ? "&#8250;" : "&#8249;";
+  });
+
+  /* Nav item switching (demo): move aria-current="page" within each nav. */
+  function wireNav(selector) {
+    var items = document.querySelectorAll(selector);
+    items.forEach(function (item) {
+      item.addEventListener("click", function () {
+        items.forEach(function (i) { i.removeAttribute("aria-current"); });
+        item.setAttribute("aria-current", "page");
+      });
+    });
+  }
+  wireNav(".nav-rail__item");
+  wireNav(".bottom-nav__item");
+
+  /* OpenSourceUI search input filters the student table (name or roll). */
+  var search = document.getElementById("studentSearch");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#studentRows tr"));
+  var tableCount = document.getElementById("tableCount");
+  search.addEventListener("input", function () {
+    var q = search.value.trim().toLowerCase();
+    var shown = 0;
+    rows.forEach(function (row) {
+      var match = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+      row.style.display = match ? "" : "none";
+      if (match) shown++;
+    });
+    tableCount.textContent = "Showing " + shown + " of 12 students";
+  });
+  /* "/" focuses search (OpenSourceUI kbd hint). */
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && document.activeElement !== search) {
+      e.preventDefault();
+      search.focus();
+    }
+  });
+
+  /* OpenSourceUI notification banner: dismiss with 260ms exit, restore available. */
+  var noticeList = document.getElementById("noticeList");
+  var noticeCount = document.getElementById("noticeCount");
+  var restoreBtn = document.getElementById("restoreNotices");
+  var bellCount = document.getElementById("bellCount");
+  var dismissed = [];
+  function updateCounts() {
+    var n = noticeList.querySelectorAll(".notice").length;
+    noticeCount.textContent = n + (n === 1 ? " notice" : " notices");
+    bellCount.textContent = String(n);
+    bellCount.style.display = n ? "" : "none";
+    restoreBtn.hidden = dismissed.length === 0;
+  }
+  noticeList.addEventListener("click", function (e) {
+    var btn = e.target.closest(".notice__dismiss");
+    if (!btn) return;
+    var item = btn.closest(".notice");
+    item.classList.add("notice--closing");
+    setTimeout(function () {
+      dismissed.push(item);
+      item.remove();
+      updateCounts();
+    }, 260); /* EXIT_MS from the OpenSourceUI banner source */
+  });
+  restoreBtn.addEventListener("click", function () {
+    dismissed.forEach(function (item) {
+      item.classList.remove("notice--closing");
+      noticeList.appendChild(item);
+    });
+    dismissed = [];
+    updateCounts();
+  });
+
+  /* Bell scrolls to notices. Export button is a demo action. */
+  document.getElementById("bellBtn").addEventListener("click", function () {
+    document.getElementById("notices").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    this.textContent = "Exported ✓";
+    var self = this;
+    setTimeout(function () { self.textContent = "Export list"; }, 2000);
+  });
+})();
+</script>
+</body>
+</html>
