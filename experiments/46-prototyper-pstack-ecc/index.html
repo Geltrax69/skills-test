@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Student Management Dashboard</title>
+<style>
+  /* Prototyper UI tokens, adapted: OKLCH tokens, surface hierarchy, CSS-first motion. */
+  :root {
+    --background: oklch(0.968 0.008 255);
+    --surface: oklch(1 0 0);
+    --surface-secondary: oklch(0.949 0.01 255);
+    --surface-tertiary: oklch(0.922 0.012 255);
+    --border: oklch(0.878 0.012 255);
+    --text: oklch(0.26 0.02 260);
+    --text-muted: oklch(0.48 0.02 260);
+    --primary: oklch(0.52 0.16 258);
+    --primary-soft: oklch(0.94 0.03 258);
+    --success: oklch(0.6 0.14 152);
+    --success-soft: oklch(0.93 0.04 152);
+    --warning: oklch(0.7 0.13 85);
+    --warning-soft: oklch(0.95 0.04 85);
+    --danger: oklch(0.6 0.17 25);
+    --ease-out-fluid: cubic-bezier(0.22, 1, 0.36, 1);
+    --radius: 12px;
+    --sidebar-width: 232px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  a { color: var(--primary); text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+
+  /* Layout: fixed sidebar on desktop, main column beside it. */
+  [data-slot="sidebar"] {
+    position: fixed; inset: 0 auto 0 0; width: var(--sidebar-width);
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 20px 14px; gap: 4px; z-index: 40;
+  }
+  [data-slot="brand"] { display: flex; align-items: center; gap: 10px; padding: 2px 8px 16px; }
+  [data-slot="brand-mark"] {
+    width: 38px; height: 38px; flex: 0 0 38px; border-radius: 10px;
+    background: var(--primary); color: #fff; display: grid; place-items: center;
+    font-weight: 700; font-size: 17px;
+  }
+  [data-slot="brand"] strong { display: block; font-size: 15px; line-height: 1.25; }
+  [data-slot="brand"] span { display: block; font-size: 12px; color: var(--text-muted); }
+  [data-slot="nav-label"] {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted); padding: 14px 10px 6px;
+  }
+  [data-slot="nav-item"] {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 9px 10px; border: 0; border-radius: 8px; background: transparent;
+    color: var(--text); font-size: 14px; text-align: left;
+    transition: background 160ms var(--ease-out-fluid);
+  }
+  [data-slot="nav-item"]:hover { background: var(--surface-secondary); }
+  [data-slot="nav-item"][data-variant="active"] { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+  [data-slot="nav-item"] [data-slot="nav-icon"] { width: 20px; text-align: center; flex: 0 0 20px; }
+  [data-slot="sidebar-foot"] {
+    margin-top: auto; padding: 12px 10px 0; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-muted);
+  }
+
+  [data-slot="main"] { margin-left: var(--sidebar-width); min-width: 0; padding-bottom: 24px; }
+
+  /* Header. */
+  [data-slot="header"] {
+    position: sticky; top: 0; z-index: 30;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 14px 24px;
+  }
+  [data-slot="menu-button"] {
+    display: none; border: 1px solid var(--border); background: var(--surface);
+    border-radius: 8px; padding: 7px 11px; font-size: 16px; line-height: 1;
+  }
+  [data-slot="page-title"] h1 { font-size: 19px; margin: 0; line-height: 1.3; }
+  [data-slot="page-title"] p { margin: 0; font-size: 13px; color: var(--text-muted); }
+  [data-slot="search"] { margin-left: auto; display: flex; align-items: center; gap: 12px; min-width: 0; }
+  [data-slot="search-input"] {
+    width: 260px; max-width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--surface-secondary); font: inherit; font-size: 14px; color: var(--text);
+  }
+  [data-slot="search-input"]::placeholder { color: var(--text-muted); }
+  [data-slot="bell-button"] {
+    position: relative; border: 1px solid var(--border); background: var(--surface);
+    border-radius: 8px; padding: 8px 11px; font-size: 16px; line-height: 1;
+  }
+  [data-slot="bell-badge"] {
+    position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px;
+    border-radius: 9px; background: var(--danger); color: #fff;
+    font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px;
+  }
+  [data-slot="avatar"] {
+    width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%;
+    background: var(--primary); color: #fff; display: grid; place-items: center;
+    font-weight: 700; font-size: 13px;
+  }
+
+  [data-slot="content"] { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+  /* ECC composition pattern, adapted: Card / CardHeader / CardBody as markup blocks. */
+  [data-slot="card"] {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    min-width: 0;
+  }
+  [data-slot="card-header"] {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 16px 18px 0;
+  }
+  [data-slot="card-header"] h2 { font-size: 16px; margin: 0; }
+  [data-slot="card-header"] p { margin: 0; font-size: 13px; color: var(--text-muted); }
+  [data-slot="card-body"] { padding: 16px 18px 18px; }
+
+  /* Stat cards. */
+  [data-slot="stat-grid"] {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;
+  }
+  [data-slot="stat-card"] { padding: 16px 18px; }
+  [data-slot="stat-label"] { font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0 0 6px; }
+  [data-slot="stat-value"] { font-size: 30px; font-weight: 700; line-height: 1.15; margin: 0; }
+  [data-slot="stat-detail"] { font-size: 13px; color: var(--text-muted); margin: 6px 0 0; }
+  [data-slot="stat-bar"] { height: 6px; border-radius: 3px; background: var(--surface-tertiary); margin-top: 12px; overflow: hidden; }
+  [data-slot="stat-bar"] > span { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
+  [data-slot="stat-card"][data-variant="success"] [data-slot="stat-bar"] > span { background: var(--success); }
+  [data-slot="stat-card"][data-variant="warning"] [data-slot="stat-bar"] > span { background: var(--warning); }
+
+  /* Two-column row: chart + notices. */
+  [data-slot="row-two"] { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; }
+
+  /* Attendance chart, CSS bars only. */
+  [data-slot="chart"] {
+    display: flex; align-items: flex-end; gap: 18px; height: 190px;
+    padding: 8px 4px 0; border-bottom: 1px solid var(--border);
+  }
+  [data-slot="chart-bar-group"] {
+    flex: 1 1 0; min-width: 0; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px;
+  }
+  [data-slot="chart-value"] { font-size: 13px; font-weight: 700; }
+  [data-slot="chart-bar"] {
+    width: min(52px, 100%); border-radius: 6px 6px 0 0; background: var(--primary);
+    transition: height 300ms var(--ease-out-fluid);
+  }
+  [data-slot="chart-bar-group"][data-variant="peak"] [data-slot="chart-bar"] { background: var(--success); }
+  [data-slot="chart-bar-group"][data-variant="peak"] [data-slot="chart-value"] { color: var(--success); }
+  [data-slot="chart-days"] { display: flex; gap: 18px; padding: 8px 4px 0; }
+  [data-slot="chart-days"] span { flex: 1 1 0; min-width: 0; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+  /* Notices. */
+  [data-slot="notice-list"] { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  [data-slot="notice-item"] {
+    display: flex; gap: 12px; align-items: flex-start; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  [data-slot="notice-item"]:last-child { border-bottom: 0; padding-bottom: 0; }
+  [data-slot="notice-item"]:first-child { padding-top: 0; }
+  [data-slot="notice-dot"] { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; background: var(--primary); margin-top: 6px; }
+  [data-slot="notice-item"][data-variant="warning"] [data-slot="notice-dot"] { background: var(--warning); }
+  [data-slot="notice-item"][data-variant="success"] [data-slot="notice-dot"] { background: var(--success); }
+  [data-slot="notice-item"] strong { display: block; font-size: 14px; }
+  [data-slot="notice-item"] span { font-size: 13px; color: var(--text-muted); }
+
+  /* Student table. */
+  [data-slot="table-wrap"] { overflow-x: auto; }
+  table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: var(--surface-secondary); }
+  td[data-slot="student-name"] { font-weight: 600; white-space: normal; }
+  [data-slot="meter"] {
+    display: inline-block; vertical-align: middle; width: 72px; height: 6px;
+    border-radius: 3px; background: var(--surface-tertiary); overflow: hidden; margin-right: 8px;
+  }
+  [data-slot="meter"] > span { display: block; height: 100%; background: var(--success); }
+  [data-slot="badge"] {
+    display: inline-block; padding: 2px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; background: var(--primary-soft); color: var(--primary);
+  }
+  [data-slot="badge"][data-variant="success"] { background: var(--success-soft); color: oklch(0.45 0.14 152); }
+  [data-slot="badge"][data-variant="warning"] { background: var(--warning-soft); color: oklch(0.5 0.12 85); }
+  [data-slot="empty-row"] { text-align: center; color: var(--text-muted); padding: 20px 10px; }
+  [hidden] { display: none !important; }
+
+  [data-slot="footer"] {
+    padding: 4px 24px 24px; font-size: 13px; color: var(--text-muted); text-align: center;
+  }
+
+  /* Bottom nav, mobile only. */
+  [data-slot="bottom-nav"] {
+    display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  [data-slot="bottom-nav"] [data-slot="nav-item"] {
+    flex-direction: column; gap: 2px; align-items: center; justify-content: center;
+    font-size: 11px; padding: 6px 2px;
+  }
+
+  /* Reduced motion, per Prototyper CSS-first animation guidance. */
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media (max-width: 1080px) {
+    [data-slot="stat-grid"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    [data-slot="row-two"] { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 860px) {
+    [data-slot="sidebar"] {
+      transform: translateX(-100%);
+      transition: transform 240ms var(--ease-out-fluid);
+      box-shadow: 0 8px 32px oklch(0.2 0.02 260 / 0.18);
+    }
+    [data-slot="sidebar"][data-open="true"] { transform: translateX(0); }
+    [data-slot="main"] { margin-left: 0; padding-bottom: 76px; }
+    [data-slot="menu-button"] { display: inline-block; }
+    [data-slot="header"] { padding: 12px 16px; gap: 10px; }
+    [data-slot="content"] { padding: 16px 16px 0; gap: 16px; }
+    [data-slot="search"] { margin-left: 0; flex: 1 1 100%; order: 3; }
+    [data-slot="search-input"] { flex: 1 1 auto; width: auto; }
+    [data-slot="bottom-nav"] { display: flex; }
+    [data-slot="bottom-nav"] [data-slot="nav-item"] { flex: 1 1 0; min-width: 0; }
+    [data-slot="footer"] { padding: 4px 16px 16px; }
+  }
+
+  @media (max-width: 420px) {
+    [data-slot="stat-value"] { font-size: 26px; }
+    [data-slot="stat-grid"] { gap: 12px; }
+    [data-slot="chart"] { gap: 10px; }
+    [data-slot="chart-days"] { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar navigation, desktop. Collapsible drawer on mobile. -->
+<aside data-slot="sidebar" id="sidebar" aria-label="Main navigation">
+  <div data-slot="brand">
+    <span data-slot="brand-mark" aria-hidden="true">G</span>
+    <div>
+      <strong>Greenwood High</strong>
+      <span>Class 8-A &middot; 2025&ndash;26</span>
+    </div>
+  </div>
+  <div data-slot="nav-label">Menu</div>
+  <nav aria-label="Sections">
+    <button type="button" data-slot="nav-item" data-variant="active" aria-current="page"><span data-slot="nav-icon" aria-hidden="true">&#9679;</span>Dashboard</button>
+    <button type="button" data-slot="nav-item"><span data-slot="nav-icon" aria-hidden="true">&#9783;</span>Students</button>
+    <button type="button" data-slot="nav-item"><span data-slot="nav-icon" aria-hidden="true">&#10003;</span>Attendance</button>
+    <button type="button" data-slot="nav-item"><span data-slot="nav-icon" aria-hidden="true">&#9650;</span>Analytics</button>
+    <button type="button" data-slot="nav-item"><span data-slot="nav-icon" aria-hidden="true">&#8377;</span>Fees</button>
+    <button type="button" data-slot="nav-item"><span data-slot="nav-icon" aria-hidden="true">&#9993;</span>Notices</button>
+  </nav>
+  <div data-slot="sidebar-foot">12 students in Class 8-A<br>72 teachers school-wide</div>
+</aside>
+
+<div data-slot="main">
+  <!-- Header: school name, search, notification bell. -->
+  <header data-slot="header">
+    <button type="button" data-slot="menu-button" id="menuButton" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation">&#9776;</button>
+    <div data-slot="page-title">
+      <h1>Student Dashboard</h1>
+      <p>Greenwood High &middot; Class 8-A &middot; 2025&ndash;26</p>
+    </div>
+    <div data-slot="search">
+      <label for="studentSearch" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;">Search students</label>
+      <input type="search" id="studentSearch" data-slot="search-input" placeholder="Search students by name or roll&hellip;" autocomplete="off">
+      <button type="button" data-slot="bell-button" id="bellButton" aria-label="Notifications, 3 unread">&#128276;<span data-slot="bell-badge" aria-hidden="true">3</span></button>
+      <span data-slot="avatar" aria-hidden="true">AD</span>
+    </div>
+  </header>
+
+  <main data-slot="content">
+    <!-- Stat cards. -->
+    <section data-slot="stat-grid" aria-label="School overview">
+      <article data-slot="card stat-card">
+        <p data-slot="stat-label">Students</p>
+        <p data-slot="stat-value">1,248</p>
+        <p data-slot="stat-detail">12 in Class 8-A</p>
+        <div data-slot="stat-bar" aria-hidden="true"><span style="width:100%"></span></div>
+      </article>
+      <article data-slot="card stat-card">
+        <p data-slot="stat-label">Teachers</p>
+        <p data-slot="stat-value">72</p>
+        <p data-slot="stat-detail">Across all classes</p>
+        <div data-slot="stat-bar" aria-hidden="true"><span style="width:60%"></span></div>
+      </article>
+      <article data-slot="card stat-card" data-variant="success">
+        <p data-slot="stat-label">Attendance today</p>
+        <p data-slot="stat-value">95.2%</p>
+        <p data-slot="stat-detail">1,188 present &middot; 60 absent</p>
+        <div data-slot="stat-bar" aria-hidden="true"><span style="width:95.2%"></span></div>
+      </article>
+      <article data-slot="card stat-card" data-variant="warning">
+        <p data-slot="stat-label">Fees collected</p>
+        <p data-slot="stat-value">84%</p>
+        <p data-slot="stat-detail">&#8377;25.2L of &#8377;30L</p>
+        <div data-slot="stat-bar" aria-hidden="true"><span style="width:84%"></span></div>
+      </article>
+    </section>
+
+    <!-- Attendance trend chart and notices. -->
+    <div data-slot="row-two">
+      <section data-slot="card" aria-labelledby="trendTitle">
+        <div data-slot="card-header">
+          <h2 id="trendTitle">Attendance trend</h2>
+          <p>This week &middot; Class 8-A</p>
+        </div>
+        <div data-slot="card-body">
+          <div data-slot="chart" role="img" aria-label="Attendance trend: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent.">
+            <div data-slot="chart-bar-group"><span data-slot="chart-value">94%</span><div data-slot="chart-bar" style="height:94%"></div></div>
+            <div data-slot="chart-bar-group"><span data-slot="chart-value">96%</span><div data-slot="chart-bar" style="height:96%"></div></div>
+            <div data-slot="chart-bar-group"><span data-slot="chart-value">93%</span><div data-slot="chart-bar" style="height:93%"></div></div>
+            <div data-slot="chart-bar-group" data-variant="peak"><span data-slot="chart-value">97%</span><div data-slot="chart-bar" style="height:97%"></div></div>
+            <div data-slot="chart-bar-group"><span data-slot="chart-value">95%</span><div data-slot="chart-bar" style="height:95%"></div></div>
+          </div>
+          <div data-slot="chart-days" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+        </div>
+      </section>
+
+      <section data-slot="card" id="notices" aria-labelledby="noticesTitle">
+        <div data-slot="card-header">
+          <h2 id="noticesTitle">Notices</h2>
+          <p>3 new</p>
+        </div>
+        <div data-slot="card-body">
+          <ul data-slot="notice-list">
+            <li data-slot="notice-item" data-variant="success">
+              <span data-slot="notice-dot" aria-hidden="true"></span>
+              <div><strong>Science fair on Friday</strong><span>All Class 8-A students present their projects.</span></div>
+            </li>
+            <li data-slot="notice-item" data-variant="warning">
+              <span data-slot="notice-dot" aria-hidden="true"></span>
+              <div><strong>Fee deadline 20 Nov</strong><span>Term fees are due by 20 November 2025.</span></div>
+            </li>
+            <li data-slot="notice-item">
+              <span data-slot="notice-dot" aria-hidden="true"></span>
+              <div><strong>Parent-teacher meet 25 Nov</strong><span>Meetings run 9:00 AM to 1:00 PM in the main hall.</span></div>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- Student table. -->
+    <section data-slot="card" aria-labelledby="studentsTitle">
+      <div data-slot="card-header">
+        <h2 id="studentsTitle">Class 8-A students</h2>
+        <p>12 students &middot; sorted by roll number</p>
+      </div>
+      <div data-slot="card-body">
+        <div data-slot="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody id="studentRows">
+              <tr><td data-slot="student-name">Aarav Sharma</td><td>8A-01</td><td><span data-slot="meter"><span style="width:96%"></span></span>96%</td><td>88%</td><td><span data-slot="badge" data-variant="success">Excellent</span></td></tr>
+              <tr><td data-slot="student-name">Diya Patel</td><td>8A-02</td><td><span data-slot="meter"><span style="width:94%"></span></span>94%</td><td>91%</td><td><span data-slot="badge">Good</span></td></tr>
+              <tr><td data-slot="student-name">Kabir Singh</td><td>8A-03</td><td><span data-slot="meter"><span style="width:89%"></span></span>89%</td><td>76%</td><td><span data-slot="badge" data-variant="warning">Watch</span></td></tr>
+              <tr><td data-slot="student-name">Ananya Gupta</td><td>8A-04</td><td><span data-slot="meter"><span style="width:98%"></span></span>98%</td><td>93%</td><td><span data-slot="badge" data-variant="success">Excellent</span></td></tr>
+              <tr><td data-slot="student-name">Rohan Mehta</td><td>8A-05</td><td><span data-slot="meter"><span style="width:92%"></span></span>92%</td><td>82%</td><td><span data-slot="badge">Good</span></td></tr>
+              <tr><td data-slot="student-name">Ishita Verma</td><td>8A-06</td><td><span data-slot="meter"><span style="width:97%"></span></span>97%</td><td>89%</td><td><span data-slot="badge" data-variant="success">Excellent</span></td></tr>
+              <tr><td data-slot="student-name">Arjun Nair</td><td>8A-07</td><td><span data-slot="meter"><span style="width:90%"></span></span>90%</td><td>79%</td><td><span data-slot="badge">Good</span></td></tr>
+              <tr><td data-slot="student-name">Sneha Reddy</td><td>8A-08</td><td><span data-slot="meter"><span style="width:95%"></span></span>95%</td><td>86%</td><td><span data-slot="badge" data-variant="success">Excellent</span></td></tr>
+              <tr><td data-slot="student-name">Vikram Joshi</td><td>8A-09</td><td><span data-slot="meter"><span style="width:88%"></span></span>88%</td><td>74%</td><td><span data-slot="badge" data-variant="warning">Watch</span></td></tr>
+              <tr><td data-slot="student-name">Priya Das</td><td>8A-10</td><td><span data-slot="meter"><span style="width:99%"></span></span>99%</td><td>95%</td><td><span data-slot="badge" data-variant="success">Excellent</span></td></tr>
+              <tr><td data-slot="student-name">Aditya Rao</td><td>8A-11</td><td><span data-slot="meter"><span style="width:93%"></span></span>93%</td><td>84%</td><td><span data-slot="badge">Good</span></td></tr>
+              <tr><td data-slot="student-name">Kavya Iyer</td><td>8A-12</td><td><span data-slot="meter"><span style="width:96%"></span></span>96%</td><td>90%</td><td><span data-slot="badge" data-variant="success">Excellent</span></td></tr>
+              <tr id="emptyRow" hidden><td colspan="5" data-slot="empty-row">No students match that search.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer data-slot="footer">Fictional demo data &mdash; UI Forge Experiment 1</footer>
+</div>
+
+<!-- Bottom navigation, mobile only. -->
+<nav data-slot="bottom-nav" aria-label="Mobile navigation">
+  <button type="button" data-slot="nav-item" data-variant="active" aria-current="page"><span aria-hidden="true">&#9679;</span>Dashboard</button>
+  <button type="button" data-slot="nav-item"><span aria-hidden="true">&#9783;</span>Students</button>
+  <button type="button" data-slot="nav-item"><span aria-hidden="true">&#10003;</span>Attendance</button>
+  <button type="button" data-slot="nav-item"><span aria-hidden="true">&#9650;</span>Analytics</button>
+  <button type="button" data-slot="nav-item"><span aria-hidden="true">&#9993;</span>Notices</button>
+</nav>
+
+<script>
+(function () {
+  var sidebar = document.getElementById('sidebar');
+  var menuButton = document.getElementById('menuButton');
+  var search = document.getElementById('studentSearch');
+  var rows = document.getElementById('studentRows');
+  var emptyRow = document.getElementById('emptyRow');
+  var bell = document.getElementById('bellButton');
+
+  function setNav(open) {
+    sidebar.setAttribute('data-open', open ? 'true' : 'false');
+    menuButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    menuButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+  }
+  menuButton.addEventListener('click', function () {
+    setNav(sidebar.getAttribute('data-open') !== 'true');
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') setNav(false);
+  });
+
+  search.addEventListener('input', function () {
+    var query = search.value.trim().toLowerCase();
+    var visible = 0;
+    Array.prototype.forEach.call(rows.querySelectorAll('tr:not(#emptyRow)'), function (row) {
+      var match = row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.hidden = !match;
+      if (match) visible += 1;
+    });
+    emptyRow.hidden = visible !== 0;
+  });
+
+  bell.addEventListener('click', function () {
+    document.getElementById('notices').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+})();
+</script>
+</body>
+</html>

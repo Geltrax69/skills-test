@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Student dashboard, Class 8-A</title>
+<style>
+  /* better-colors: primitives by hue, semantics by role; components use semantic tokens only. */
+  :root{
+    --blue-600:#1d4ed8; --blue-700:#1e40af; --blue-100:#dbeafe; --blue-50:#eff6ff;
+    --neutral-900:#111827; --neutral-700:#374151; --neutral-500:#6b7280;
+    --neutral-200:#e5e7eb; --neutral-100:#f3f4f6; --neutral-50:#f9fafb; --white:#ffffff;
+    --green-700:#047857; --green-100:#d1fae5;
+    --amber-700:#92400e; --amber-100:#fef3c7;
+    --red-700:#b91c1c; --red-100:#fee2e2;
+    --color-bg-page:var(--neutral-50);
+    --color-bg-surface:var(--white);
+    --color-bg-accent-soft:var(--blue-50);
+    --color-text-primary:var(--neutral-900);
+    --color-text-secondary:var(--neutral-700);
+    --color-text-muted:var(--neutral-500);
+    --color-accent-solid:var(--blue-600);
+    --color-accent-solid-hover:var(--blue-700);
+    --color-border:var(--neutral-200);
+    --color-success-text:var(--green-700); --color-success-bg:var(--green-100);
+    --color-warning-text:var(--amber-700); --color-warning-bg:var(--amber-100);
+    --color-danger-text:var(--red-700); --color-danger-bg:var(--red-100);
+    --radius-card:16px; --radius-inner:12px; --radius-pill:999px;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-padding-block-start:72px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{
+    margin:0; background:var(--color-bg-page); color:var(--color-text-primary);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:1rem; line-height:1.5; text-align:start;
+  }
+  /* better-typography: semantic scale, unitless line-height, rem sizes, weights 400+ below 18px. */
+  h1{font-size:1.75rem; line-height:1.2; letter-spacing:-0.01em; margin:0; text-wrap:balance}
+  h2{font-size:1.25rem; line-height:1.3; letter-spacing:-0.01em; margin:0; text-wrap:balance}
+  h3{font-size:1rem; line-height:1.4; margin:0}
+  p{margin:0; text-wrap:pretty}
+  .num{font-variant-numeric:tabular-nums}
+  .overline{font-size:0.8125rem; line-height:1.4; letter-spacing:0.05em; text-transform:uppercase; color:var(--color-text-muted); font-weight:600}
+  .muted{color:var(--color-text-secondary)}
+  .small{font-size:0.8125rem; line-height:1.5}
+  a{color:var(--color-accent-solid); text-underline-position:from-font; text-decoration-thickness:from-font}
+  a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--color-accent-solid); outline-offset:2px}
+  .skip-link{position:absolute; inset-inline-start:var(--space-4); top:-48px; z-index:30; background:var(--color-bg-surface); color:var(--color-text-primary); padding:var(--space-2) var(--space-4); border:1px solid var(--color-border); border-radius:8px}
+  .skip-link:focus{top:var(--space-2)}
+
+  /* better-layout: group with space (16px within, 32px between groups), shared edges, logical properties. */
+  .app{display:flex; min-height:100dvh}
+  .sidebar{
+    flex:0 0 232px; background:var(--color-bg-surface); border-inline-end:1px solid var(--color-border);
+    padding:var(--space-5) var(--space-4); position:sticky; top:0; height:100dvh;
+    display:flex; flex-direction:column; gap:var(--space-5);
+  }
+  .brand{font-size:1.125rem; line-height:1.3; font-weight:700}
+  .brand span{display:block; font-size:0.8125rem; font-weight:400; color:var(--color-text-muted)}
+  .nav-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--space-2)}
+  .nav-list a{display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) var(--space-3); border-radius:8px; color:var(--color-text-primary); text-decoration:none}
+  .nav-list a[aria-current="page"]{background:var(--color-bg-accent-soft); color:var(--color-accent-solid); font-weight:600}
+  .nav-list svg{width:20px; height:20px; flex:none; stroke-width:1.5}
+  .nav-note{margin-top:auto; font-size:0.8125rem; line-height:1.5; color:var(--color-text-muted); background:var(--color-bg-page); border-radius:var(--radius-inner); padding:var(--space-3)}
+
+  .main{flex:1; min-width:0; display:flex; flex-direction:column}
+  header.topbar{
+    position:sticky; top:0; z-index:10; background:var(--color-bg-surface);
+    border-block-end:1px solid var(--color-border);
+    display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-5);
+  }
+  .menu-btn{display:none; min-width:44px; min-height:44px; border:1px solid var(--color-border); background:var(--color-bg-surface); border-radius:8px; cursor:pointer}
+  .page-title{flex:1; min-width:0}
+  .page-title p{color:var(--color-text-muted); font-size:0.875rem; line-height:1.5; overflow-wrap:break-word}
+  .search-form{display:flex; gap:var(--space-2); align-items:center}
+  /* better-typography: search input is 16px so iOS does not zoom. */
+  .search-form input{font-size:1rem; line-height:1.5; padding:10px 12px; border:1px solid var(--color-border); border-radius:8px; background:var(--color-bg-surface); color:var(--color-text-primary); min-width:0; width:220px}
+  .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+  .bell{position:relative; min-width:44px; min-height:44px; border:1px solid var(--color-border); background:var(--color-bg-surface); border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center}
+  .bell svg{width:20px; height:20px; stroke-width:1.5}
+  .bell .dot{position:absolute; top:8px; inset-inline-end:8px; width:10px; height:10px; border-radius:50%; background:var(--color-danger-text); border:2px solid var(--color-bg-surface)}
+  .btn{
+    font-size:0.875rem; line-height:1.5; font-weight:600; padding:10px 16px; border-radius:8px;
+    border:1px solid transparent; background:var(--color-accent-solid); color:#fff; cursor:pointer;
+    transition-property:background-color,scale; transition-duration:150ms; transition-timing-function:ease-out;
+  }
+  .btn:hover{background:var(--color-accent-solid-hover)}
+  /* better-ui: press scales to 0.96 over 150ms, only for enabled buttons, only on hover-capable pointers for hover. */
+  @media (hover:hover){ .btn:hover{background:var(--color-accent-solid-hover)} .nav-list a:hover{background:var(--color-bg-page)} }
+  @media (prefers-reduced-motion:no-preference){
+    .btn:not(:disabled):active{scale:0.96}
+    .card{animation:enter 300ms ease-out both}
+    .card:nth-child(2){animation-delay:100ms} .card:nth-child(3){animation-delay:200ms} .card:nth-child(4){animation-delay:300ms}
+    @keyframes enter{from{opacity:0; filter:blur(4px); transform:translateY(12px)} to{opacity:1; filter:blur(0); transform:translateY(0)}}
+  }
+  @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none !important; transition:none !important} }
+
+  .content{padding:var(--space-6) var(--space-5); display:flex; flex-direction:column; gap:var(--space-6); max-width:1120px; width:100%; margin-inline:auto}
+  section{display:flex; flex-direction:column; gap:var(--space-4)}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap}
+  .section-head p{color:var(--color-text-muted); font-size:0.875rem}
+
+  /* Stats: better-layout 2x group gap; better-ui outer radius = inner radius + padding. */
+  .stats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--space-4)}
+  .card{
+    background:var(--color-bg-surface); border-radius:var(--radius-card); padding:var(--space-4);
+    box-shadow:0 1px 2px rgb(17 24 39 / 0.06),0 4px 12px rgb(17 24 39 / 0.06);
+    border:1px solid transparent; /* keeps an edge in forced-colors mode */
+    display:flex; flex-direction:column; gap:var(--space-2); min-width:0;
+  }
+  .stat-value{font-size:2rem; line-height:1.2; font-weight:700; letter-spacing:-0.01em}
+  .stat-sub{font-size:0.875rem; line-height:1.5; color:var(--color-text-secondary); overflow-wrap:break-word}
+
+  /* Chart: CSS bars only. Values are data, not decoration, so each bar has a text label. */
+  .chart{display:flex; align-items:flex-end; gap:var(--space-4); min-height:180px; padding-block-start:var(--space-3)}
+  .bar-wrap{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:var(--space-2)}
+  .bar-value{font-size:0.875rem; font-weight:600}
+  .bar{width:100%; max-width:56px; border-radius:8px 8px 0 0; background:var(--color-accent-solid); min-height:8px}
+  .bar.today{background:var(--color-accent-solid-hover); outline:2px solid var(--color-accent-solid); outline-offset:2px}
+  .bar-label{font-size:0.8125rem; color:var(--color-text-secondary)}
+  .chart-note{font-size:0.875rem; color:var(--color-text-secondary)}
+
+  .table-wrap{overflow-x:auto; overscroll-behavior:contain; border:1px solid var(--color-border); border-radius:var(--radius-inner)}
+  table{width:100%; border-collapse:collapse; min-width:560px; font-size:0.875rem; line-height:1.5}
+  caption{text-align:start; padding:var(--space-3); font-weight:600}
+  th,td{padding:10px 12px; text-align:start; border-block-end:1px solid var(--color-border); white-space:nowrap}
+  th{font-size:0.8125rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--color-text-muted); background:var(--color-bg-page)}
+  td.name{white-space:normal; min-width:140px; font-weight:600}
+  tbody tr:last-child td{border-block-end:0}
+  .badge{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:var(--radius-pill); font-size:0.8125rem; font-weight:600; white-space:nowrap}
+  .badge::before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor}
+  .badge-good{background:var(--color-success-bg); color:var(--color-success-text)}
+  .badge-watch{background:var(--color-warning-bg); color:var(--color-warning-text)}
+  .badge-low{background:var(--color-danger-bg); color:var(--color-danger-text)}
+
+  .notice-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--space-3)}
+  .notice-list li{display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-3); border:1px solid var(--color-border); border-radius:var(--radius-inner)}
+  .notice-list svg{width:20px; height:20px; flex:none; stroke-width:1.5; color:var(--color-accent-solid)}
+  .notice-list p{font-weight:600}
+  .notice-list time{font-size:0.8125rem; color:var(--color-text-muted)}
+  .two-col{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-4); align-items:start}
+  footer{padding:var(--space-5); text-align:center; color:var(--color-text-muted); font-size:0.875rem; line-height:1.5}
+  .bottom-nav{display:none}
+
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .two-col{grid-template-columns:minmax(0,1fr)}
+  }
+  /* better-layout: hold the expanded layout until it stops fitting, then collapse. */
+  @media (max-width:760px){
+    .sidebar{position:fixed; inset-block:0; inset-inline-start:0; z-index:20; width:264px; transform:translateX(-100%); transition-property:transform; transition-duration:150ms; transition-timing-function:ease-out; box-shadow:0 8px 24px rgb(17 24 39 / 0.18)}
+    [dir="rtl"] .sidebar{transform:translateX(100%)}
+    .sidebar.open{transform:translateX(0)}
+    .menu-btn{display:inline-flex; align-items:center; justify-content:center}
+    header.topbar{flex-wrap:wrap}
+    .search-form{order:3; flex:1 1 100%}
+    .search-form input{flex:1; width:auto; min-width:0}
+    .content{padding:var(--space-5) var(--space-4) 96px}
+    header.topbar{padding:var(--space-3) var(--space-4)}
+    .page-title p{display:none}
+    .bottom-nav{
+      display:flex; position:fixed; inset-inline:0; bottom:0; z-index:15; background:var(--color-bg-surface);
+      border-block-start:1px solid var(--color-border); padding-block:6px calc(6px + env(safe-area-inset-bottom,0px));
+    }
+    .bottom-nav a{flex:1; min-width:0; min-height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:0.75rem; line-height:1.4; color:var(--color-text-secondary); text-decoration:none; overflow-wrap:break-word}
+    .bottom-nav a[aria-current="page"]{color:var(--color-accent-solid); font-weight:600}
+    .bottom-nav svg{width:20px; height:20px; stroke-width:1.5}
+  }
+  @media (max-width:420px){
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .stat-value{font-size:1.5rem}
+    .search-form input{width:110px}
+    .btn{padding:10px 12px}
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app">
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+    <p class="brand">Greenwood High<span>Class 8-A · 2025–26</span></p>
+    <ul class="nav-list">
+      <li><a href="#overview" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>Dashboard</a></li>
+      <li><a href="#students"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15c2.5.3 5 1.8 5 5"/></svg>Students</a></li>
+      <li><a href="#attendance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Attendance</a></li>
+      <li><a href="#analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 19 9 13l4 3 7-8"/><path d="M20 8v-4h-4"/></svg>Analytics</a></li>
+      <li><a href="#notices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>Notices</a></li>
+    </ul>
+    <p class="nav-note">Class 8-A has 12 students. Attendance today is 95.2%.</p>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" type="button" id="menuBtn" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation menu">☰</button>
+      <div class="page-title">
+        <h1>Student dashboard</h1>
+        <p>Greenwood High · Class 8-A · 2025–26</p>
+      </div>
+      <form class="search-form" id="searchForm" role="search">
+        <label class="visually-hidden" for="search">Search students by name or roll number</label>
+        <input id="search" name="search" type="search" placeholder="e.g. Aarav or 8A-01" autocomplete="off">
+        <button class="btn" type="submit">Search students</button>
+      </form>
+      <button class="bell" type="button" aria-label="Notifications, 3 unread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span class="dot" aria-hidden="true"></span></button>
+    </header>
+
+    <main class="content" id="main" tabindex="-1">
+      <p role="status" id="searchStatus" aria-live="polite"></p>
+
+      <section id="overview" aria-labelledby="overview-h">
+        <div class="section-head"><h2 id="overview-h">Overview</h2><p>Today · Class 8-A</p></div>
+        <div class="stats">
+          <article class="card"><p class="overline">Students</p><p class="stat-value num">1,248</p><p class="stat-sub">72 teachers across the school</p></article>
+          <article class="card"><p class="overline">Teachers</p><p class="stat-value num">72</p><p class="stat-sub">12 students in Class 8-A</p></article>
+          <article class="card"><p class="overline">Attendance</p><p class="stat-value num">95.2%</p><p class="stat-sub num">1,188 present · 60 absent</p></article>
+          <article class="card"><p class="overline">Fees</p><p class="stat-value num">84%</p><p class="stat-sub num">₹25.2L of ₹30L collected</p></article>
+        </div>
+      </section>
+
+      <div class="two-col">
+        <section id="attendance" aria-labelledby="attendance-h" class="card">
+          <div class="section-head"><h2 id="attendance-h">Attendance trend</h2><p>Mon–Fri · % present</p></div>
+          <div class="chart" role="img" aria-label="Attendance by day: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent.">
+            <div class="bar-wrap"><span class="bar-value num">94%</span><div class="bar" style="height:141px"></div><span class="bar-label">Mon</span></div>
+            <div class="bar-wrap"><span class="bar-value num">96%</span><div class="bar" style="height:144px"></div><span class="bar-label">Tue</span></div>
+            <div class="bar-wrap"><span class="bar-value num">93%</span><div class="bar" style="height:139px"></div><span class="bar-label">Wed</span></div>
+            <div class="bar-wrap"><span class="bar-value num">97%</span><div class="bar" style="height:145px"></div><span class="bar-label">Thu</span></div>
+            <div class="bar-wrap"><span class="bar-value num">95%</span><div class="bar today" style="height:142px"></div><span class="bar-label">Fri</span></div>
+          </div>
+          <p class="chart-note">Highest on Thursday at 97%. Friday, today, is 95%.</p>
+        </section>
+
+        <section id="notices" aria-labelledby="notices-h" class="card">
+          <div class="section-head"><h2 id="notices-h">Notices</h2><p>3 notices</p></div>
+          <ul class="notice-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg><div><p>Science fair on Friday</p><time datetime="2026-11-13">Friday</time></div></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><div><p>Fee deadline 20 Nov</p><time datetime="2026-11-20">20 Nov</time></div></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 4h5M18 2v5"/></svg><div><p>Parent-teacher meet 25 Nov</p><time datetime="2026-11-25">25 Nov</time></div></li>
+          </ul>
+        </section>
+      </div>
+
+      <section id="students" aria-labelledby="students-h">
+        <div class="section-head"><h2 id="students-h">Students</h2><p>Class 8-A · 12 students</p></div>
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table id="studentTable">
+              <caption>Class 8-A students, attendance and marks</caption>
+              <thead><tr><th scope="col">Name</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr></thead>
+              <tbody>
+                <tr><td class="name">Aarav Sharma</td><td class="num">8A-01</td><td class="num">96%</td><td class="num">88%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Diya Patel</td><td class="num">8A-02</td><td class="num">94%</td><td class="num">91%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Kabir Singh</td><td class="num">8A-03</td><td class="num">89%</td><td class="num">76%</td><td><span class="badge badge-watch">Watch</span></td></tr>
+                <tr><td class="name">Ananya Gupta</td><td class="num">8A-04</td><td class="num">98%</td><td class="num">93%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Rohan Mehta</td><td class="num">8A-05</td><td class="num">92%</td><td class="num">82%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Ishita Verma</td><td class="num">8A-06</td><td class="num">97%</td><td class="num">89%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Arjun Nair</td><td class="num">8A-07</td><td class="num">90%</td><td class="num">79%</td><td><span class="badge badge-watch">Watch</span></td></tr>
+                <tr><td class="name">Sneha Reddy</td><td class="num">8A-08</td><td class="num">95%</td><td class="num">86%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Vikram Joshi</td><td class="num">8A-09</td><td class="num">88%</td><td class="num">74%</td><td><span class="badge badge-low">Needs support</span></td></tr>
+                <tr><td class="name">Priya Das</td><td class="num">8A-10</td><td class="num">99%</td><td class="num">95%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Aditya Rao</td><td class="num">8A-11</td><td class="num">93%</td><td class="num">84%</td><td><span class="badge badge-good">On track</span></td></tr>
+                <tr><td class="name">Kavya Iyer</td><td class="num">8A-12</td><td class="num">96%</td><td class="num">90%</td><td><span class="badge badge-good">On track</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="small muted" id="analytics">Analytics: class average attendance is 93.9% and average marks are 85.6%. Priya Das leads on both measures.</p>
+      </section>
+    </main>
+
+    <footer>Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Main navigation, mobile">
+  <a href="#overview" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>Home</a>
+  <a href="#students"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg>Students</a>
+  <a href="#attendance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Attendance</a>
+  <a href="#notices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/></svg>Notices</a>
+</nav>
+
+<script>
+(function(){
+  var menuBtn=document.getElementById('menuBtn'), sidebar=document.getElementById('sidebar');
+  menuBtn.addEventListener('click',function(){
+    var open=sidebar.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded',String(open));
+    menuBtn.setAttribute('aria-label',open?'Close navigation menu':'Open navigation menu');
+  });
+  sidebar.addEventListener('click',function(e){ if(e.target.closest('a')){ sidebar.classList.remove('open'); menuBtn.setAttribute('aria-expanded','false'); } });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && sidebar.classList.contains('open')){ sidebar.classList.remove('open'); menuBtn.setAttribute('aria-expanded','false'); menuBtn.focus(); } });
+
+  var form=document.getElementById('searchForm'), input=document.getElementById('search'), status=document.getElementById('searchStatus');
+  var rows=Array.prototype.slice.call(document.querySelectorAll('#studentTable tbody tr'));
+  function filter(q){
+    q=q.trim().toLowerCase(); var shown=0;
+    rows.forEach(function(r){ var match=!q || r.textContent.toLowerCase().indexOf(q)>-1; r.style.display=match?'':'none'; if(match) shown++; });
+    status.textContent = q ? (shown===1 ? '1 student matches “'+q+'”.' : shown+' students match “'+q+'”.') : '';
+    if(q && shown===0) status.textContent='No students match “'+q+'”. Clear the search to show all 12 students.';
+  }
+  form.addEventListener('submit',function(e){ e.preventDefault(); filter(input.value); });
+  input.addEventListener('input',function(){ filter(input.value); });
+  document.querySelector('.bell').addEventListener('click',function(){ status.textContent='3 unread notices: science fair, fee deadline and parent-teacher meet.'; });
+})();
+</script>
+</body>
+</html>

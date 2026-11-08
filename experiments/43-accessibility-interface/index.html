@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Student Dashboard, Class 8-A</title>
+<style>
+  /* Tokens: primitives by hue, semantics by role (better-colors). One accent
+     ramp (deep green) and one neutral ramp; status hues sit 15 degrees or
+     more from the accent. Hex notation throughout, one system. */
+  :root {
+    --green-700: #14532d;
+    --green-800: #0f3d21;
+    --green-100: #dcefe2;
+    --green-050: #eef7f0;
+    --amber-700: #7c4a03;
+    --amber-100: #fdf0d3;
+    --red-700: #8c1d18;
+    --red-100: #fbe3e1;
+    --neutral-900: #17251c;
+    --neutral-700: #3d4f44;
+    --neutral-500: #5c6e62;
+    --neutral-300: #c9d4cd;
+    --neutral-100: #eef1ee;
+    --neutral-050: #f7f8f7;
+    --color-bg-page: var(--neutral-050);
+    --color-bg-surface: #ffffff;
+    --color-bg-accent: var(--green-700);
+    --color-bg-accent-hover: var(--green-800);
+    --color-bg-accent-soft: var(--green-050);
+    --color-text: var(--neutral-900);
+    --color-text-secondary: var(--neutral-700);
+    --color-text-muted: var(--neutral-500);
+    --color-text-on-accent: #ffffff;
+    --color-border: var(--neutral-300);
+    --color-focus: var(--green-700);
+    --color-status-good-bg: var(--green-100);
+    --color-status-good-text: var(--green-800);
+    --color-status-watch-bg: var(--amber-100);
+    --color-status-watch-text: var(--amber-700);
+    --radius-card: 12px;
+    --radius-inner: 8px;
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    scroll-padding-top: 76px; /* sticky header height, so focused/anchored
+      targets never land under it (better-accessibility 2.4.11, better-layout) */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg-page);
+    color: var(--color-text);
+    /* System stack only: no external fonts (task constraint). */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Visible focus ring (better-accessibility): a custom ring on the project
+     focus token, 3px solid with a 2px offset, 3:1 against adjacent colours.
+     Never outline:none without this replacement. */
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Skip link: first focusable element (better-accessibility). */
+  .skip-link {
+    position: absolute;
+    inset-inline-start: var(--space-2);
+    top: -100px;
+    z-index: 20;
+    background: var(--color-bg-accent);
+    color: var(--color-text-on-accent);
+    padding: 12px 16px;
+    border-radius: var(--radius-inner);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .skip-link:focus { top: var(--space-2); }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Page frame: sidebar + content on desktop (better-layout: breakpoints
+     come from the content, not device presets). */
+  .app { min-height: 100dvh; }
+
+  /* ---- Header ---- */
+  header.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border);
+    min-height: 64px;
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 1180px;
+    margin-inline: auto;
+    padding: 10px var(--space-2);
+  }
+  .brand { min-width: 0; margin-inline-end: auto; }
+  .brand h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .brand p {
+    margin: 2px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .search { flex: 1 1 280px; max-width: 360px; min-width: 0; }
+  .search input {
+    width: 100%;
+    min-height: 44px; /* 44px touch target (better-accessibility 2.5.8 aim) */
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 1rem; /* 16px on mobile: no iOS input zoom (better-typography) */
+    color: var(--color-text);
+    background: var(--color-bg-page);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-inner);
+  }
+  .search input::placeholder { color: var(--color-text-muted); }
+  .bell {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    color: var(--color-text);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-inner);
+    font: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .bell .badge {
+    position: absolute;
+    top: -6px;
+    inset-inline-end: -6px;
+    min-width: 22px;
+    min-height: 22px;
+    padding: 2px 5px;
+    border-radius: 999px;
+    background: var(--color-bg-accent);
+    color: var(--color-text-on-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  /* ---- Navigation ---- */
+  nav.site-nav {
+    background: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+  nav.site-nav ul {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+    padding: 8px var(--space-2);
+    list-style: none;
+    overflow-x: auto;
+  }
+  nav.site-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: var(--radius-inner);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  nav.site-nav a[aria-current="page"] {
+    background: var(--color-bg-accent-soft);
+    color: var(--color-bg-accent);
+  }
+
+  /* ---- Main ---- */
+  main {
+    max-width: 1180px;
+    margin-inline: auto;
+    padding: var(--space-3) var(--space-2) var(--space-4);
+  }
+  main > section { margin-bottom: var(--space-4); } /* group gap 2x inner gap */
+  section > h2 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.25rem;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .section-note {
+    margin: -8px 0 var(--space-2);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  /* ---- Stat cards ---- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .stat-card {
+    min-width: 0;
+    padding: var(--space-2);
+    background: var(--color-bg-surface);
+    border: 1px solid transparent; /* keeps an edge in forced-colors mode */
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 2px rgb(23 37 28 / 0.08), 0 2px 8px rgb(23 37 28 / 0.06);
+  }
+  .stat-card h3 {
+    margin: 0 0 4px;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .stat-card .stat-value {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .stat-detail {
+    margin: 4px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- Chart: CSS bars only ---- */
+  .card {
+    padding: var(--space-2);
+    background: var(--color-bg-surface);
+    border: 1px solid transparent;
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 2px rgb(23 37 28 / 0.08), 0 2px 8px rgb(23 37 28 / 0.06);
+  }
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+    height: 200px;
+    padding-top: var(--space-2);
+  }
+  .chart .bar-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+  }
+  .chart .bar-value {
+    margin-bottom: 6px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .chart .bar-track {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .chart .bar {
+    width: 100%;
+    max-width: 56px;
+    background: var(--color-bg-accent);
+    border-radius: 6px 6px 0 0;
+  }
+  .chart .bar-label {
+    margin-top: 8px;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .chart-note { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: 0.875rem; }
+
+  /* ---- Student table ---- */
+  .table-wrap {
+    overflow-x: auto; /* table scrolls inside its card, never the page */
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  caption {
+    padding-bottom: var(--space-1);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    text-align: start;
+  }
+  th, td {
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+    text-align: start;
+    vertical-align: middle;
+  }
+  thead th {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+  }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+  td.student-name { font-weight: 600; }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-good { background: var(--color-status-good-bg); color: var(--color-status-good-text); }
+  .status-watch { background: var(--color-status-watch-bg); color: var(--color-status-watch-text); }
+  /* Status is never carried by colour alone (better-accessibility 1.4.1):
+     every pill carries its words, and the dot is decorative. */
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .scroll-hint {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  /* ---- Notices ---- */
+  .notices { margin: 0; padding: 0; list-style: none; }
+  .notices li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .notices li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .notices li:first-child { padding-top: 0; }
+  .notice-mark {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-bg-accent-soft);
+    color: var(--color-bg-accent);
+    font-weight: 700;
+  }
+  .notices p { margin: 0; line-height: 1.5; }
+
+  /* ---- Footer ---- */
+  footer.site-footer {
+    padding: var(--space-3) var(--space-2) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  /* ---- Motion: opt-in only (better-accessibility, better-ui) ---- */
+  @media (prefers-reduced-motion: no-preference) {
+    .bell, nav.site-nav a {
+      transition-property: background-color, color;
+      transition-duration: 150ms;
+      transition-timing-function: ease-out;
+    }
+    @media (hover: hover) {
+      .bell:hover, nav.site-nav a:hover { background: var(--color-bg-accent-soft); }
+      .bell:active, nav.site-nav a:active { transform: scale(0.96); }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none; animation: none; }
+  }
+
+  /* ---- Desktop: sidebar nav, two-column main ---- */
+  @media (min-width: 900px) {
+    .app { display: flex; align-items: flex-start; }
+    nav.site-nav {
+      position: sticky;
+      top: 64px;
+      flex: 0 0 232px;
+      align-self: stretch;
+      min-height: calc(100dvh - 64px);
+      border-bottom: 0;
+      border-inline-end: 1px solid var(--color-border);
+    }
+    nav.site-nav ul {
+      flex-direction: column;
+      padding: var(--space-2);
+      overflow-x: visible;
+    }
+    nav.site-nav a { display: flex; width: 100%; }
+    .app-main { flex: 1 1 0; min-width: 0; }
+    main { padding: var(--space-4); }
+    .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .content-two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .content-two-col > section { margin-bottom: 0; }
+  }
+
+  /* ---- Narrow: bottom nav, single column ---- */
+  @media (max-width: 899px) {
+    nav.site-nav {
+      position: fixed;
+      inset-inline: 0;
+      bottom: 0;
+      z-index: 10;
+      border-top: 1px solid var(--color-border);
+      border-bottom: 0;
+    }
+    nav.site-nav ul { justify-content: space-around; padding: 4px 8px; }
+    nav.site-nav li { flex: 1 1 0; min-width: 0; }
+    nav.site-nav a {
+      flex-direction: column;
+      gap: 2px;
+      justify-content: center;
+      padding: 8px 4px;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    body { padding-bottom: 72px; } /* room for the fixed bottom nav */
+    .header-inner { flex-wrap: wrap; }
+    .brand { flex: 1 1 100%; order: -1; }
+    .search { flex: 1 1 0; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 380px) {
+    .stats { grid-template-columns: minmax(0, 1fr); }
+    .brand h1 { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>Greenwood High</h1>
+        <p>Class 8-A &middot; 2025&ndash;26 &middot; Student dashboard</p>
+      </div>
+      <div class="search">
+        <label class="visually-hidden" for="student-search">Search students by name or roll number</label>
+        <input type="search" id="student-search" name="search" autocomplete="off"
+               placeholder="Search students by name or roll" aria-describedby="search-status">
+      </div>
+      <a class="bell" href="#notices" aria-label="Notifications: 3 notices">
+        <span aria-hidden="true">&#128276;</span>
+        <span class="badge" aria-hidden="true">3</span>
+      </a>
+    </div>
+  </header>
+
+<div class="app">
+  <nav class="site-nav" aria-label="Main">
+    <ul>
+      <li><a href="#overview" aria-current="page">Dashboard</a></li>
+      <li><a href="#students">Students</a></li>
+      <li><a href="#attendance">Attendance</a></li>
+      <li><a href="#analytics">Analytics</a></li>
+      <li><a href="#notices">Notices</a></li>
+    </ul>
+  </nav>
+
+  <div class="app-main">
+    <main id="main" tabindex="-1">
+      <section id="overview" aria-labelledby="overview-heading">
+        <h2 id="overview-heading">Overview</h2>
+        <ul class="stats">
+          <li class="stat-card">
+            <h3>Students</h3>
+            <p class="stat-value">1,248</p>
+            <p class="stat-detail">12 in Class 8-A</p>
+          </li>
+          <li class="stat-card">
+            <h3>Teachers</h3>
+            <p class="stat-value">72</p>
+            <p class="stat-detail">Across all classes</p>
+          </li>
+          <li class="stat-card">
+            <h3>Attendance today</h3>
+            <p class="stat-value">95.2%</p>
+            <p class="stat-detail">1,188 present, 60 absent</p>
+          </li>
+          <li class="stat-card">
+            <h3>Fees collected</h3>
+            <p class="stat-value">84%</p>
+            <p class="stat-detail">&#8377;25.2L of &#8377;30L</p>
+          </li>
+        </ul>
+      </section>
+
+      <section id="attendance" aria-labelledby="attendance-heading">
+        <h2 id="attendance-heading">Attendance trend</h2>
+        <p class="section-note">This week, Monday to Friday</p>
+        <div class="card">
+          <div class="chart" role="img"
+               aria-label="Attendance trend this week: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent.">
+            <div class="bar-col">
+              <span class="bar-value" aria-hidden="true">94%</span>
+              <div class="bar-track" aria-hidden="true"><div class="bar" style="height: 94%"></div></div>
+              <span class="bar-label" aria-hidden="true">Mon</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-value" aria-hidden="true">96%</span>
+              <div class="bar-track" aria-hidden="true"><div class="bar" style="height: 96%"></div></div>
+              <span class="bar-label" aria-hidden="true">Tue</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-value" aria-hidden="true">93%</span>
+              <div class="bar-track" aria-hidden="true"><div class="bar" style="height: 93%"></div></div>
+              <span class="bar-label" aria-hidden="true">Wed</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-value" aria-hidden="true">97%</span>
+              <div class="bar-track" aria-hidden="true"><div class="bar" style="height: 97%"></div></div>
+              <span class="bar-label" aria-hidden="true">Thu</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-value" aria-hidden="true">95%</span>
+              <div class="bar-track" aria-hidden="true"><div class="bar" style="height: 95%"></div></div>
+              <span class="bar-label" aria-hidden="true">Fri</span>
+            </div>
+          </div>
+          <p class="chart-note">Highest on Thursday at 97%. Lowest on Wednesday at 93%.</p>
+        </div>
+      </section>
+
+      <div class="content-two-col" id="analytics">
+        <section id="students" aria-labelledby="students-heading">
+          <h2 id="students-heading">Students &mdash; Class 8-A</h2>
+          <p class="section-note" id="search-status" role="status">Showing 12 of 12 students.</p>
+          <div class="card">
+            <div class="table-wrap" tabindex="0" role="region" aria-label="Student table, scrollable sideways on narrow screens">
+              <table>
+                <caption>Attendance and marks for the 12 students in Class 8-A.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Student</th>
+                    <th scope="col">Roll</th>
+                    <th scope="col">Attendance</th>
+                    <th scope="col">Marks</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="student-rows">
+                  <tr><td class="student-name">Aarav Sharma</td><td>8A-01</td><td>96%</td><td>88%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Diya Patel</td><td>8A-02</td><td>94%</td><td>91%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Kabir Singh</td><td>8A-03</td><td>89%</td><td>76%</td><td><span class="status status-watch"><span class="dot" aria-hidden="true"></span>Needs support</span></td></tr>
+                  <tr><td class="student-name">Ananya Gupta</td><td>8A-04</td><td>98%</td><td>93%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Rohan Mehta</td><td>8A-05</td><td>92%</td><td>82%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Ishita Verma</td><td>8A-06</td><td>97%</td><td>89%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Arjun Nair</td><td>8A-07</td><td>90%</td><td>79%</td><td><span class="status status-watch"><span class="dot" aria-hidden="true"></span>Needs support</span></td></tr>
+                  <tr><td class="student-name">Sneha Reddy</td><td>8A-08</td><td>95%</td><td>86%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Vikram Joshi</td><td>8A-09</td><td>88%</td><td>74%</td><td><span class="status status-watch"><span class="dot" aria-hidden="true"></span>Needs support</span></td></tr>
+                  <tr><td class="student-name">Priya Das</td><td>8A-10</td><td>99%</td><td>95%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Aditya Rao</td><td>8A-11</td><td>93%</td><td>84%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                  <tr><td class="student-name">Kavya Iyer</td><td>8A-12</td><td>96%</td><td>90%</td><td><span class="status status-good"><span class="dot" aria-hidden="true"></span>On track</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="scroll-hint">On a narrow screen, swipe sideways inside the table to see all columns.</p>
+          </div>
+        </section>
+
+        <section id="notices" aria-labelledby="notices-heading">
+          <h2 id="notices-heading">Notices</h2>
+          <div class="card">
+            <ul class="notices">
+              <li><span class="notice-mark" aria-hidden="true">!</span><p>Science fair on Friday</p></li>
+              <li><span class="notice-mark" aria-hidden="true">!</span><p>Fee deadline 20 Nov</p></li>
+              <li><span class="notice-mark" aria-hidden="true">!</span><p>Parent-teacher meet 25 Nov</p></li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>Fictional demo data &mdash; UI Forge Experiment 1</p>
+    </footer>
+  </div>
+</div>
+
+<script>
+  // Live search: filters the student table and announces the count through
+  // the stable, pre-rendered role="status" region (better-accessibility).
+  // The region exists before its text updates, so announcements are reliable.
+  (function () {
+    var input = document.getElementById("student-search");
+    var rows = document.getElementById("student-rows").getElementsByTagName("tr");
+    var status = document.getElementById("search-status");
+    var total = rows.length;
+    input.addEventListener("input", function () {
+      var q = input.value.trim().toLowerCase();
+      var shown = 0;
+      for (var i = 0; i < rows.length; i++) {
+        var match = !q || rows[i].textContent.toLowerCase().indexOf(q) !== -1;
+        rows[i].hidden = !match;
+        if (match) { shown += 1; }
+      }
+      status.textContent = q
+        ? "Showing " + shown + " of " + total + " students for \u201C" + input.value.trim() + "\u201D."
+        : "Showing " + total + " of " + total + " students.";
+    });
+  })();
+</script>
+</body>
+</html>

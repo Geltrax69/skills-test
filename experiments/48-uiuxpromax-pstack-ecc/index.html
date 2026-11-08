@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Student Management Dashboard</title>
+<style>
+  /* Design tokens: ui-ux-pro-max design-system search, "school student management
+     dashboard analytics", density 8 (dense dashboard). Style: Data-Dense Dashboard.
+     Primary #1E40AF, secondary #3B82F6, accent #D97706, bg #F8FAFC, card #FFFFFF,
+     foreground #1E3A8A, muted #475569, border #DBEAFE, destructive #DC2626.
+     Typography pairing Fira Sans / Fira Code is a Google Fonts import, which the
+     task forbids, so the system stack below is the closest no-external-font match. */
+  :root{
+    --color-primary:#1e40af;
+    --color-secondary:#3b82f6;
+    --color-accent:#d97706;
+    --color-background:#f8fafc;
+    --color-foreground:#1e3a8a;
+    --color-card:#ffffff;
+    --color-muted:#475569;
+    --color-border:#dbeafe;
+    --color-destructive:#dc2626;
+    --color-good:#15803d;
+    --color-good-bg:#dcfce7;
+    --color-warn-bg:#fef3c7;
+    --space-1:8px; --space-2:12px; --space-3:16px; --space-4:24px; --space-5:32px;
+    --radius:10px;
+    --sidebar-w:232px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:16px;line-height:1.5;color:#1e293b;background:var(--color-background);
+  }
+  h1,h2,h3{color:var(--color-foreground);line-height:1.25;margin:0}
+  a{color:var(--color-primary)}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--color-secondary);outline-offset:2px}
+  .num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  /* ---------- Layout: sidebar + main (ECC composition: Card / CardHeader / CardBody
+     adapted to plain HTML sections) ---------- */
+  .shell{display:flex;min-height:100vh}
+  .sidebar{
+    width:var(--sidebar-w);flex:0 0 var(--sidebar-w);
+    background:var(--color-primary);color:#fff;
+    padding:var(--space-4) var(--space-3);
+    position:sticky;top:0;height:100vh;
+    display:flex;flex-direction:column;gap:var(--space-2);
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 8px 16px;border-bottom:1px solid rgba(255,255,255,.25)}
+  .brand-mark{width:40px;height:40px;flex:0 0 40px;border-radius:10px;background:#fff;color:var(--color-primary);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
+  .brand-name{font-size:17px;font-weight:700;line-height:1.2;color:#fff}
+  .brand-sub{font-size:12px;color:#bfdbfe;line-height:1.3}
+  .nav-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#bfdbfe;padding:14px 8px 4px}
+  .nav-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+  .nav-list a{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+    color:#dbeafe;text-decoration:none;font-size:15px;min-height:44px;
+  }
+  .nav-list a svg{flex:0 0 20px}
+  .nav-list a:hover{background:rgba(255,255,255,.12);color:#fff}
+  .nav-list a[aria-current="page"]{background:#fff;color:var(--color-primary);font-weight:600}
+  .sidebar-foot{margin-top:auto;font-size:12px;color:#bfdbfe;padding:8px;line-height:1.4}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+  /* ---------- Header ---------- */
+  header.topbar{
+    background:var(--color-card);border-bottom:1px solid var(--color-border);
+    padding:var(--space-2) var(--space-4);display:flex;align-items:center;gap:var(--space-3);
+    position:sticky;top:0;z-index:20;
+  }
+  .menu-btn{display:none;border:1px solid var(--color-border);background:#fff;border-radius:8px;
+    width:44px;height:44px;align-items:center;justify-content:center}
+  .page-title{font-size:20px;font-weight:700}
+  .page-sub{font-size:13px;color:var(--color-muted);line-height:1.3}
+  .search{margin-left:auto;display:flex;align-items:center;gap:8px;flex:1;max-width:360px}
+  .search input{
+    width:100%;height:44px;padding:0 12px;border:1px solid var(--color-border);border-radius:8px;
+    font:inherit;background:#f8fafc;color:#1e293b;
+  }
+  .search input::placeholder{color:#64748b}
+  .bell{position:relative;border:1px solid var(--color-border);background:#fff;border-radius:8px;
+    width:44px;height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:center}
+  .bell-badge{
+    position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;
+    background:var(--color-destructive);color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .bell-panel{
+    position:absolute;right:0;top:52px;width:300px;max-width:calc(100vw - 32px);
+    background:#fff;border:1px solid var(--color-border);border-radius:var(--radius);
+    box-shadow:0 8px 24px rgba(30,58,138,.18);padding:var(--space-2);display:none;z-index:30;text-align:left;
+  }
+  .bell-panel.open{display:block}
+  .bell-panel h3{font-size:14px;margin-bottom:6px}
+  .bell-panel ul{list-style:none;margin:0;padding:0}
+  .bell-panel li{font-size:14px;padding:8px;border-top:1px solid #e2e8f0}
+  .bell-panel li:first-child{border-top:0}
+
+  /* ---------- Content ---------- */
+  .content{padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4);max-width:1120px;width:100%;margin:0 auto}
+  .section-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .section-head p{margin:0;color:var(--color-muted);font-size:14px}
+
+  .card{background:var(--color-card);border:1px solid var(--color-border);border-radius:var(--radius);padding:var(--space-3)}
+  .card-header{margin-bottom:var(--space-2)}
+  .card-header h2{font-size:17px}
+  .card-header p{margin:2px 0 0;color:var(--color-muted);font-size:13px}
+
+  /* ---------- Stat cards (dense dashboard, 8-32px spacing scale) ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
+  .stat{padding:var(--space-3);display:flex;flex-direction:column;gap:2px;min-width:0}
+  .stat-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .stat-label{font-size:13px;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:.04em}
+  .stat-icon{width:36px;height:36px;flex:0 0 36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#dbeafe;color:var(--color-primary)}
+  .stat-icon.amber{background:#fef3c7;color:#92400e}
+  .stat-value{font-size:30px;font-weight:700;color:var(--color-foreground);line-height:1.15}
+  .stat-sub{font-size:13px;color:var(--color-muted)}
+  .stat-sub strong{color:var(--color-good);font-weight:600}
+
+  /* ---------- Attendance chart: CSS bars only ---------- */
+  .chart-wrap{display:flex;align-items:flex-end;gap:var(--space-3);height:200px;padding:var(--space-3) var(--space-2) 0}
+  .bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
+  .bar-val{font-size:13px;font-weight:700;color:var(--color-foreground)}
+  .bar{width:100%;max-width:56px;border-radius:6px 6px 0 0;background:var(--color-secondary)}
+  .bar.best{background:var(--color-primary)}
+  .bar-day{font-size:13px;color:var(--color-muted);font-weight:600}
+  .chart-note{margin:10px 0 0;font-size:13px;color:var(--color-muted);border-top:1px solid #e2e8f0;padding-top:10px}
+  .chart-note strong{color:var(--color-foreground)}
+
+  /* ---------- Student table ---------- */
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;width:100%;min-width:560px}
+  th,td{padding:10px 12px;text-align:left;font-size:14px;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+  thead th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-muted);background:#f8fafc}
+  tbody tr:hover{background:#eff6ff}
+  tbody tr:last-child td{border-bottom:0}
+  .student-name{font-weight:600;color:var(--color-foreground);white-space:normal}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600}
+  .pill.good{background:var(--color-good-bg);color:var(--color-good)}
+  .pill.warn{background:var(--color-warn-bg);color:#92400e}
+  .no-results{display:none;padding:16px;text-align:center;color:var(--color-muted);font-size:14px}
+  .no-results.show{display:block}
+
+  /* ---------- Notices ---------- */
+  .notices{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+  .notices li{display:flex;gap:12px;padding:12px 2px;border-top:1px solid #e2e8f0;align-items:flex-start}
+  .notices li:first-child{border-top:0;padding-top:2px}
+  .notice-dot{flex:0 0 10px;width:10px;height:10px;border-radius:50%;background:var(--color-accent);margin-top:7px}
+  .notice-dot.blue{background:var(--color-secondary)}
+  .notice-dot.red{background:var(--color-destructive)}
+  .notice-text{font-size:15px;font-weight:600;color:var(--color-foreground)}
+  .notice-date{font-size:13px;color:var(--color-muted)}
+
+  .grid-2{display:grid;grid-template-columns:1.6fr 1fr;gap:var(--space-4);align-items:start}
+
+  footer{
+    border-top:1px solid var(--color-border);padding:var(--space-3) var(--space-4);
+    text-align:center;font-size:13px;color:var(--color-muted);background:var(--color-card);
+  }
+
+  /* ---------- Bottom nav (mobile, max 5 items per ui-ux-pro-max) ---------- */
+  .bottomnav{
+    display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:#fff;border-top:1px solid var(--color-border);
+    padding:4px 2px calc(4px + env(safe-area-inset-bottom));
+  }
+  .bottomnav ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr)}
+  .bottomnav a{
+    display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;
+    font-size:11px;color:var(--color-muted);text-decoration:none;min-height:48px;justify-content:center;
+  }
+  .bottomnav a[aria-current="page"]{color:var(--color-primary);font-weight:700}
+
+  /* ---------- Responsive: mobile-first breakpoints per ui-ux-pro-max ---------- */
+  @media (max-width:1020px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .grid-2{grid-template-columns:1fr}
+  }
+  @media (max-width:820px){
+    .sidebar{
+      position:fixed;left:0;top:0;bottom:0;z-index:40;
+      transform:translateX(-100%);transition:transform .2s ease;height:100dvh;
+    }
+    .sidebar.open{transform:translateX(0)}
+    .scrim{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:30;display:none}
+    .scrim.show{display:block}
+    .menu-btn{display:flex}
+    .topbar{flex-wrap:wrap}
+    .search{order:3;flex-basis:100%;max-width:none}
+    .bottomnav{display:block}
+    .content{padding:var(--space-3) var(--space-3) 96px}
+    .page-sub{display:none}
+  }
+  @media (max-width:420px){
+    .search{max-width:none}
+    .search input{height:40px}
+    .stat-value{font-size:26px}
+    .content{padding-left:12px;padding-right:12px}
+    header.topbar{padding-left:12px;padding-right:12px;gap:8px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- (2) Responsive navigation: sidebar on desktop, collapsible drawer + bottom nav on mobile -->
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>
+        <span class="brand-name">Greenwood High</span><br>
+        <span class="brand-sub">Class 8-A &middot; 2025&ndash;26</span>
+      </span>
+    </div>
+    <div class="nav-label" id="nav-label-main">Menu</div>
+    <ul class="nav-list" aria-labelledby="nav-label-main">
+      <li><a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Dashboard</a></li>
+      <li><a href="#students"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15.2c2.6.3 4.7 1.9 5.5 4.8"/></svg>Students</a></li>
+      <li><a href="#attendance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M7 14l2 2 4-4"/></svg>Attendance</a></li>
+      <li><a href="#students"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h13"/></svg>Academics</a></li>
+      <li><a href="#notices"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>Notices</a></li>
+    </ul>
+    <div class="nav-label">School</div>
+    <ul class="nav-list">
+      <li><a href="#notices">Fees &amp; Payments</a></li>
+      <li><a href="#notices">Timetable</a></li>
+      <li><a href="#notices">Settings</a></li>
+    </ul>
+    <p class="sidebar-foot">Greenwood High<br>Class 8-A &middot; Academic year 2025&ndash;26</p>
+  </nav>
+
+  <div class="main">
+    <!-- (1) Header: school name, search, notification bell -->
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div>
+        <h1 class="page-title">Greenwood High</h1>
+        <p class="page-sub">Student Management Dashboard &middot; Class 8-A &middot; 2025&ndash;26</p>
+      </div>
+      <div class="search">
+        <label class="sr-only" for="searchInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Search students</label>
+        <input type="search" id="searchInput" placeholder="Search students by name or roll&hellip;" autocomplete="off">
+      </div>
+      <div style="position:relative">
+        <button class="bell" id="bellBtn" type="button" aria-label="Notifications, 3 unread" aria-expanded="false" aria-controls="bellPanel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+          <span class="bell-badge" aria-hidden="true">3</span>
+        </button>
+        <div class="bell-panel" id="bellPanel" role="region" aria-label="Notifications">
+          <h3>Notifications</h3>
+          <ul>
+            <li>Science fair on Friday</li>
+            <li>Fee deadline 20 Nov</li>
+            <li>Parent-teacher meet 25 Nov</li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- (3) Four stat cards -->
+      <section aria-label="Key statistics">
+        <div class="stats">
+          <article class="card stat">
+            <div class="stat-top">
+              <span class="stat-label">Students</span>
+              <span class="stat-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15.2c2.6.3 4.7 1.9 5.5 4.8"/></svg></span>
+            </div>
+            <span class="stat-value num">1,248</span>
+            <span class="stat-sub">12 in Class 8-A &middot; 72 teachers</span>
+          </article>
+          <article class="card stat">
+            <div class="stat-top">
+              <span class="stat-label">Teachers</span>
+              <span class="stat-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C.8 8.5 2.5 5 6 5c2 0 3.5 1 4.5 2.5L12 9l1.5-1.5C14.5 6 16 5 18 5c3.5 0 5.2 3.5 3.5 7-2.5 4.5-9.5 9-9.5 9z" transform="scale(0.9) translate(1.3 1.3)"/></svg></span>
+            </div>
+            <span class="stat-value num">72</span>
+            <span class="stat-sub">Across all classes</span>
+          </article>
+          <article class="card stat">
+            <div class="stat-top">
+              <span class="stat-label">Attendance</span>
+              <span class="stat-icon amber" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
+            </div>
+            <span class="stat-value num">95.2%</span>
+            <span class="stat-sub"><strong>1,188 present</strong> &middot; 60 absent today</span>
+          </article>
+          <article class="card stat">
+            <div class="stat-top">
+              <span class="stat-label">Fees Collected</span>
+              <span class="stat-icon amber" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 6.5v11M15.5 9.2c-.7-1-2-1.7-3.5-1.7-1.9 0-3.5 1-3.5 2.4 0 3.2 7 1.6 7 4.6 0 1.4-1.6 2.4-3.5 2.4-1.5 0-2.8-.7-3.5-1.7"/></svg></span>
+            </div>
+            <span class="stat-value num">84%</span>
+            <span class="stat-sub">&#8377;25.2L of &#8377;30L collected</span>
+          </article>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- (4) Attendance trend chart, CSS bars only -->
+        <section class="card" id="attendance" aria-label="Attendance trend">
+          <div class="card-header">
+            <h2>Attendance Trend</h2>
+            <p>Class 8-A &middot; this week, Mon&ndash;Fri &middot; average 95.0%</p>
+          </div>
+          <div class="chart-wrap" role="img" aria-label="Attendance by day: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent. Weekly average 95.0 percent.">
+            <div class="bar-col"><span class="bar-val num">94%</span><div class="bar" style="height:94%"></div><span class="bar-day">Mon</span></div>
+            <div class="bar-col"><span class="bar-val num">96%</span><div class="bar" style="height:96%"></div><span class="bar-day">Tue</span></div>
+            <div class="bar-col"><span class="bar-val num">93%</span><div class="bar" style="height:93%"></div><span class="bar-day">Wed</span></div>
+            <div class="bar-col"><span class="bar-val num">97%</span><div class="bar best" style="height:97%"></div><span class="bar-day">Thu</span></div>
+            <div class="bar-col"><span class="bar-val num">95%</span><div class="bar" style="height:95%"></div><span class="bar-day">Fri</span></div>
+          </div>
+          <p class="chart-note">Highest attendance on <strong>Thursday (97%)</strong>; lowest on <strong>Wednesday (93%)</strong>. Today: <strong>95.2%</strong> (1,188 present, 60 absent).</p>
+        </section>
+
+        <!-- (6) Notices panel -->
+        <section class="card" id="notices" aria-label="Notices">
+          <div class="card-header">
+            <h2>Notices</h2>
+            <p>Latest announcements for Class 8-A</p>
+          </div>
+          <ul class="notices">
+            <li><span class="notice-dot" aria-hidden="true"></span><span><span class="notice-text">Science fair on Friday</span><br><span class="notice-date">Friday &middot; School auditorium</span></span></li>
+            <li><span class="notice-dot blue" aria-hidden="true"></span><span><span class="notice-text">Fee deadline 20 Nov</span><br><span class="notice-date">20 November 2025 &middot; Fees office</span></span></li>
+            <li><span class="notice-dot red" aria-hidden="true"></span><span><span class="notice-text">Parent-teacher meet 25 Nov</span><br><span class="notice-date">25 November 2025 &middot; Class 8-A</span></span></li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- (5) Student table -->
+      <section class="card" id="students" aria-label="Students">
+        <div class="card-header section-head">
+          <h2>Class 8-A Students</h2>
+          <p>12 students &middot; search filters by name or roll number</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll No.</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody id="studentRows">
+              <tr><td class="student-name">Aarav Sharma</td><td class="num">8A-01</td><td class="num">96%</td><td class="num">88%</td><td><span class="pill good">Excellent</span></td></tr>
+              <tr><td class="student-name">Diya Patel</td><td class="num">8A-02</td><td class="num">94%</td><td class="num">91%</td><td><span class="pill good">Excellent</span></td></tr>
+              <tr><td class="student-name">Kabir Singh</td><td class="num">8A-03</td><td class="num">89%</td><td class="num">76%</td><td><span class="pill warn">Needs support</span></td></tr>
+              <tr><td class="student-name">Ananya Gupta</td><td class="num">8A-04</td><td class="num">98%</td><td class="num">93%</td><td><span class="pill good">Excellent</span></td></tr>
+              <tr><td class="student-name">Rohan Mehta</td><td class="num">8A-05</td><td class="num">92%</td><td class="num">82%</td><td><span class="pill good">Good</span></td></tr>
+              <tr><td class="student-name">Ishita Verma</td><td class="num">8A-06</td><td class="num">97%</td><td class="num">89%</td><td><span class="pill good">Excellent</span></td></tr>
+              <tr><td class="student-name">Arjun Nair</td><td class="num">8A-07</td><td class="num">90%</td><td class="num">79%</td><td><span class="pill good">Good</span></td></tr>
+              <tr><td class="student-name">Sneha Reddy</td><td class="num">8A-08</td><td class="num">95%</td><td class="num">86%</td><td><span class="pill good">Excellent</span></td></tr>
+              <tr><td class="student-name">Vikram Joshi</td><td class="num">8A-09</td><td class="num">88%</td><td class="num">74%</td><td><span class="pill warn">Needs support</span></td></tr>
+              <tr><td class="student-name">Priya Das</td><td class="num">8A-10</td><td class="num">99%</td><td class="num">95%</td><td><span class="pill good">Excellent</span></td></tr>
+              <tr><td class="student-name">Aditya Rao</td><td class="num">8A-11</td><td class="num">93%</td><td class="num">84%</td><td><span class="pill good">Good</span></td></tr>
+              <tr><td class="student-name">Kavya Iyer</td><td class="num">8A-12</td><td class="num">96%</td><td class="num">90%</td><td><span class="pill good">Excellent</span></td></tr>
+            </tbody>
+          </table>
+          <p class="no-results" id="noResults">No students match that search.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- (7) Footer -->
+    <footer>Fictional demo data &mdash; UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- Bottom nav: mobile only, 5 items max (ui-ux-pro-max nav guidance) -->
+<nav class="bottomnav" aria-label="Mobile navigation">
+  <ul>
+    <li><a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a></li>
+    <li><a href="#students"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/></svg>Students</a></li>
+    <li><a href="#attendance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Attend.</a></li>
+    <li><a href="#notices"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/></svg>Notices</a></li>
+    <li><a href="#students"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6.5v11M15.5 9.2c-.7-1-2-1.7-3.5-1.7-1.9 0-3.5 1-3.5 2.4 0 3.2 7 1.6 7 4.6 0 1.4-1.6 2.4-3.5 2.4-1.5 0-2.8-.7-3.5-1.7"/></svg>Fees</a></li>
+  </ul>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+  /* Sidebar drawer (mobile): toggle + Escape to close, focus returns to button.
+     ECC frontend-patterns focus-management, adapted to vanilla JS. */
+  var menuBtn=document.getElementById("menuBtn"),
+      sidebar=document.getElementById("sidebar"),
+      scrim=document.getElementById("scrim");
+  function setDrawer(open){
+    sidebar.classList.toggle("open",open);
+    scrim.classList.toggle("show",open);
+    menuBtn.setAttribute("aria-expanded",String(open));
+    menuBtn.setAttribute("aria-label",open?"Close navigation menu":"Open navigation menu");
+  }
+  menuBtn.addEventListener("click",function(){setDrawer(!sidebar.classList.contains("open"));});
+  scrim.addEventListener("click",function(){setDrawer(false);});
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape"){setDrawer(false);bellPanel.classList.remove("open");bellBtn.setAttribute("aria-expanded","false");}
+  });
+  sidebar.addEventListener("click",function(e){
+    if(e.target.closest("a")){setDrawer(false);}
+  });
+
+  /* Bell dropdown. */
+  var bellBtn=document.getElementById("bellBtn"),
+      bellPanel=document.getElementById("bellPanel");
+  bellBtn.addEventListener("click",function(e){
+    e.stopPropagation();
+    var open=bellPanel.classList.toggle("open");
+    bellBtn.setAttribute("aria-expanded",String(open));
+  });
+  document.addEventListener("click",function(e){
+    if(!e.target.closest(".bell-panel")&&!e.target.closest("#bellBtn")){
+      bellPanel.classList.remove("open");
+      bellBtn.setAttribute("aria-expanded","false");
+    }
+  });
+
+  /* Search filters the student table by name or roll. Rows are static markup
+     (not JS-rendered) so the data is present even if scripting is off. */
+  var input=document.getElementById("searchInput"),
+      rows=document.querySelectorAll("#studentRows tr"),
+      noResults=document.getElementById("noResults");
+  input.addEventListener("input",function(){
+    var q=input.value.trim().toLowerCase(),visible=0;
+    rows.forEach(function(row){
+      var match=!q||row.textContent.toLowerCase().indexOf(q)>-1;
+      row.style.display=match?"":"none";
+      if(match){visible++;}
+    });
+    noResults.classList.toggle("show",visible===0);
+  });
+})();
+</script>
+</body>
+</html>
