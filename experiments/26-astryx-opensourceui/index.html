@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Class 8-A Dashboard · UI Forge Experiment 1</title>
+<!--
+  Variant 26-astryx-opensourceui — CONFLICT TEST
+  Astryx (theme-neutral, Card / Table / AppShell anatomy, token scale)
+  + OpenSourceUI (CustomersTable + AppleNotificationBanner, neutral stage).
+  Single self-contained file. No external fonts, images, or libraries.
+  Every Astryx × OpenSourceUI conflict and its resolution is logged in
+  SKILLS_ACTUALLY_READ.md in this folder.
+-->
+<style>
+  /* ---- Token layer: ONE scale, negotiated (see SKILLS_ACTUALLY_READ.md) ----
+     Astryx theme-neutral supplies the radius + spacing scale and the system
+     accent blue. OpenSourceUI supplies the neutral stage (ink / paper /
+     hairline borders) and the type pairing. Neither system's raw tokens are
+     used unmodified where they collide. */
+  :root{
+    /* OpenSourceUI neutral stage — wins for all chrome */
+    --ink:#171717; --ink-soft:#262626; --body:#404040; --muted:#737373;
+    --faint:#a3a3a3; --border:#e5e5e5; --border-subtle:#f5f5f5;
+    --paper:#ffffff; --paper-tint:#fafafa;
+    --rose:#f43f5e;               /* OSUI signal: errors / urgent only */
+    --cyan:#a5f3fc;               /* OSUI highlight: one annotation only */
+    /* Astryx theme-neutral — wins for radius scale + system accent */
+    --radius-inner:6px;           /* Astryx --radius-inner 0.375rem */
+    --radius-element:10px;        /* Astryx --radius-element 0.625rem */
+    --radius-container:12px;      /* Astryx --radius-container 0.75rem */
+    --accent:#0074e2;             /* Astryx neutral accent (no OSUI blue exists) */
+    --accent-soft:#e8f2fd;
+    --ok:#15803d;
+    --warn:#b45309;
+    --pad:16px;                   /* OSUI p-4 — the common internal padding */
+    --gap:16px;
+    --nav-w:232px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper-tint);
+    color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; /* Geist fallback: no external fonts allowed */
+    font-size:16px;line-height:1.6;letter-spacing:-.025em;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* OSUI Two-Voice Rule: serif carries brand headlines only; UI stays sans.
+     Instrument Serif is unavailable offline, so Georgia is its stand-in. */
+  .brand,.section-title{
+    font-family:"Instrument Serif",ui-serif,Georgia,serif;
+    font-weight:400;letter-spacing:normal;
+  }
+  h1,h2,h3,p{margin:0}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+  input{font:inherit}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px} /* border-based focus: OSUI ring-0 + Astryx visible-focus, compromised as an ink outline */
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ================= Astryx AppShell anatomy ================= */
+  .shell{display:flex;min-height:100vh}
+  /* Astryx SideNav + OSUI docs-nav active indicator (2px ink bar, left) */
+  .sidenav{
+    width:var(--nav-w);flex:0 0 var(--nav-w);
+    background:var(--paper);border-right:1px solid var(--border-subtle);
+    padding:20px 0;position:sticky;top:0;height:100vh;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .sidenav .brand{font-size:1.5rem;line-height:1.3;padding:0 20px 4px}
+  .sidenav .brand-sub{font-size:.75rem;font-weight:500;color:var(--muted);padding:0 20px 16px}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    margin:0 12px;padding:9px 12px;border-radius:var(--radius-element);
+    font-size:.875rem;font-weight:500;color:var(--muted);
+    border-left:2px solid transparent;
+  }
+  .nav-item:hover{color:var(--ink);background:var(--paper-tint)}
+  .nav-item[aria-current="page"]{color:var(--ink);background:var(--paper-tint);border-left-color:var(--ink)}
+  .nav-item .dot{width:8px;height:8px;border-radius:9999px;background:var(--faint);flex:none}
+  .nav-item[aria-current="page"] .dot{background:var(--accent)}
+  .nav-foot{margin-top:auto;padding:16px 20px 0;border-top:1px solid var(--border-subtle);font-size:.75rem;color:var(--faint);line-height:1.4}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  /* ---- Header: Astryx TopNav region, OSUI input ---- */
+  .topbar{
+    background:var(--paper);border-bottom:1px solid var(--border-subtle);
+    padding:14px 24px;display:flex;align-items:center;gap:16px;
+    position:sticky;top:0;z-index:10;
+  }
+  .topbar .brand{font-size:1.5rem;line-height:1.25;white-space:nowrap}
+  .topbar .brand small{display:block;font-family:ui-sans-serif,system-ui,sans-serif;font-size:.75rem;font-weight:500;color:var(--muted);letter-spacing:0}
+  .search{
+    flex:1;max-width:420px;margin-left:auto;
+    display:flex;align-items:center;gap:8px;
+    height:40px;padding:0 14px;background:var(--paper);
+    border:1px solid var(--border);border-radius:8px; /* OSUI input: rounded-lg, h-10 */
+    color:var(--faint);
+  }
+  .search input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--ink);font-size:.875rem}
+  .search input::placeholder{color:var(--faint)}
+  .search:focus-within{border-color:var(--ink)} /* OSUI: focus = darker border, ring-0 */
+  .bell{
+    position:relative;flex:none;width:40px;height:40px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--border);border-radius:var(--radius-element);
+    background:var(--paper);font-size:1.05rem;line-height:1;
+  }
+  .bell:hover{border-color:var(--ink)}
+  .bell .badge{
+    position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;
+    border-radius:9999px;background:var(--rose);color:#fff;
+    font-size:.625rem;font-weight:600;display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--paper);
+  }
+  .avatar{
+    flex:none;width:40px;height:40px;border-radius:9999px;
+    background:var(--ink-soft);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:.75rem;font-weight:600;
+  }
+
+  .content{padding:24px;display:flex;flex-direction:column;gap:24px;max-width:1120px;width:100%;margin:0 auto}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .page-head h1{font-size:1.875rem;line-height:1.25}
+  .page-head p{color:var(--muted);font-size:.875rem}
+  .page-head .meta{font-size:.75rem;font-weight:500;color:var(--muted)}
+  .page-head .meta b{color:var(--ink)}
+
+  /* ---- Astryx Card, used ONLY for discrete metrics (Card doc rule) ---- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
+  .stat{
+    background:var(--paper);border:1px solid var(--border);
+    border-radius:var(--radius-container);padding:var(--pad);
+    /* CONFLICT RESOLVED: Astryx cards are elevated; OSUI is flat-by-default.
+       Flat wins — border only, no shadow, no gradient, no glow. */
+  }
+  .stat .label{font-size:.75rem;font-weight:500;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
+  .stat .value{font-size:1.875rem;font-weight:600;line-height:1.2;margin-top:4px}
+  .stat .sub{font-size:.875rem;color:var(--muted);margin-top:2px}
+  .stat .sub b{color:var(--ink)}
+  .stat .bar{height:6px;border-radius:9999px;background:var(--border-subtle);margin-top:12px;overflow:hidden}
+  .stat .bar i{display:block;height:100%;border-radius:9999px;background:var(--accent)}
+  .stat .bar.rose i{background:var(--rose)}
+  .stat .bar.ink i{background:var(--ink-soft)}
+
+  /* ---- Page sections: heading + spacing, NOT nested cards (Astryx rule).
+         The panel boxes below are OSUI bordered containers, kept flat. ---- */
+  .panel{background:var(--paper);border:1px solid var(--border);border-radius:var(--radius-container);overflow:hidden}
+  .panel-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+    padding:14px 16px 12px;border-bottom:1px solid var(--border-subtle);
+  }
+  .panel-head h2{font-size:1.5rem;line-height:1.3}
+  .panel-head .hint{font-size:.75rem;color:var(--muted)}
+  .panel-head .hint b{color:var(--ink)}
+  .panel-body{padding:var(--pad)}
+
+  /* ---- Attendance trend: CSS bars, Astryx accent ---- */
+  .chart{display:flex;align-items:flex-end;gap:16px;height:180px;padding:8px 4px 0}
+  .chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;height:100%;justify-content:flex-end}
+  .chart .val{font-size:.875rem;font-weight:600}
+  .chart .bar{width:100%;max-width:56px;border-radius:var(--radius-inner) var(--radius-inner) 0 0;background:var(--accent)}
+  .chart .bar.low{background:#7fb8f0}
+  .chart .day{font-size:.75rem;font-weight:500;color:var(--muted)}
+  .chart-note{font-size:.875rem;color:var(--muted);margin-top:12px}
+  .chart-note b{color:var(--ink)}
+  .chart-note mark{background:var(--cyan);color:var(--ink);padding:0 3px;border-radius:3px} /* OSUI cyan: one annotation only */
+
+  /* ---- Student table: OSUI CustomersTable anatomy, Astryx scroll region ----
+     OSUI: bordered card, header row (title + count left, summary right),
+     avatar+name cell, hover row, overflow-x-auto, min-width table.
+     Astryx: scroll region is REQUIRED; all 4 data columns stay visible —
+     OSUI's "hide a column below md:" is rejected, the scroll region covers it. */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;min-width:560px;border-collapse:collapse;text-align:left;font-size:.875rem}
+  thead th{
+    padding:10px 16px;font-size:.75rem;font-weight:500;color:var(--muted);
+    border-bottom:1px solid var(--border-subtle);white-space:nowrap;
+  }
+  thead th.r, tbody td.r{text-align:right}
+  tbody td{padding:12px 16px;border-top:1px solid var(--border-subtle);white-space:nowrap}
+  tbody tr:hover{background:var(--paper-tint)} /* OSUI hover:bg-neutral-50/80 */
+  tbody tr:first-child td{border-top:0}
+  .student{display:flex;align-items:center;gap:10px;min-width:0}
+  .student .ini{
+    flex:none;width:28px;height:28px;border-radius:9999px;
+    background:var(--paper-tint);border:1px solid var(--border);
+    color:var(--ink-soft);font-size:.6875rem;font-weight:600;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .student .nm{min-width:0}
+  .student .nm b{display:block;font-weight:500;color:var(--ink);white-space:nowrap}
+  .student .nm span{font-size:.75rem;color:var(--muted)}
+  .pct{font-weight:600}
+  .pct.low{color:var(--warn)}
+  .pct.high{color:var(--ok)}
+  .mini{width:72px;height:6px;border-radius:9999px;background:var(--border-subtle);display:inline-block;vertical-align:middle;margin-left:8px;overflow:hidden}
+  .mini i{display:block;height:100%;background:var(--accent)}
+  .table-foot{padding:10px 16px;border-top:1px solid var(--border-subtle);font-size:.75rem;color:var(--muted)}
+
+  /* ---- Notices: OSUI AppleNotificationBanner anatomy, flattened ----
+     Kept: icon tile + title/time row + sender:message grid, dismiss (260ms
+     fade) + "Show notices" trigger when all dismissed, 13px message text.
+     Dropped (conflict): frosted glass / backdrop-blur, shadow, 20px radius —
+     replaced by flat white, 1px border, Astryx radius-container 12px. */
+  .notices{display:flex;flex-direction:column;gap:12px}
+  .notice{
+    position:relative;display:grid;
+    grid-template-columns:38px minmax(0,1fr);gap:12px;align-items:start;
+    padding:14px 16px;padding-right:44px;
+    background:var(--paper);border:1px solid var(--border);border-radius:var(--radius-container);
+    transition:opacity .26s ease, transform .26s ease;
+  }
+  .notice.closing{opacity:0;transform:translateY(-8px)}
+  .notice .tile{
+    width:38px;height:38px;border-radius:10px; /* Astryx radius-element */
+    background:var(--paper-tint);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-size:1.1rem;line-height:1;
+  }
+  .notice .tile.rose{background:#fff1f2;border-color:#fecdd3}
+  .notice .tile.amber{background:#fffbeb;border-color:#fde68a}
+  .notice .n-head{display:flex;justify-content:space-between;gap:8px;min-width:0}
+  .notice .n-head b{font-size:.8125rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .notice .n-head time{flex:none;font-size:.6875rem;color:var(--faint)}
+  .notice p{font-size:.8125rem;line-height:1.38;color:var(--body)}
+  .notice p b{color:var(--ink)}
+  .notice .dismiss{
+    position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:9999px;
+    color:var(--faint);display:flex;align-items:center;justify-content:center;font-size:.875rem;line-height:1;
+  }
+  .notice .dismiss:hover{background:rgba(0,0,0,.05);color:var(--ink)}
+  .notices-empty{display:none;text-align:center;padding:8px 0 4px}
+  .notices-empty.show{display:block}
+  .btn{
+    display:inline-block;padding:8px 16px;border-radius:6px; /* OSUI button: rounded-md 6px, px-4 py-2 */
+    background:var(--ink-soft);color:#fff;font-size:.875rem;font-weight:500;
+  }
+  .btn:hover{background:var(--ink)}
+  .btn.ghost{background:var(--paper);color:var(--ink-soft);border:1px solid var(--ink-soft)}
+
+  .grid-2{display:grid;grid-template-columns:1.6fr 1fr;gap:24px;align-items:start}
+  footer{
+    border-top:1px solid var(--border-subtle);padding:20px 24px;
+    font-size:.75rem;color:var(--muted);text-align:center;background:var(--paper);
+  }
+
+  /* ---- Mobile: Astryx MobileNav pattern — sidebar becomes bottom nav.
+         OSUI rule kept: base + md: only, no sm: breakpoint. ---- */
+  .bottomnav{display:none}
+  @media (max-width:767px){
+    .sidenav{display:none}
+    .topbar{padding:12px 16px;flex-wrap:wrap;gap:10px}
+    .topbar .brand{font-size:1.25rem}
+    .search{order:3;flex:1 1 100%;max-width:none;margin-left:0}
+    .bell{margin-left:auto}
+    .content{padding:16px 16px 96px;gap:16px}
+    .stats{grid-template-columns:1fr 1fr;gap:12px}
+    .stat .value{font-size:1.5rem}
+    .grid-2{grid-template-columns:1fr;gap:16px}
+    .chart{gap:8px;height:160px}
+    .mini{display:none}
+    .bottomnav{
+      display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;
+      background:var(--paper);border-top:1px solid var(--border);
+      padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    }
+    .bottomnav a{
+      flex:1;text-align:center;font-size:.6875rem;font-weight:500;color:var(--muted);
+      padding:6px 2px;border-radius:var(--radius-element);
+    }
+    .bottomnav a[aria-current="page"]{color:var(--ink);background:var(--paper-tint)}
+    .bottomnav a span{display:block;font-size:1.05rem;line-height:1.2}
+  }
+  @media (min-width:768px) and (max-width:1023px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .grid-2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Astryx SideNav (desktop) -->
+  <nav class="sidenav" aria-label="Primary">
+    <p class="brand">Greenwood High</p>
+    <p class="brand-sub">Class 8-A · 2025–26</p>
+    <a class="nav-item" href="#" aria-current="page"><span class="dot" aria-hidden="true"></span>Dashboard</a>
+    <a class="nav-item" href="#students"><span class="dot" aria-hidden="true"></span>Students</a>
+    <a class="nav-item" href="#attendance"><span class="dot" aria-hidden="true"></span>Attendance</a>
+    <a class="nav-item" href="#attendance"><span class="dot" aria-hidden="true"></span>Fees</a>
+    <a class="nav-item" href="#notices"><span class="dot" aria-hidden="true"></span>Notices</a>
+    <p class="nav-foot">Astryx × OpenSourceUI<br>UI Forge Experiment 1<br>Conflict-test variant</p>
+  </nav>
+
+  <div class="main">
+    <!-- Header: school name, search, notification bell -->
+    <header class="topbar">
+      <p class="brand">Greenwood High<small>Student Management · Class 8-A</small></p>
+      <label class="search" for="q"><span aria-hidden="true">⌕</span><input id="q" type="search" placeholder="Search students by name or roll…" autocomplete="off"></label>
+      <button class="bell" type="button" aria-label="Notifications, 3 unread" onclick="document.getElementById('notices').scrollIntoView({behavior:'smooth'})">🔔<span class="badge" aria-hidden="true">3</span></button>
+      <span class="avatar" title="Class teacher">KT</span>
+    </header>
+
+    <main class="content">
+      <div class="page-head">
+        <div>
+          <h1 class="brand">Class 8-A Dashboard</h1>
+          <p>Attendance, profiles and analytics for Greenwood High, 2025–26.</p>
+        </div>
+        <p class="meta"><b>12</b> students · <b>72</b> teachers · <b>1,248</b> students school-wide</p>
+      </div>
+
+      <!-- 4 stat cards — Astryx Card anatomy, OSUI flat surface -->
+      <section class="stats" aria-label="Key figures">
+        <div class="stat">
+          <p class="label">Students</p>
+          <p class="value num">1,248</p>
+          <p class="sub"><b>12</b> in Class 8-A</p>
+          <div class="bar ink"><i style="width:100%"></i></div>
+        </div>
+        <div class="stat">
+          <p class="label">Teachers</p>
+          <p class="value num">72</p>
+          <p class="sub"><b>1 : 17</b> teacher–student ratio</p>
+          <div class="bar ink"><i style="width:72%"></i></div>
+        </div>
+        <div class="stat">
+          <p class="label">Attendance today</p>
+          <p class="value num">95.2%</p>
+          <p class="sub"><b>1,188</b> present · <b>60</b> absent</p>
+          <div class="bar"><i style="width:95.2%"></i></div>
+        </div>
+        <div class="stat">
+          <p class="label">Fees collected</p>
+          <p class="value num">84%</p>
+          <p class="sub"><b>₹25.2L</b> of ₹30L</p>
+          <div class="bar rose"><i style="width:84%"></i></div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- Attendance trend -->
+        <section class="panel" id="attendance" aria-label="Attendance trend">
+          <div class="panel-head">
+            <h2 class="section-title">Attendance trend</h2>
+            <p class="hint">This week · <b>95.0%</b> average</p>
+          </div>
+          <div class="panel-body">
+            <div class="chart" role="img" aria-label="Attendance by day: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95">
+              <div class="col"><span class="val num">94%</span><div class="bar" style="height:72%"></div><span class="day">Mon</span></div>
+              <div class="col"><span class="val num">96%</span><div class="bar" style="height:82%"></div><span class="day">Tue</span></div>
+              <div class="col"><span class="val num">93%</span><div class="bar low" style="height:66%"></div><span class="day">Wed</span></div>
+              <div class="col"><span class="val num">97%</span><div class="bar" style="height:88%"></div><span class="day">Thu</span></div>
+              <div class="col"><span class="val num">95%</span><div class="bar" style="height:77%"></div><span class="day">Fri</span></div>
+            </div>
+            <p class="chart-note">Highest on <b>Thursday (97%)</b>, lowest on <mark>Wednesday (93%)</mark>. Today: <b>95.2%</b> — 1,188 present, 60 absent.</p>
+          </div>
+        </section>
+
+        <!-- Notices — OSUI AppleNotificationBanner, flattened -->
+        <section class="panel" id="notices" aria-label="Notices">
+          <div class="panel-head">
+            <h2 class="section-title">Notices</h2>
+            <p class="hint"><b>3</b> active</p>
+          </div>
+          <div class="panel-body">
+            <div class="notices" id="noticeList">
+              <article class="notice">
+                <span class="tile" aria-hidden="true">🔬</span>
+                <div>
+                  <div class="n-head"><b>School Office</b><time>9:00 AM</time></div>
+                  <p><b>Science fair:</b> Science fair on Friday — bring your projects to the main hall by 9 AM.</p>
+                </div>
+                <button class="dismiss" type="button" aria-label="Dismiss science fair notice" onclick="dismissNotice(this)">✕</button>
+              </article>
+              <article class="notice">
+                <span class="tile rose" aria-hidden="true">₹</span>
+                <div>
+                  <div class="n-head"><b>Accounts</b><time>Yesterday</time></div>
+                  <p><b>Fee deadline:</b> Fee deadline 20 Nov — please clear pending dues before the date.</p>
+                </div>
+                <button class="dismiss" type="button" aria-label="Dismiss fee deadline notice" onclick="dismissNotice(this)">✕</button>
+              </article>
+              <article class="notice">
+                <span class="tile amber" aria-hidden="true">👥</span>
+                <div>
+                  <div class="n-head"><b>Class Teacher</b><time>Mon</time></div>
+                  <p><b>Parent-teacher meet:</b> Parent-teacher meet 25 Nov — slots will be shared in class.</p>
+                </div>
+                <button class="dismiss" type="button" aria-label="Dismiss parent-teacher meet notice" onclick="dismissNotice(this)">✕</button>
+              </article>
+            </div>
+            <div class="notices-empty" id="noticesEmpty">
+              <p style="font-size:.875rem;color:var(--muted);margin-bottom:12px">All notices dismissed.</p>
+              <button class="btn ghost" type="button" onclick="restoreNotices()">Show notices</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Student table — OSUI CustomersTable, Astryx scroll region -->
+      <section class="panel" id="students" aria-label="Class 8-A students">
+        <div class="panel-head">
+          <div>
+            <h2 class="section-title">Class 8-A Students</h2>
+            <p class="hint">12 students · sorted by roll number</p>
+          </div>
+          <p class="hint">Avg attendance <b>94.1%</b> · Avg marks <b>85.8%</b></p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col" class="r">Attendance</th><th scope="col" class="r">Marks</th></tr>
+            </thead>
+            <tbody id="studentRows">
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">AS</span><div class="nm"><b>Aarav Sharma</b><span>Class 8-A</span></div></div></td><td class="num">8A-01</td><td class="r"><span class="pct high num">96%</span><span class="mini" aria-hidden="true"><i style="width:96%"></i></span></td><td class="r num">88%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">DP</span><div class="nm"><b>Diya Patel</b><span>Class 8-A</span></div></div></td><td class="num">8A-02</td><td class="r"><span class="pct high num">94%</span><span class="mini" aria-hidden="true"><i style="width:94%"></i></span></td><td class="r num">91%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">KS</span><div class="nm"><b>Kabir Singh</b><span>Class 8-A</span></div></div></td><td class="num">8A-03</td><td class="r"><span class="pct low num">89%</span><span class="mini" aria-hidden="true"><i style="width:89%"></i></span></td><td class="r num">76%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">AG</span><div class="nm"><b>Ananya Gupta</b><span>Class 8-A</span></div></div></td><td class="num">8A-04</td><td class="r"><span class="pct high num">98%</span><span class="mini" aria-hidden="true"><i style="width:98%"></i></span></td><td class="r num">93%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">RM</span><div class="nm"><b>Rohan Mehta</b><span>Class 8-A</span></div></div></td><td class="num">8A-05</td><td class="r"><span class="pct num">92%</span><span class="mini" aria-hidden="true"><i style="width:92%"></i></span></td><td class="r num">82%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">IV</span><div class="nm"><b>Ishita Verma</b><span>Class 8-A</span></div></div></td><td class="num">8A-06</td><td class="r"><span class="pct high num">97%</span><span class="mini" aria-hidden="true"><i style="width:97%"></i></span></td><td class="r num">89%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">AN</span><div class="nm"><b>Arjun Nair</b><span>Class 8-A</span></div></div></td><td class="num">8A-07</td><td class="r"><span class="pct num">90%</span><span class="mini" aria-hidden="true"><i style="width:90%"></i></span></td><td class="r num">79%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">SR</span><div class="nm"><b>Sneha Reddy</b><span>Class 8-A</span></div></div></td><td class="num">8A-08</td><td class="r"><span class="pct high num">95%</span><span class="mini" aria-hidden="true"><i style="width:95%"></i></span></td><td class="r num">86%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">VJ</span><div class="nm"><b>Vikram Joshi</b><span>Class 8-A</span></div></div></td><td class="num">8A-09</td><td class="r"><span class="pct low num">88%</span><span class="mini" aria-hidden="true"><i style="width:88%"></i></span></td><td class="r num">74%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">PD</span><div class="nm"><b>Priya Das</b><span>Class 8-A</span></div></div></td><td class="num">8A-10</td><td class="r"><span class="pct high num">99%</span><span class="mini" aria-hidden="true"><i style="width:99%"></i></span></td><td class="r num">95%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">AR</span><div class="nm"><b>Aditya Rao</b><span>Class 8-A</span></div></div></td><td class="num">8A-11</td><td class="r"><span class="pct num">93%</span><span class="mini" aria-hidden="true"><i style="width:93%"></i></span></td><td class="r num">84%</td></tr>
+              <tr><td><div class="student"><span class="ini" aria-hidden="true">KI</span><div class="nm"><b>Kavya Iyer</b><span>Class 8-A</span></div></div></td><td class="num">8A-12</td><td class="r"><span class="pct high num">96%</span><span class="mini" aria-hidden="true"><i style="width:96%"></i></span></td><td class="r num">90%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-foot" id="tableCount">Showing 12 of 12 students · Attendance below 90% is highlighted in amber.</p>
+      </section>
+    </main>
+
+    <footer>Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- Mobile bottom nav (Astryx MobileNav pattern) -->
+<nav class="bottomnav" aria-label="Primary mobile">
+  <a href="#" aria-current="page"><span aria-hidden="true">▦</span>Dashboard</a>
+  <a href="#students"><span aria-hidden="true">👥</span>Students</a>
+  <a href="#attendance"><span aria-hidden="true">✓</span>Attend.</a>
+  <a href="#notices"><span aria-hidden="true">🔔</span>Notices</a>
+</nav>
+
+<script>
+  // Search filters the student table by name or roll (live, case-insensitive).
+  var q = document.getElementById('q');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#studentRows tr'));
+  var count = document.getElementById('tableCount');
+  q.addEventListener('input', function () {
+    var term = q.value.trim().toLowerCase(), shown = 0;
+    rows.forEach(function (r) {
+      var hit = !term || r.textContent.toLowerCase().indexOf(term) !== -1;
+      r.style.display = hit ? '' : 'none';
+      if (hit) shown++;
+    });
+    count.textContent = term
+      ? 'Showing ' + shown + ' of 12 students matching "' + q.value.trim() + '"'
+      : 'Showing 12 of 12 students · Attendance below 90% is highlighted in amber.';
+  });
+
+  // Notices: OSUI AppleNotificationBanner dismiss behaviour —
+  // 260ms fade-out, then remove; "Show notices" trigger restores all.
+  var noticeList = document.getElementById('noticeList');
+  var emptyState = document.getElementById('noticesEmpty');
+  function dismissNotice(btn) {
+    var card = btn.closest('.notice');
+    card.classList.add('closing');
+    setTimeout(function () {
+      card.style.display = 'none';
+      if (!noticeList.querySelector('.notice:not(.closing)') ||
+          Array.prototype.every.call(noticeList.querySelectorAll('.notice'), function (n) { return n.style.display === 'none'; })) {
+        emptyState.classList.add('show');
+      }
+    }, 260);
+  }
+  function restoreNotices() {
+    noticeList.querySelectorAll('.notice').forEach(function (n) {
+      n.style.display = '';
+      n.classList.remove('closing');
+    });
+    emptyState.classList.remove('show');
+  }
+
+  // Nav active state (visual only — single-page demo).
+  document.querySelectorAll('.nav-item, .bottomnav a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.querySelectorAll('.nav-item').forEach(function (x) { x.removeAttribute('aria-current'); });
+      document.querySelectorAll('.bottomnav a').forEach(function (x) { x.removeAttribute('aria-current'); });
+      a.setAttribute('aria-current', 'page');
+    });
+  });
+</script>
+</body>
+</html>

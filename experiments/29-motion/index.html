@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<!--
+  UI Forge Experiment 2, variant 29-motion.
+  Skills applied (both read in full before building):
+  (1) animate — Emil Kowalski animation philosophy.
+  (2) accessible-animation — tiered prefers-reduced-motion.
+
+  GATE (animate §1–2) — what animates, and why:
+  - Page/section entry: rare (once per page load) — purpose: preventing a
+    jarring change. Fade + 8px rise, 250ms, 40ms stagger.
+  - Chart bars growing: rare (once per load) — purpose: explanation /
+    state indication. transform scaleY only, 450ms, 60ms stagger.
+  - Stat numbers counting up: rare (once per load) — purpose: state
+    indication. JS rAF, 450ms, gated by matchMedia; instant when reduced.
+  - Sidebar drawer (mobile): occasional — purpose: spatial consistency.
+    transform translateX, 250ms, iOS drawer curve. Overlay fades.
+  - Hover lift on stat cards / nav / rows: tens/day — near-imperceptible
+    only: 2px lift / colour change, 180ms, hover-capable pointers only.
+  - Button press: feedback, 120ms, scale(0.97).
+  - REJECTED: no animation on search typing / keyboard actions (100+/day
+    tier — animate §1 forbids it); no parallax, no spin, no marquee,
+    no infinite animation, no width/height animation, no ease-in on UI,
+    no transition:all, no scale(0), no ungated :hover motion.
+
+  INGREDIENTS (animate §5): --ease-out cubic-bezier(0.23,1,0.32,1);
+  --ease-in-out cubic-bezier(0.77,0,0.175,1);
+  --ease-drawer cubic-bezier(0.32,0.72,0,1). transform/opacity only.
+  All UI motion ≤250ms except the one-off chart/count-up at 450ms.
+
+  REDUCED MOTION (accessible-animation, tiered — not a kill switch):
+  - Tier 1 removed: entry/drawer/chart translate & scaleY, hover lift.
+  - Tier 2 softened: entry/chart become a ≤150ms opacity fade.
+  - Tier 3 kept: colour/background/focus-ring transitions, badge.
+  - Global 0.01ms safety net (not 0s, so transitionend still fires),
+    with intentional Tier-3 overrides layered after it.
+  - JS count-up reads matchMedia live (change listener) and ?reduce=1
+    forces the reduced path for screenshots. ?t=N freezes CSS
+    animations mid-flight (animation-delay:-N s, paused).
+-->
+<style>
+  :root{
+    --ease-out:cubic-bezier(0.23,1,0.32,1);
+    --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+    --ease-drawer:cubic-bezier(0.32,0.72,0,1);
+    --dur-press:120ms; --dur-hover:180ms; --dur-enter:250ms; --dur-drawer:250ms;
+    --dur-chart:450ms; --dur-fade-reduced:150ms;
+    --ink:#1a2332; --muted:#5b6b7f; --line:#e2e8f0; --bg:#f1f5f9;
+    --card:#ffffff; --brand:#1d4ed8; --brand-soft:#dbeafe; --good:#15803d;
+    --amber:#b45309; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+  }
+  a{color:var(--brand)}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--brand);outline-offset:2px;
+    transition:outline-color var(--dur-hover) ease,outline-offset var(--dur-hover) ease}
+
+  /* ---------- Layout ---------- */
+  .app{display:flex;min-height:100vh}
+  .sidebar{
+    width:220px;flex:0 0 220px;background:#0f2440;color:#e2e8f0;
+    padding:20px 14px;position:sticky;top:0;height:100vh;
+  }
+  .sidebar h2{margin:0 0 4px;font-size:18px;color:#fff}
+  .sidebar p{margin:0 0 20px;font-size:13px;color:#94a3b8}
+  .sidebar nav{display:flex;flex-direction:column;gap:4px}
+  .sidebar nav a{
+    color:#e2e8f0;text-decoration:none;padding:10px 12px;border-radius:8px;
+    font-size:15px;
+    transition:background-color var(--dur-hover) ease,color var(--dur-hover) ease;
+  }
+  .sidebar nav a[aria-current="page"]{background:var(--brand);color:#fff}
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  header{
+    background:var(--card);border-bottom:1px solid var(--line);
+    padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  header h1{font-size:20px;margin:0;white-space:nowrap}
+  header .sub{font-size:13px;color:var(--muted);white-space:nowrap}
+  .search{
+    flex:1;min-width:140px;max-width:420px;margin-left:auto;
+    padding:9px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;
+    transition:border-color var(--dur-hover) ease,box-shadow var(--dur-hover) ease;
+  }
+  .search:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);outline:none}
+  .bell{
+    position:relative;background:var(--bg);border:1px solid var(--line);
+    border-radius:50%;width:42px;height:42px;font-size:19px;line-height:1;
+    transition:background-color var(--dur-press) ease,transform var(--dur-press) var(--ease-out);
+  }
+  .bell:active{transform:scale(0.93)}
+  .bell .dot{
+    position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;
+    background:#dc2626;border:2px solid #fff;
+  }
+  .menu-btn{
+    display:none;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:9px 12px;font-size:16px;
+    transition:background-color var(--dur-press) ease,transform var(--dur-press) var(--ease-out);
+  }
+  .menu-btn:active{transform:scale(0.95)}
+  .overlay{
+    display:none;position:fixed;inset:0;background:rgba(15,36,64,.5);z-index:40;
+    opacity:0;transition:opacity var(--dur-drawer) var(--ease-out);
+  }
+  .overlay.open{opacity:1}
+  .content{padding:24px;display:flex;flex-direction:column;gap:20px;max-width:1120px;width:100%;margin:0 auto}
+  .content h2{margin:0 0 12px;font-size:17px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;
+  }
+
+  /* ---------- Entry animation (animate: CSS animation, off main thread) ---------- */
+  @keyframes rise-in{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .rise{animation:rise-in var(--dur-enter) var(--ease-out) both}
+  .rise-1{animation-delay:0ms}
+  .rise-2{animation-delay:40ms}
+  .rise-3{animation-delay:80ms}
+  .rise-4{animation-delay:120ms}
+  .rise-5{animation-delay:160ms}
+
+  /* ---------- Stat cards ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{padding:18px 20px}
+  .stat .label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .stat .value{font-size:32px;font-weight:700;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+  .stat .note{font-size:13px;color:var(--muted)}
+  .stat .note b{color:var(--good);font-weight:600}
+
+  /* ---------- Chart ---------- */
+  .chart{display:flex;align-items:flex-end;gap:18px;height:180px;padding-top:8px}
+  .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end;min-width:0}
+  .bar-track{flex:1;width:100%;max-width:56px;display:flex;align-items:flex-end}
+  .bar{
+    width:100%;border-radius:6px 6px 0 0;background:var(--brand);
+    transform-origin:bottom;
+    animation:bar-grow var(--dur-chart) var(--ease-out) both;
+  }
+  .bar.today{background:var(--good)}
+  @keyframes bar-grow{from{opacity:0;transform:scaleY(0)}to{opacity:1;transform:scaleY(1)}}
+  .bar-1{animation-delay:0ms}.bar-2{animation-delay:60ms}.bar-3{animation-delay:120ms}
+  .bar-4{animation-delay:180ms}.bar-5{animation-delay:240ms}
+  .bar-label{font-size:13px;color:var(--muted);white-space:nowrap}
+  .bar-value{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* ---------- Table ---------- */
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;width:100%;min-width:560px}
+  th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;white-space:nowrap}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  tbody tr{transition:background-color var(--dur-hover) ease}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.good{background:#dcfce7;color:var(--good)}
+  .pill.warn{background:#fef3c7;color:var(--amber)}
+
+  /* ---------- Notices ---------- */
+  .notices{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .notices li{
+    display:flex;gap:10px;align-items:flex-start;padding:12px 14px;
+    background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:14px;
+  }
+  .notices li::before{content:"📌";flex:0 0 auto}
+  footer{padding:16px 24px 24px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* ---------- Hover gating: fine pointers only (animate §7) ---------- */
+  @media (hover:hover) and (pointer:fine){
+    .sidebar nav a:hover{background:#1e3a5f}
+    .stat:hover{transform:translateY(-2px)}
+    tbody tr:hover{background:#f8fafc}
+    .bell:hover{background:#e2e8f0}
+  }
+  .stat{transition:transform var(--dur-hover) var(--ease-out),box-shadow var(--dur-hover) var(--ease-out)}
+  .stat:hover{box-shadow:0 4px 14px rgba(15,36,64,.10)}
+
+  /* ---------- Reduced motion: tiered, not a kill switch ---------- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+      scroll-behavior:auto !important;
+    }
+    /* Tier 1 removed: no translate / scaleY / drawer slide / hover lift. */
+    .rise,.bar{animation:none !important;opacity:1 !important;transform:none !important}
+    .sidebar{transform:none !important}
+    .stat:hover{transform:none !important}
+    /* Tier 2 softened: entry & chart become a short fade. */
+    .rise{animation:fade-in var(--dur-fade-reduced) ease both !important}
+    .bar{animation:fade-in var(--dur-fade-reduced) ease both !important}
+    /* Tier 3 kept: colour / background / focus transitions survive. */
+    .sidebar nav a,tbody tr,.search,.bell,.menu-btn{
+      transition:background-color var(--dur-fade-reduced) ease,
+                 border-color var(--dur-fade-reduced) ease,
+                 box-shadow var(--dur-fade-reduced) ease !important;
+    }
+    :focus-visible{transition:outline-color var(--dur-fade-reduced) ease !important}
+  }
+  @keyframes fade-in{from{opacity:0}to{opacity:1}}
+  /* ?reduce=1 forces the same reduced path when the OS setting is off. */
+  html.force-reduce *,html.force-reduce *::before,html.force-reduce *::after{
+    animation-duration:0.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;scroll-behavior:auto !important;
+  }
+  html.force-reduce .rise,html.force-reduce .bar{
+    animation:fade-in var(--dur-fade-reduced) ease both !important;transform:none !important;
+  }
+  html.force-reduce .sidebar{transform:none !important}
+  html.force-reduce .stat:hover{transform:none !important}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:760px){
+    .sidebar{
+      position:fixed;left:0;top:0;bottom:0;z-index:50;height:100dvh;
+      transform:translateX(-102%);
+      transition:transform var(--dur-drawer) var(--ease-drawer);
+      will-change:transform;
+    }
+    .sidebar.open{transform:translateX(0)}
+    .overlay{display:block;pointer-events:none}
+    .overlay.open{pointer-events:auto}
+    .menu-btn{display:inline-block}
+    header h1{font-size:18px}
+    .content{padding:16px}
+  }
+  @media (max-width:420px){
+    header{padding:12px 14px;gap:10px}
+    header .sub{display:none}
+    .search{order:3;flex-basis:100%;max-width:none}
+    .stats{grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat{padding:14px}
+    .stat .value{font-size:25px}
+    .card{padding:16px}
+    .chart{gap:10px;height:160px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <h2>Greenwood High</h2>
+    <p>Class 8-A · 2025–26</p>
+    <nav>
+      <a href="#" aria-current="page">Dashboard</a>
+      <a href="#">Students</a>
+      <a href="#">Attendance</a>
+      <a href="#">Marks</a>
+      <a href="#">Fees</a>
+      <a href="#">Notices</a>
+      <a href="#">Settings</a>
+    </nav>
+  </aside>
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <div class="main">
+    <header>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation">☰ Menu</button>
+      <div>
+        <h1>Greenwood High</h1>
+        <span class="sub">Class 8-A · 2025–26</span>
+      </div>
+      <input class="search" type="search" placeholder="Search students…" aria-label="Search students">
+      <button class="bell" id="bellBtn" aria-label="Notifications, 3 unread">🔔<span class="dot" aria-hidden="true"></span></button>
+    </header>
+
+    <main class="content">
+      <section class="stats" aria-label="School statistics">
+        <div class="card stat rise rise-1">
+          <div class="label">Students</div>
+          <div class="value" data-count="1248" data-format="comma">1,248</div>
+          <div class="note"><b>▲ 12</b> this term</div>
+        </div>
+        <div class="card stat rise rise-2">
+          <div class="label">Teachers</div>
+          <div class="value" data-count="72">72</div>
+          <div class="note">Across all classes</div>
+        </div>
+        <div class="card stat rise rise-3">
+          <div class="label">Attendance Today</div>
+          <div class="value" data-count="95.2" data-decimals="1" data-suffix="%">95.2%</div>
+          <div class="note">1,188 present · 60 absent</div>
+        </div>
+        <div class="card stat rise rise-4">
+          <div class="label">Fees Collected</div>
+          <div class="value" data-count="84" data-suffix="%">84%</div>
+          <div class="note">₹25.2L of ₹30L</div>
+        </div>
+      </section>
+
+      <section class="card rise rise-3" aria-label="Attendance trend">
+        <h2>Attendance Trend — This Week</h2>
+        <div class="chart">
+          <div class="bar-wrap"><span class="bar-value">94%</span><div class="bar-track"><div class="bar bar-1" style="height:94%"></div></div><span class="bar-label">Mon</span></div>
+          <div class="bar-wrap"><span class="bar-value">96%</span><div class="bar-track"><div class="bar bar-2" style="height:96%"></div></div><span class="bar-label">Tue</span></div>
+          <div class="bar-wrap"><span class="bar-value">93%</span><div class="bar-track"><div class="bar bar-3" style="height:93%"></div></div><span class="bar-label">Wed</span></div>
+          <div class="bar-wrap"><span class="bar-value">97%</span><div class="bar-track"><div class="bar bar-4" style="height:97%"></div></div><span class="bar-label">Thu</span></div>
+          <div class="bar-wrap"><span class="bar-value">95%</span><div class="bar-track"><div class="bar today bar-5" style="height:95%"></div></div><span class="bar-label">Fri</span></div>
+        </div>
+      </section>
+
+      <section class="card rise rise-4" aria-label="Class 8-A students">
+        <h2>Class 8-A Students (12)</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Name</th><th>Roll</th><th>Attendance</th><th>Marks</th></tr></thead>
+            <tbody>
+              <tr><td>Aarav Sharma</td><td>8A-01</td><td><span class="pill good">96%</span></td><td>88%</td></tr>
+              <tr><td>Diya Patel</td><td>8A-02</td><td><span class="pill good">94%</span></td><td>91%</td></tr>
+              <tr><td>Kabir Singh</td><td>8A-03</td><td><span class="pill warn">89%</span></td><td>76%</td></tr>
+              <tr><td>Ananya Gupta</td><td>8A-04</td><td><span class="pill good">98%</span></td><td>93%</td></tr>
+              <tr><td>Rohan Mehta</td><td>8A-05</td><td><span class="pill good">92%</span></td><td>82%</td></tr>
+              <tr><td>Ishita Verma</td><td>8A-06</td><td><span class="pill good">97%</span></td><td>89%</td></tr>
+              <tr><td>Arjun Nair</td><td>8A-07</td><td><span class="pill good">90%</span></td><td>79%</td></tr>
+              <tr><td>Sneha Reddy</td><td>8A-08</td><td><span class="pill good">95%</span></td><td>86%</td></tr>
+              <tr><td>Vikram Joshi</td><td>8A-09</td><td><span class="pill warn">88%</span></td><td>74%</td></tr>
+              <tr><td>Priya Das</td><td>8A-10</td><td><span class="pill good">99%</span></td><td>95%</td></tr>
+              <tr><td>Aditya Rao</td><td>8A-11</td><td><span class="pill good">93%</span></td><td>84%</td></tr>
+              <tr><td>Kavya Iyer</td><td>8A-12</td><td><span class="pill good">96%</span></td><td>90%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card rise rise-5" aria-label="Notices">
+        <h2>Notices</h2>
+        <ul class="notices">
+          <li>Science fair on Friday</li>
+          <li>Fee deadline 20 Nov</li>
+          <li>Parent-teacher meet 25 Nov</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var q = new URLSearchParams(location.search);
+
+  /* Reduced-motion state: OS setting OR ?reduce=1 (screenshot forcing).
+     Live change listener so toggling the OS setting takes effect at once. */
+  var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var reduced = q.get("reduce") === "1" || mq.matches;
+  if (q.get("reduce") === "1") document.documentElement.classList.add("force-reduce");
+  function syncReduced(){ reduced = q.get("reduce") === "1" || mq.matches; }
+  if (mq.addEventListener) mq.addEventListener("change", syncReduced);
+
+  /* Seek harness (?t=N): freeze CSS animations mid-flight for screenshots. */
+  var t = q.get("t");
+  if (t !== null){
+    var secs = parseFloat(t) || 0;
+    document.querySelectorAll(".rise,.bar").forEach(function(el){
+      el.style.animationDelay = (-secs) + "s";
+      el.style.animationPlayState = "paused";
+    });
+  }
+
+  /* Stat count-up: JS-driven (dynamic values), 450ms ease-out, rAF.
+     Gated: instant final values when reduced motion is on. */
+  function format(el, v){
+    var d = parseInt(el.getAttribute("data-decimals") || "0", 10);
+    var s = d ? v.toFixed(d) : Math.round(v).toString();
+    if (el.hasAttribute("data-format")) s = Number(Math.round(v)).toLocaleString("en-IN");
+    return s + (el.getAttribute("data-suffix") || "");
+  }
+  function countUp(el){
+    var target = parseFloat(el.getAttribute("data-count"));
+    if (reduced){ el.textContent = format(el, target); return; }
+    var start = null, dur = 450;
+    function step(ts){
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3); /* ease-out cubic */
+      el.textContent = format(el, target * eased);
+      if (p < 1 && !reduced) requestAnimationFrame(step);
+      else el.textContent = format(el, target);
+    }
+    requestAnimationFrame(step);
+  }
+  document.querySelectorAll("[data-count]").forEach(countUp);
+
+  /* Mobile drawer: spatial-consistency slide, symmetric exit path. */
+  var sidebar = document.getElementById("sidebar");
+  var overlay = document.getElementById("overlay");
+  var menuBtn = document.getElementById("menuBtn");
+  function setDrawer(open){
+    sidebar.classList.toggle("open", open);
+    overlay.classList.toggle("open", open);
+    menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+  }
+  menuBtn.addEventListener("click", function(){
+    setDrawer(!sidebar.classList.contains("open"));
+  });
+  overlay.addEventListener("click", function(){ setDrawer(false); });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") setDrawer(false);
+  });
+
+  /* Bell: press feedback only (120ms scale in CSS); no animation on the
+     notification itself — it is not a state the user needs motion to read. */
+  document.getElementById("bellBtn").addEventListener("click", function(){
+    document.querySelector(".notices").scrollIntoView({behavior: reduced ? "auto" : "smooth", block:"nearest"});
+  });
+
+  window.__ready = true;
+})();
+</script>
+</body>
+</html>

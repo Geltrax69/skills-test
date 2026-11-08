@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+/* ============================================================
+   Variant 30-full-ui-stack — "everything" combo
+   Token layer: Astryx theme-neutral ramp, mapped onto PanelUI
+   shadcn semantic token names (background / primary / muted /
+   destructive / border). Hex notation throughout, one system.
+   Contrast measured with a script before writing (see
+   SKILLS_ACTUALLY_READ.md): every text pair is 4.5:1 or better.
+   ============================================================ */
+:root {
+  --color-bg: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eceef1;
+  --color-text: #17181c;
+  --color-text-secondary: #5b606b;
+  --color-border: #e3e5e9;
+  --color-accent: #2b4fd8;
+  --color-accent-tint: #e8edfd;
+  --color-success: #146c43;
+  --color-success-tint: #e3f4ea;
+  --color-warning: #7a5200;
+  --color-warning-tint: #fdf3d7;
+  --color-destructive: #b3261e;
+  --color-destructive-tint: #fdecea;
+  --color-info: #2b4fd8;
+  --color-info-tint: #e8edfd;
+  --radius-card: 16px;
+  --radius-panel: 12px;
+  --radius-control: 10px;
+  --radius-pill: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  /* better-ui exact easing; emil drawer curve kept for the nav drawer only */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --shadow-card: 0 1px 2px rgb(23 24 28 / 0.06), 0 4px 16px rgb(23 24 28 / 0.05);
+  --header-height: 60px;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: calc(var(--header-height) + 12px); }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: 1.5rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+h2 { font-size: 1.125rem; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1rem; line-height: 1.3; font-weight: 650; }
+a { color: var(--color-accent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute; inset-inline-start: 12px; top: -48px; z-index: 60;
+  background: var(--color-accent); color: #fff; padding: 8px 14px;
+  border-radius: var(--radius-control); font-weight: 600; text-decoration: none;
+  transition: top 150ms var(--ease-out);
+}
+.skip-link:focus { top: 8px; }
+
+/* ---------- App shell: NavRail (PanelUI) + main ---------- */
+.app { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100dvh; }
+.sidebar {
+  position: sticky; top: 0; height: 100dvh;
+  background: var(--color-surface); border-inline-end: 1px solid var(--color-border);
+  display: flex; flex-direction: column; padding: var(--space-4) var(--space-3);
+  gap: var(--space-4); overflow-y: auto; overscroll-behavior: contain;
+  transition: width 200ms var(--ease-out);
+}
+.sidebar.collapsed { width: 68px; }
+.brand { display: flex; align-items: center; gap: 10px; min-height: 40px; padding-inline: var(--space-2); }
+.brand-mark {
+  flex: none; width: 36px; height: 36px; border-radius: 10px;
+  background: var(--color-accent); color: #fff;
+  display: grid; place-items: center; font-weight: 700; font-size: 1.125rem;
+}
+.brand-name { font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; }
+.brand-sub { display: block; font-size: 0.75rem; font-weight: 400; color: var(--color-text-secondary); letter-spacing: 0; }
+.sidebar.collapsed .brand-name { display: none; }
+.nav-group-label {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--color-text-secondary); padding: 0 var(--space-2) var(--space-2);
+  white-space: nowrap; overflow: hidden;
+}
+.sidebar.collapsed .nav-group-label { visibility: hidden; height: 0; padding: 0; }
+.nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  width: 100%; min-height: 44px; padding: 8px 10px; border: 0; border-radius: var(--radius-control);
+  background: transparent; text-align: start; font-weight: 500; cursor: pointer;
+  transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+  white-space: nowrap;
+}
+.nav-item .nav-icon { flex: none; font-size: 1.125rem; line-height: 1; }
+.nav-item .nav-label { overflow: hidden; text-overflow: ellipsis; }
+.nav-item .nav-count {
+  margin-inline-start: auto; flex: none; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: var(--radius-pill); background: var(--color-accent); color: #fff;
+  font-size: 0.75rem; font-weight: 700; display: grid; place-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.sidebar.collapsed .nav-item { justify-content: center; padding: 8px 0; }
+.sidebar.collapsed .nav-label, .sidebar.collapsed .nav-count { display: none; }
+/* NavRail tonal variant: quiet primary tint + short accent bar */
+.nav-item[aria-current="page"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 650; }
+.nav-item[aria-current="page"]::before {
+  content: ""; position: absolute; inset-inline-start: -12px; top: 10px; bottom: 10px;
+  width: 3px; border-radius: 0 3px 3px 0; background: var(--color-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover:not([aria-current="page"]) { background: var(--color-surface-muted); }
+}
+.nav-item:active { transform: scale(0.96); transition: transform 150ms var(--ease-out); }
+.nav-footer { margin-top: auto; display: flex; flex-direction: column; gap: 2px; }
+.collapse-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px;
+  padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-control);
+  background: var(--color-surface); cursor: pointer; font-weight: 500;
+  transition: background-color 150ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) { .collapse-btn:hover { background: var(--color-surface-muted); } }
+.collapse-btn:active { transform: scale(0.96); transition: transform 150ms var(--ease-out); }
+.sidebar.collapsed .collapse-btn { justify-content: center; }
+.sidebar.collapsed .collapse-btn span { display: none; }
+
+/* ---------- Header (Astryx Button anatomy, PanelUI frame) ---------- */
+.main { min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  position: sticky; top: 0; z-index: 40; height: var(--header-height);
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: 0 var(--space-5); background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.topbar-title { min-width: 0; }
+.topbar-title h1 { font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar-title p { font-size: 0.8125rem; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search { flex: 1; max-width: 420px; margin-inline-start: auto; position: relative; }
+.search input {
+  width: 100%; height: 40px; padding: 0 12px 0 36px; font-size: 1rem;
+  color: var(--color-text); background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: var(--radius-pill);
+}
+.search input::placeholder { color: var(--color-text-secondary); }
+.search .search-icon { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: var(--color-text-secondary); pointer-events: none; }
+.bell {
+  position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--color-border); background: var(--color-surface);
+  display: grid; place-items: center; cursor: pointer; font-size: 1.125rem;
+  transition: background-color 150ms var(--ease-out), transform 150ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) { .bell:hover { background: var(--color-surface-muted); } }
+.bell:active { transform: scale(0.96); }
+.bell .bell-count {
+  position: absolute; top: -4px; inset-inline-end: -4px; min-width: 18px; height: 18px;
+  padding: 0 5px; border-radius: var(--radius-pill); background: var(--color-destructive);
+  color: #fff; font-size: 0.6875rem; font-weight: 700; display: grid; place-items: center;
+  font-variant-numeric: tabular-nums; border: 2px solid var(--color-surface);
+}
+
+/* ---------- Content ---------- */
+.content {
+  display: flex; flex-direction: column; gap: var(--space-5);
+  padding: var(--space-5); max-width: 1120px; width: 100%; margin: 0 auto;
+}
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.section-head p { color: var(--color-text-secondary); font-size: 0.875rem; }
+
+/* ---------- KPI cards (PanelUI Kpi anatomy) ---------- */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
+.kpi {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);
+  min-width: 0;
+}
+.kpi-head { display: flex; align-items: center; gap: var(--space-2); }
+.kpi-icon {
+  flex: none; width: 32px; height: 32px; border-radius: 8px;
+  display: grid; place-items: center; font-size: 1rem;
+}
+.kpi-icon.tone-primary { background: var(--color-accent-tint); color: var(--color-accent); }
+.kpi-icon.tone-success { background: var(--color-success-tint); color: var(--color-success); }
+.kpi-icon.tone-warning { background: var(--color-warning-tint); color: var(--color-warning); }
+.kpi-icon.tone-info { background: var(--color-info-tint); color: var(--color-info); }
+.kpi-title { font-size: 0.875rem; font-weight: 600; color: var(--color-text-secondary); }
+.kpi-value {
+  font-size: 2rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-value .kpi-unit { font-size: 1.125rem; font-weight: 600; color: var(--color-text-secondary); margin-inline-start: 2px; }
+.kpi-trend { font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi-trend.good { color: var(--color-success); }
+.kpi-trend.warn { color: var(--color-warning); }
+.kpi-trend .kpi-caption { font-weight: 400; color: var(--color-text-secondary); }
+.kpi-spark { display: flex; align-items: flex-end; gap: 3px; height: 28px; margin-top: 2px; }
+.kpi-spark i { flex: 1; border-radius: 2px 2px 0 0; background: var(--color-accent); opacity: 0.75; }
+.kpi-progress { height: 8px; border-radius: var(--radius-pill); background: var(--color-surface-muted); overflow: hidden; margin-top: 4px; }
+.kpi-progress i { display: block; height: 100%; border-radius: inherit; background: var(--color-accent); }
+.kpi-foot { font-size: 0.8125rem; color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+
+/* ---------- Panels (PanelUI Frame: muted band + inner card) ---------- */
+.frame {
+  background: var(--color-surface-muted); border: 1px solid var(--color-border);
+  border-radius: var(--radius-card); padding: var(--space-1);
+}
+.frame-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-2); flex-wrap: wrap;
+}
+.frame-head p { font-size: 0.8125rem; color: var(--color-text-secondary); }
+.frame-action { font-size: 0.8125rem; font-weight: 600; color: var(--color-accent); text-decoration: none; white-space: nowrap; }
+.frame-panel {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel); padding: var(--space-4);
+}
+/* concentric radii: outer 16 = inner 12 + 4px band inset (better-ui rule) */
+.grid-2 { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-5); align-items: start; }
+
+/* ---------- Bar chart (PanelUI BarChart anatomy, CSS bars) ---------- */
+.chart { display: flex; align-items: flex-end; gap: var(--space-4); height: 200px; padding-top: var(--space-4); }
+.chart-bar { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.chart-bar .bar-value { font-size: 0.8125rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.chart-bar .bar {
+  width: 100%; max-width: 56px; border-radius: 4px 4px 0 0;
+  background: var(--color-accent); opacity: 0.85;
+  transition: opacity 150ms var(--ease-out), background-color 150ms var(--ease-out);
+}
+.chart-bar .bar.best { background: var(--color-success); opacity: 1; }
+.chart-bar .bar-day { font-size: 0.8125rem; color: var(--color-text-secondary); }
+@media (hover: hover) and (pointer: fine) { .chart-bar:hover .bar { opacity: 1; } }
+.chart-note { margin-top: var(--space-3); font-size: 0.8125rem; color: var(--color-text-secondary); }
+.chart-note strong { color: var(--color-text); font-variant-numeric: tabular-nums; }
+
+/* ---------- Student table (PanelUI Table anatomy) ---------- */
+.table-wrap { overflow-x: auto; overscroll-behavior: contain; margin: calc(var(--space-4) * -1); padding: var(--space-4); }
+table { width: 100%; min-width: 560px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+caption { text-align: start; font-size: 0.875rem; color: var(--color-text-secondary); padding-bottom: var(--space-2); }
+th, td { padding: 10px 12px; text-align: start; border-bottom: 1px solid var(--color-border); }
+th { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-secondary); }
+th[scope="col"].num, td.num { text-align: end; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:nth-child(even) td { background: #fafbfc; }
+@media (hover: hover) and (pointer: fine) { tbody tr:hover td { background: var(--color-accent-tint); } }
+.student-name { font-weight: 600; white-space: nowrap; }
+.student-roll { color: var(--color-text-secondary); font-size: 0.875rem; white-space: nowrap; }
+.pill {
+  display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill);
+  font-size: 0.8125rem; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.pill.good { background: var(--color-success-tint); color: var(--color-success); }
+.pill.warn { background: var(--color-warning-tint); color: var(--color-warning); }
+.pill.low { background: var(--color-destructive-tint); color: var(--color-destructive); }
+.table-empty { padding: var(--space-5); text-align: center; }
+.table-empty p:first-child { font-weight: 650; }
+.table-empty p:last-child { color: var(--color-text-secondary); font-size: 0.875rem; margin-top: 4px; }
+.clear-btn {
+  margin-top: var(--space-3); min-height: 40px; padding: 8px 16px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-control);
+  background: var(--color-surface); font-weight: 600; cursor: pointer;
+  transition: background-color 150ms var(--ease-out), transform 150ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) { .clear-btn:hover { background: var(--color-surface-muted); } }
+.clear-btn:active { transform: scale(0.96); }
+
+/* ---------- Notices (PanelUI Frame rows + Badge) ---------- */
+.notice-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.notice-row {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  padding: var(--space-3) 0; min-width: 0;
+}
+.notice-row + .notice-row { border-top: 1px solid var(--color-border); }
+.notice-row:first-child { padding-top: 0; }
+.notice-row:last-child { padding-bottom: 0; }
+.notice-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 8px; }
+.notice-dot.info { background: var(--color-info); }
+.notice-dot.warning { background: var(--color-warning); }
+.notice-dot.success { background: var(--color-success); }
+.notice-body { min-width: 0; flex: 1; }
+.notice-body p { font-weight: 600; overflow-wrap: break-word; }
+.notice-body small { display: block; color: var(--color-text-secondary); font-size: 0.8125rem; margin-top: 2px; }
+.badge {
+  flex: none; display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 8px; border-radius: var(--radius-pill);
+  font-size: 0.75rem; font-weight: 650; white-space: nowrap;
+}
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge.info { background: var(--color-info-tint); color: var(--color-info); }
+.badge.warning { background: var(--color-warning-tint); color: var(--color-warning); }
+.badge.success { background: var(--color-success-tint); color: var(--color-success); }
+
+footer {
+  padding: 0 var(--space-5) var(--space-5); text-align: center;
+  color: var(--color-text-secondary); font-size: 0.8125rem;
+}
+
+/* ---------- Bottom nav (mobile) ---------- */
+.bottom-nav {
+  display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: var(--color-surface); border-top: 1px solid var(--color-border);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  justify-content: space-around;
+}
+.bottom-nav .nav-item { flex-direction: column; gap: 2px; min-height: 48px; width: auto; flex: 1; padding: 6px 4px; font-size: 0.6875rem; }
+.bottom-nav .nav-item .nav-icon { font-size: 1.25rem; }
+.bottom-nav .nav-item[aria-current="page"]::before { display: none; }
+
+/* ---------- Responsive: hold structure until it breaks ---------- */
+@media (max-width: 1020px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { display: none; }
+  .bottom-nav { display: flex; }
+  .content { padding: var(--space-4); padding-bottom: calc(var(--space-4) + 64px); }
+  .topbar { padding: 0 var(--space-4); gap: var(--space-3); }
+  .topbar-title p { display: none; }
+  .topbar-title h1 { font-size: 1.125rem; }
+  footer { padding-bottom: calc(var(--space-5) + 64px); }
+}
+@media (max-width: 480px) {
+  .stats { grid-template-columns: minmax(0, 1fr); }
+  /* Defect found in 390px screenshot: the search field was squeezed to
+     ~150px between the title and the bell, truncating its placeholder.
+     Fix: let the topbar wrap so search takes a full second row. */
+  .topbar { flex-wrap: wrap; height: auto; padding: 10px var(--space-4); row-gap: 10px; }
+  .search { order: 3; flex: 1 1 100%; max-width: none; }
+  .search input { font-size: 1rem; } /* 16px: no iOS zoom */
+  .chart { gap: var(--space-2); }
+}
+
+/* ---------- Motion: staged entrance only on first load ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .kpi { opacity: 0; transform: translateY(12px); filter: blur(4px); animation: kpi-in 300ms var(--ease-out) forwards; }
+  .kpi:nth-child(1) { animation-delay: 0ms; }
+  .kpi:nth-child(2) { animation-delay: 100ms; }
+  .kpi:nth-child(3) { animation-delay: 200ms; }
+  .kpi:nth-child(4) { animation-delay: 300ms; }
+  @keyframes kpi-in { to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+  .chart-bar .bar { animation: bar-in 300ms var(--ease-out) both; transform-origin: bottom; }
+  @keyframes bar-in { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app">
+
+  <!-- PanelUI NavRail, tonal variant: brand, group, items, footer -->
+  <nav class="sidebar" id="sidebar" aria-label="Main">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span class="brand-name">Greenwood High<span class="brand-sub">Class 8-A · 2025–26</span></span>
+    </div>
+    <div>
+      <p class="nav-group-label" id="nav-group-label">Menu</p>
+      <ul class="nav-list" aria-labelledby="nav-group-label">
+        <li><button type="button" class="nav-item" aria-current="page" data-nav="overview"><span class="nav-icon" aria-hidden="true">▦</span><span class="nav-label">Overview</span></button></li>
+        <li><button type="button" class="nav-item" data-nav="students"><span class="nav-icon" aria-hidden="true">◉</span><span class="nav-label">Students</span></button></li>
+        <li><button type="button" class="nav-item" data-nav="attendance"><span class="nav-icon" aria-hidden="true">▮</span><span class="nav-label">Attendance</span></button></li>
+        <li><button type="button" class="nav-item" data-nav="fees"><span class="nav-icon" aria-hidden="true">₹</span><span class="nav-label">Fees</span></button></li>
+        <li><button type="button" class="nav-item" data-nav="notices"><span class="nav-icon" aria-hidden="true">✉</span><span class="nav-label">Notices</span><span class="nav-count">3</span></button></li>
+      </ul>
+    </div>
+    <div class="nav-footer">
+      <button type="button" class="nav-item" data-nav="settings"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">Settings</span></button>
+      <button type="button" class="collapse-btn" id="collapse-btn" aria-expanded="true" aria-controls="sidebar"><span aria-hidden="true">«</span><span>Collapse navigation</span></button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>Greenwood High</h1>
+        <p>Class 8-A · Academic year 2025–26</p>
+      </div>
+      <div class="search">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <label class="sr-only" for="search">Search students</label>
+        <input id="search" type="search" placeholder="Search students" autocomplete="off">
+      </div>
+      <button type="button" class="bell" id="bell" aria-label="Notifications, 3 unread">
+        <span aria-hidden="true">🔔</span>
+        <span class="bell-count" aria-hidden="true">3</span>
+      </button>
+    </header>
+
+    <main class="content" id="main" tabindex="-1">
+      <div class="section-head">
+        <h2>Class 8-A overview</h2>
+        <p>Today · 12 students · 1,188 present school-wide</p>
+      </div>
+
+      <!-- PanelUI Kpi.Group: four metrics, one panel row -->
+      <section class="stats" aria-label="Key figures" id="stats"></section>
+
+      <div class="grid-2">
+        <!-- PanelUI BarChart anatomy, CSS bars, value axis includes zero -->
+        <section class="frame" aria-labelledby="trend-title" id="attendance-section">
+          <div class="frame-head">
+            <div>
+              <h2 id="trend-title">Attendance trend</h2>
+              <p>This week · Mon–Fri</p>
+            </div>
+            <span class="frame-action">Week average 95%</span>
+          </div>
+          <div class="frame-panel">
+            <div class="chart" id="chart" role="img" aria-label="Attendance this week: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent."></div>
+            <p class="chart-note">Highest day: <strong>Thursday, 97%</strong>. Lowest day: <strong>Wednesday, 93%</strong>.</p>
+          </div>
+        </section>
+
+        <!-- PanelUI Frame rows + Badge -->
+        <section class="frame" aria-labelledby="notices-title" id="notices-section">
+          <div class="frame-head">
+            <div>
+              <h2 id="notices-title">Notices</h2>
+              <p>3 notices for Class 8-A</p>
+            </div>
+          </div>
+          <div class="frame-panel">
+            <ul class="notice-list" id="notice-list"></ul>
+          </div>
+        </section>
+      </div>
+
+      <!-- PanelUI Table: native table, numbers end-aligned, tabular-nums -->
+      <section class="frame" aria-labelledby="students-title" id="students-section">
+        <div class="frame-head">
+          <div>
+            <h2 id="students-title">Class 8-A students</h2>
+            <p id="student-count">12 students</p>
+          </div>
+          <span class="frame-action">Sorted by roll number</span>
+        </div>
+        <div class="frame-panel">
+          <div class="table-wrap">
+            <table>
+              <caption>Attendance and marks for the 12 students of Class 8-A</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Student</th>
+                  <th scope="col">Roll</th>
+                  <th scope="col" class="num">Attendance</th>
+                  <th scope="col" class="num">Marks</th>
+                </tr>
+              </thead>
+              <tbody id="student-body"></tbody>
+            </table>
+            <div class="table-empty" id="table-empty" hidden>
+              <p>No students match that search.</p>
+              <p id="empty-query">Try a different name or roll number.</p>
+              <button type="button" class="clear-btn" id="clear-search">Clear search</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- PanelUI NavRail, folded to a bottom nav on mobile -->
+<nav class="bottom-nav" aria-label="Main">
+  <button type="button" class="nav-item" aria-current="page" data-nav="overview"><span class="nav-icon" aria-hidden="true">▦</span><span class="nav-label">Overview</span></button>
+  <button type="button" class="nav-item" data-nav="students"><span class="nav-icon" aria-hidden="true">◉</span><span class="nav-label">Students</span></button>
+  <button type="button" class="nav-item" data-nav="attendance"><span class="nav-icon" aria-hidden="true">▮</span><span class="nav-label">Attendance</span></button>
+  <button type="button" class="nav-item" data-nav="notices"><span class="nav-icon" aria-hidden="true">✉</span><span class="nav-label">Notices</span></button>
+</nav>
+
+<script>
+/* ECC: model the domain first. One data shape, rendered by small
+   component functions (composition over scattered conditionals).
+   No mutation: filtering builds a new array. */
+"use strict";
+var DASHBOARD = {
+  school: { name: "Greenwood High", klass: "Class 8-A", year: "2025–26" },
+  totals: { students: 1248, teachers: 72, present: 1188, absent: 60 },
+  attendance: { today: 95.2, trend: [
+    { day: "Mon", value: 94 }, { day: "Tue", value: 96 }, { day: "Wed", value: 93 },
+    { day: "Thu", value: 97 }, { day: "Fri", value: 95 }
+  ]},
+  fees: { collected: 84, amount: "₹25.2L", target: "₹30L" },
+  students: [
+    { name: "Aarav Sharma", roll: "8A-01", attendance: 96, marks: 88 },
+    { name: "Diya Patel", roll: "8A-02", attendance: 94, marks: 91 },
+    { name: "Kabir Singh", roll: "8A-03", attendance: 89, marks: 76 },
+    { name: "Ananya Gupta", roll: "8A-04", attendance: 98, marks: 93 },
+    { name: "Rohan Mehta", roll: "8A-05", attendance: 92, marks: 82 },
+    { name: "Ishita Verma", roll: "8A-06", attendance: 97, marks: 89 },
+    { name: "Arjun Nair", roll: "8A-07", attendance: 90, marks: 79 },
+    { name: "Sneha Reddy", roll: "8A-08", attendance: 95, marks: 86 },
+    { name: "Vikram Joshi", roll: "8A-09", attendance: 88, marks: 74 },
+    { name: "Priya Das", roll: "8A-10", attendance: 99, marks: 95 },
+    { name: "Aditya Rao", roll: "8A-11", attendance: 93, marks: 84 },
+    { name: "Kavya Iyer", roll: "8A-12", attendance: 96, marks: 90 }
+  ],
+  notices: [
+    { text: "Science fair on Friday", detail: "Bring your project display board to the main hall.", tone: "info", label: "Event" },
+    { text: "Fee deadline 20 Nov", detail: "Second-term fees are due on 20 November.", tone: "warning", label: "Fees due" },
+    { text: "Parent-teacher meet 25 Nov", detail: "Meet your class teacher between 9 am and 1 pm.", tone: "success", label: "Meeting" }
+  ]
+};
+
+function el(tag, cls, text) {
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+function pctClass(v) { return v >= 95 ? "good" : v >= 90 ? "warn" : "low"; }
+
+/* PanelUI Kpi anatomy: Header (Icon + Title), Value, Trend, Chart/Progress, Footer */
+function renderStats() {
+  var stats = document.getElementById("stats");
+  var trend = DASHBOARD.attendance.trend.map(function (d) { return d.value; });
+  var cards = [
+    { icon: "◉", tone: "primary", title: "Students", value: "1,248", trend: "+12 this term", trendClass: "good", foot: "12 in Class 8-A" },
+    { icon: "✎", tone: "info", title: "Teachers", value: "72", trend: "1 : 17 ratio", trendClass: "", foot: "Across all classes" },
+    { icon: "▮", tone: "success", title: "Attendance today", value: "95.2", unit: "%", trend: "▲ 1,188 present · 60 absent", trendClass: "good", spark: trend },
+    { icon: "₹", tone: "warning", title: "Fees collected", value: "84", unit: "%", trend: "₹25.2L of ₹30L", trendClass: "warn", progress: 84 }
+  ];
+  cards.forEach(function (c) {
+    var card = el("article", "kpi");
+    var head = el("div", "kpi-head");
+    head.appendChild(el("span", "kpi-icon tone-" + c.tone, c.icon)).setAttribute("aria-hidden", "true");
+    head.appendChild(el("span", "kpi-title", c.title));
+    card.appendChild(head);
+    var value = el("p", "kpi-value", c.value);
+    if (c.unit) value.appendChild(el("span", "kpi-unit", c.unit));
+    card.appendChild(value);
+    var tr = el("p", "kpi-trend " + c.trendClass, c.trend);
+    card.appendChild(tr);
+    if (c.spark) {
+      var spark = el("div", "kpi-spark");
+      spark.setAttribute("aria-hidden", "true");
+      c.spark.forEach(function (v) {
+        var bar = document.createElement("i");
+        bar.style.height = v + "%";
+        bar.title = v + "%";
+        spark.appendChild(bar);
+      });
+      card.appendChild(spark);
+    }
+    if (c.progress != null) {
+      var prog = el("div", "kpi-progress");
+      prog.setAttribute("role", "progressbar");
+      prog.setAttribute("aria-valuenow", String(c.progress));
+      prog.setAttribute("aria-valuemin", "0");
+      prog.setAttribute("aria-valuemax", "100");
+      prog.setAttribute("aria-label", "Fees collected, 84 percent");
+      var fill = document.createElement("i");
+      fill.style.width = c.progress + "%";
+      prog.appendChild(fill);
+      card.appendChild(prog);
+    }
+    card.appendChild(el("p", "kpi-foot", c.foot));
+    stats.appendChild(card);
+  });
+}
+
+function renderChart() {
+  var chart = document.getElementById("chart");
+  var best = Math.max.apply(null, DASHBOARD.attendance.trend.map(function (d) { return d.value; }));
+  DASHBOARD.attendance.trend.forEach(function (d) {
+    var col = el("div", "chart-bar");
+    col.appendChild(el("span", "bar-value", d.value + "%"));
+    var bar = el("div", "bar" + (d.value === best ? " best" : ""));
+    bar.style.height = d.value + "%"; /* value axis includes zero: height is the value itself */
+    bar.title = d.day + ": " + d.value + "%";
+    col.appendChild(bar);
+    col.appendChild(el("span", "bar-day", d.day));
+    chart.appendChild(col);
+  });
+}
+
+function renderNotices() {
+  var list = document.getElementById("notice-list");
+  DASHBOARD.notices.forEach(function (n) {
+    var li = el("li", "notice-row");
+    li.appendChild(el("span", "notice-dot " + n.tone)).setAttribute("aria-hidden", "true");
+    var body = el("div", "notice-body");
+    body.appendChild(el("p", null, n.text));
+    body.appendChild(el("small", null, n.detail));
+    li.appendChild(body);
+    li.appendChild(el("span", "badge " + n.tone, n.label));
+    list.appendChild(li);
+  });
+}
+
+function renderStudents(rows) {
+  var body = document.getElementById("student-body");
+  body.innerHTML = "";
+  rows.forEach(function (s) {
+    var tr = document.createElement("tr");
+    var nameTd = el("td");
+    nameTd.appendChild(el("span", "student-name", s.name));
+    tr.appendChild(nameTd);
+    tr.appendChild(el("td", "student-roll", s.roll));
+    var att = el("td", "num");
+    att.appendChild(el("span", "pill " + pctClass(s.attendance), s.attendance + "%"));
+    tr.appendChild(att);
+    tr.appendChild(el("td", "num", s.marks + "%"));
+    body.appendChild(tr);
+  });
+  var empty = document.getElementById("table-empty");
+  var table = body.closest("table");
+  empty.hidden = rows.length !== 0;
+  table.style.display = rows.length === 0 ? "none" : "";
+  document.getElementById("student-count").textContent =
+    rows.length === 12 ? "12 students" : rows.length + " of 12 students";
+}
+
+renderStats();
+renderChart();
+renderNotices();
+renderStudents(DASHBOARD.students);
+
+/* ECC debounce pattern (vanilla): search filters a new array, never mutates */
+var searchInput = document.getElementById("search");
+var timer = null;
+function applySearch() {
+  var q = searchInput.value.trim().toLowerCase();
+  var rows = q === "" ? DASHBOARD.students : DASHBOARD.students.filter(function (s) {
+    return s.name.toLowerCase().indexOf(q) !== -1 || s.roll.toLowerCase().indexOf(q) !== -1;
+  });
+  renderStudents(rows);
+  document.getElementById("empty-query").textContent =
+    q === "" ? "Try a different name or roll number." : "No results for \u201C" + searchInput.value.trim() + "\u201D. Try a different name or roll number.";
+}
+searchInput.addEventListener("input", function () {
+  clearTimeout(timer);
+  timer = setTimeout(applySearch, 200);
+});
+document.getElementById("clear-search").addEventListener("click", function () {
+  searchInput.value = "";
+  renderStudents(DASHBOARD.students);
+  searchInput.focus();
+});
+
+/* NavRail: one active pill, shared across sidebar and bottom nav */
+var sections = { overview: "main", students: "students-section", attendance: "attendance-section", fees: "stats", notices: "notices-section", settings: "main" };
+function setActiveNav(key) {
+  document.querySelectorAll("[data-nav]").forEach(function (b) {
+    if (b.getAttribute("data-nav") === key) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
+  var target = document.getElementById(sections[key] || "main");
+  if (target) target.scrollIntoView({ behavior: "auto", block: "start" });
+}
+document.querySelectorAll("[data-nav]").forEach(function (b) {
+  b.addEventListener("click", function () { setActiveNav(b.getAttribute("data-nav")); });
+});
+
+/* NavRail collapse trigger (desktop sidebar) */
+var collapseBtn = document.getElementById("collapse-btn");
+collapseBtn.addEventListener("click", function () {
+  var sidebar = document.getElementById("sidebar");
+  var collapsed = sidebar.classList.toggle("collapsed");
+  collapseBtn.setAttribute("aria-expanded", String(!collapsed));
+  collapseBtn.querySelector("span:last-child").textContent = collapsed ? "Expand navigation" : "Collapse navigation";
+});
+
+/* Bell: jump to the notices panel */
+document.getElementById("bell").addEventListener("click", function () {
+  setActiveNav("notices");
+});
+</script>
+</body>
+</html>

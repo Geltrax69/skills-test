@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard · UI Forge Experiment 2 (27-panelui-astryx)</title>
+<style>
+/* ==========================================================================
+   27-panelui-astryx — CONFLICT TEST: PanelUI web + Astryx in one page.
+   Both systems are adapted to single-file HTML (no React build, no npm).
+   Token layer: ONE merged semantic layer. PanelUI roles and Astryx
+   theme-neutral tokens are namespaced (--pui-* / --ax-*) and both read
+   from the same concrete values, so neither system can silently win.
+   Full conflict log: SKILLS_ACTUALLY_READ.md in this folder.
+   ========================================================================== */
+:root{
+  /* --- Astryx theme-neutral (adapted): the theme is a set of CSS custom
+         property overrides. These are the theme's concrete values. --- */
+  --ax-background:#f6f6f4;
+  --ax-surface:#ffffff;
+  --ax-surface-muted:#ececea;
+  --ax-foreground:#17181c;
+  --ax-foreground-muted:#5d6068;
+  --ax-foreground-faint:#8a8d94;
+  --ax-border:#e2e2df;
+  --ax-border-strong:#cfcfcb;
+  --ax-accent:#1f4fd8;          /* theme-neutral primary accent */
+  --ax-accent-foreground:#ffffff;
+  --ax-accent-soft:rgba(31,79,216,.10);
+  --ax-success:#177245;
+  --ax-success-soft:rgba(23,114,69,.12);
+  --ax-warning:#9a6200;
+  --ax-warning-soft:rgba(154,98,0,.12);
+  --ax-destructive:#b3261e;
+  --ax-destructive-soft:rgba(179,38,30,.10);
+  --ax-info:#175cd3;
+  --ax-info-soft:rgba(23,92,211,.10);
+
+  /* --- PanelUI (shadcn tokens): colour is a ROLE, never a value.
+         Roles are bound to the Astryx theme values above, so PanelUI
+         components keep their role API while Astryx owns the palette. --- */
+  --pui-background:var(--ax-background);
+  --pui-card:var(--ax-surface);
+  --pui-muted:var(--ax-surface-muted);
+  --pui-foreground:var(--ax-foreground);
+  --pui-muted-foreground:var(--ax-foreground-muted);
+  --pui-border:var(--ax-border);
+  --pui-primary:var(--ax-accent);
+  --pui-primary-foreground:var(--ax-accent-foreground);
+  --pui-success:var(--ax-success);
+  --pui-warning:var(--ax-warning);
+  --pui-destructive:var(--ax-destructive);
+  --pui-info:var(--ax-info);
+
+  /* --- Radii: CONFLICT resolved to ONE scale (shadcn --radius wins,
+         Astryx radius scale overridden to match). --- */
+  --radius:10px;
+  --radius-lg:12px;
+  --radius-sm:8px;
+  --radius-pill:999px;
+
+  /* --- Type: ONE scale, system stack (no external fonts per TASK).
+         Astryx-style tight tracking on headings; PanelUI-style small
+         uppercase group labels. --- */
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --fs-label:12px;
+  --fs-body:14px;
+  --fs-title:20px;
+  --fs-page:28px;
+  --fs-stat:32px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font-sans);
+  font-size:var(--fs-body);
+  line-height:1.5;
+  color:var(--pui-foreground);
+  background:var(--pui-background);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pui-primary);outline-offset:2px}
+
+/* ================= App shell: Astryx page-template skeleton ============
+   Astryx template gives the page layout (header / nav / content grid);
+   PanelUI Frame gives the panel chrome inside it. */
+.app{display:flex;min-height:100vh}
+
+/* ================= PanelUI NavRail (adapted) ============================
+   expandedWidth 15rem (240px), collapsedWidth 3.5rem (56px),
+   variant="tonal": quiet primary tint + short accent bar on active row. */
+.nav-rail{
+  --rail-w:240px;
+  width:var(--rail-w);
+  flex:0 0 var(--rail-w);
+  position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;
+  background:var(--pui-card);
+  border-right:1px solid var(--pui-border);
+  transition:width .2s ease,flex-basis .2s ease;
+  z-index:20;
+}
+.app.rail-collapsed .nav-rail{--rail-w:56px}
+.nav-rail__header{display:flex;align-items:center;gap:10px;padding:14px 12px;border-bottom:1px solid var(--pui-border)}
+.nav-rail__brand{display:flex;align-items:center;gap:10px;min-width:0;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.nav-rail__mark{
+  flex:0 0 32px;width:32px;height:32px;border-radius:var(--radius-sm);
+  display:grid;place-items:center;
+  background:var(--ax-accent-soft);color:var(--ax-accent);
+  font-weight:800;font-size:15px;
+}
+.nav-rail__brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-rail__trigger{
+  margin-left:auto;flex:0 0 28px;width:28px;height:28px;border-radius:var(--radius-sm);
+  display:grid;place-items:center;color:var(--pui-muted-foreground);
+}
+.nav-rail__trigger:hover{background:var(--pui-muted)}
+.app.rail-collapsed .nav-rail__brand span,
+.app.rail-collapsed .nav-rail__group-label{display:none}
+.app.rail-collapsed .nav-rail__header{flex-direction:column;gap:8px}
+.app.rail-collapsed .nav-rail__trigger{margin-left:0}
+.nav-rail__group{padding:12px 8px}
+.nav-rail__group-label{
+  font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--pui-muted-foreground);padding:0 10px 8px;white-space:nowrap;
+}
+.nav-rail__item{
+  position:relative;display:flex;align-items:center;gap:10px;width:100%;
+  padding:9px 10px;border-radius:var(--radius-sm);
+  font-size:14px;font-weight:500;color:var(--pui-muted-foreground);
+  text-align:left;white-space:nowrap;
+}
+.nav-rail__item:hover{background:var(--pui-muted);color:var(--pui-foreground)}
+.nav-rail__item[aria-current="page"]{
+  background:var(--ax-accent-soft);color:var(--ax-accent);font-weight:600;
+}
+.nav-rail__item[aria-current="page"]::before{
+  content:"";position:absolute;left:-8px;top:8px;bottom:8px;width:3px;
+  border-radius:2px;background:var(--ax-accent);
+}
+.nav-rail__icon{flex:0 0 20px;width:20px;text-align:center;font-size:16px;line-height:1}
+.nav-rail__badge{
+  margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:var(--radius-pill);
+  background:var(--ax-accent);color:#fff;font-size:11px;font-weight:700;
+  display:inline-grid;place-items:center;
+}
+.app.rail-collapsed .nav-rail__item{justify-content:center;padding:9px 0}
+.app.rail-collapsed .nav-rail__item .nav-rail__text{display:none}
+.app.rail-collapsed .nav-rail__badge{
+  position:absolute;top:4px;right:6px;min-width:8px;height:8px;padding:0;border-radius:50%;
+  font-size:0;
+}
+.nav-rail__footer{margin-top:auto;padding:12px 8px;border-top:1px solid var(--pui-border)}
+.nav-rail__user{display:flex;align-items:center;gap:10px;padding:6px 10px;min-width:0}
+.nav-rail__avatar{
+  flex:0 0 32px;width:32px;height:32px;border-radius:50%;
+  background:var(--ax-accent);color:#fff;display:grid;place-items:center;
+  font-size:12px;font-weight:700;
+}
+.nav-rail__user-meta{min-width:0}
+.nav-rail__user-meta p{margin:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-rail__user-meta small{display:block;font-size:11px;color:var(--pui-muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.rail-collapsed .nav-rail__user-meta{display:none}
+.app.rail-collapsed .nav-rail__user{justify-content:center;padding:6px 0}
+
+/* ================= Main column ================= */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* Header: school name, search, notification bell (Astryx field + button
+   conventions; PanelUI Kpi/Frame tokens for colour). */
+.page-header{
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;gap:16px;
+  padding:14px 28px;
+  background:color-mix(in srgb,var(--pui-background) 88%,transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--pui-border);
+}
+.page-header__titles{min-width:0}
+.page-header__titles h1{
+  margin:0;font-size:var(--fs-title);font-weight:700;letter-spacing:-.02em;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.page-header__titles p{margin:0;font-size:12px;color:var(--pui-muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page-header__search{
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+  min-width:0;width:320px;max-width:38vw;
+  background:var(--pui-card);border:1px solid var(--pui-border);
+  border-radius:var(--radius);padding:8px 12px;
+}
+.page-header__search input{border:0;outline:0;background:none;width:100%;font-size:14px;min-width:0}
+.page-header__search input::placeholder{color:var(--ax-foreground-faint)}
+.page-header__search:focus-within{border-color:var(--pui-primary);box-shadow:0 0 0 3px var(--ax-accent-soft)}
+.bell-wrap{position:relative;flex:0 0 38px;margin-left:auto}
+.bell{
+  position:relative;width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;background:var(--pui-card);
+  border:1px solid var(--pui-border);font-size:17px;
+}
+.bell:hover{border-color:var(--ax-border-strong)}
+.bell__dot{
+  position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;
+  background:var(--pui-destructive);border:2px solid var(--pui-card);
+}
+.bell__panel{
+  position:absolute;top:46px;right:0;width:280px;max-width:80vw;
+  background:var(--pui-card);border:1px solid var(--pui-border);
+  border-radius:var(--radius-lg);box-shadow:0 12px 32px rgba(0,0,0,.14);
+  padding:6px;display:none;text-align:left;z-index:30;
+}
+.bell__panel.open{display:block}
+.bell__panel p{margin:0;padding:10px 12px;font-size:13px;border-bottom:1px solid var(--pui-border)}
+.bell__panel p:last-child{border-bottom:0}
+.bell__panel small{display:block;color:var(--pui-muted-foreground);font-size:11px;margin-top:2px}
+
+/* Content grid */
+.content{padding:24px 28px 32px;display:flex;flex-direction:column;gap:20px;max-width:1180px;width:100%;margin:0 auto}
+.section-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.section-head h2{margin:0;font-size:var(--fs-page);font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.section-head p{margin:0;font-size:13px;color:var(--pui-muted-foreground)}
+
+/* ================= PanelUI Kpi.Group + Kpi (adapted) ====================
+   Kpi anatomy: Header (Icon/Title/Actions) → Content (Stat: Value+Trend)
+   → Progress. Roles by meaning, never the same colour twice. */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpi{
+  background:var(--pui-card);border:1px solid var(--pui-border);
+  border-radius:var(--radius-lg);padding:18px 18px 16px;
+  display:flex;flex-direction:column;gap:10px;min-width:0;
+}
+.kpi__header{display:flex;align-items:center;gap:10px}
+.kpi__icon{
+  flex:0 0 32px;width:32px;height:32px;border-radius:var(--radius-sm);
+  display:grid;place-items:center;font-size:15px;
+}
+.kpi__icon--primary{background:var(--ax-accent-soft);color:var(--ax-accent)}
+.kpi__icon--info{background:var(--ax-info-soft);color:var(--ax-info)}
+.kpi__icon--success{background:var(--ax-success-soft);color:var(--ax-success)}
+.kpi__icon--warning{background:var(--ax-warning-soft);color:var(--ax-warning)}
+.kpi__title{font-size:13px;font-weight:600;color:var(--pui-muted-foreground);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi__value{font-size:var(--fs-stat);font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi__value small{font-size:16px;font-weight:600;color:var(--pui-muted-foreground);letter-spacing:0;margin-left:2px}
+.kpi__trend{font-size:12px;font-weight:600}
+.kpi__trend--success{color:var(--pui-success)}
+.kpi__trend--info{color:var(--pui-info)}
+.kpi__trend--warning{color:var(--pui-warning)}
+.kpi__trend span{font-weight:400;color:var(--pui-muted-foreground);margin-left:4px}
+.kpi__progress{height:6px;border-radius:3px;background:var(--pui-muted);overflow:hidden}
+.kpi__progress i{display:block;height:100%;border-radius:3px;background:var(--pui-primary)}
+.kpi__progress--success i{background:var(--pui-success)}
+.kpi__progress--warning i{background:var(--pui-warning)}
+.kpi__footer{font-size:12px;color:var(--pui-muted-foreground)}
+
+/* ================= PanelUI Frame (adapted) ==============================
+   variant="band": muted band + title strip, round inner bordered card. */
+.frame{background:var(--pui-muted);border:1px solid var(--pui-border);border-radius:var(--radius-lg);overflow:hidden}
+.frame__header{display:flex;align-items:baseline;gap:12px;padding:12px 16px}
+.frame__title{margin:0;font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--pui-muted-foreground)}
+.frame__action{margin-left:auto;font-size:12px;color:var(--pui-muted-foreground);white-space:nowrap}
+.frame__panel{background:var(--pui-card);border-top:1px solid var(--pui-border);padding:20px}
+.frame--plain{background:var(--pui-card)}
+.frame--plain .frame__panel{border-top:0;padding:0}
+
+/* ================= PanelUI BarChart (adapted, CSS bars) =================
+   Value axis includes zero (bars are never cropped at the bottom).
+   Bar colour is a role: primary. cornerRadius 4 on the growing end. */
+.barchart__head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.barchart__head-title{font-size:13px;color:var(--pui-muted-foreground)}
+.barchart__head-value{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.barchart__head-caption{font-size:12px;color:var(--pui-muted-foreground)}
+.barchart{display:flex;gap:8px;align-items:flex-end;height:180px;padding-top:4px}
+.barchart__col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.barchart__bar-wrap{flex:1;width:100%;max-width:56px;display:flex;align-items:flex-end;justify-content:center}
+.barchart__bar{
+  width:100%;border-radius:4px 4px 0 0;background:var(--pui-primary);
+  position:relative;transition:height .5s ease;
+}
+.barchart__bar:hover{background:var(--ax-accent)}
+.barchart__value{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.barchart__label{font-size:12px;color:var(--pui-muted-foreground)}
+.barchart__foot{display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--pui-border);font-size:12px;color:var(--pui-muted-foreground)}
+.barchart__legend{display:flex;align-items:center;gap:6px}
+.barchart__swatch{width:10px;height:10px;border-radius:3px;background:var(--pui-primary);display:inline-block}
+
+/* ================= Two-column row: table + notices ===================== */
+.split{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:20px;align-items:start}
+
+/* PanelUI Table (adapted): density comfortable, striped, numbers
+   align="end" with tabular figures, header pinned, scrolls inside its
+   own box when wider than the card. */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+caption{text-align:left;font-size:13px;color:var(--pui-muted-foreground);padding:0 0 12px}
+thead th{
+  position:sticky;top:0;background:var(--pui-card);
+  text-align:left;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--pui-muted-foreground);padding:10px 12px;border-bottom:1px solid var(--pui-border);
+  white-space:nowrap;
+}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--pui-border);white-space:nowrap}
+tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--pui-muted) 45%,transparent)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--ax-accent-soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.student{display:flex;align-items:center;gap:10px;min-width:0}
+.student__avatar{
+  flex:0 0 30px;width:30px;height:30px;border-radius:50%;
+  display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;
+  background:var(--ax-accent);
+}
+.student__avatar--info{background:var(--ax-info)}
+.student__avatar--success{background:var(--ax-success)}
+.student__avatar--warning{background:var(--ax-warning)}
+.student__name{font-weight:600}
+.roll{color:var(--pui-muted-foreground);font-size:13px}
+
+/* PanelUI Badge (adapted): tinted state variants, dot for live states.
+   Variant chosen by meaning, never the same colour for everything. */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 9px;border-radius:var(--radius-pill);
+  font-size:12px;font-weight:600;white-space:nowrap;
+}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge--success{background:var(--ax-success-soft);color:var(--ax-success)}
+.badge--warning{background:var(--ax-warning-soft);color:var(--ax-warning)}
+.badge--info{background:var(--ax-info-soft);color:var(--ax-info)}
+.badge--primary{background:var(--ax-accent-soft);color:var(--ax-accent)}
+.badge--destructive{background:var(--ax-destructive-soft);color:var(--ax-destructive)}
+
+/* Notices: PanelUI Frame rows (Media / Content / Actions anatomy). */
+.notice-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--pui-border)}
+.notice-row:first-child{padding-top:0}
+.notice-row:last-child{padding-bottom:0;border-bottom:0}
+.notice-row__media{
+  flex:0 0 36px;width:36px;height:36px;border-radius:var(--radius-sm);
+  display:grid;place-items:center;font-size:16px;
+}
+.notice-row__media--info{background:var(--ax-info-soft);color:var(--ax-info)}
+.notice-row__media--warning{background:var(--ax-warning-soft);color:var(--ax-warning)}
+.notice-row__media--success{background:var(--ax-success-soft);color:var(--ax-success)}
+.notice-row__content{min-width:0;flex:1}
+.notice-row__title{margin:0;font-size:14px;font-weight:600;line-height:1.35}
+.notice-row__desc{margin:2px 0 0;font-size:12px;color:var(--pui-muted-foreground)}
+.notice-row__actions{flex:0 0 auto;align-self:flex-start}
+.empty-note{display:none;padding:18px;text-align:center;color:var(--pui-muted-foreground);font-size:13px}
+
+/* Footer */
+.page-footer{
+  border-top:1px solid var(--pui-border);padding:18px 28px;
+  font-size:12px;color:var(--pui-muted-foreground);
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+
+/* Mobile bottom nav (NavRail folded to a bottom bar at 390px). */
+.bottom-nav{display:none}
+
+/* ================= 1280px → 900px ================= */
+@media (max-width:1100px){
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .split{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ================= 390px ================= */
+@media (max-width:640px){
+  .nav-rail{display:none}
+  .bottom-nav{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:var(--pui-card);border-top:1px solid var(--pui-border);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));
+  }
+  .bottom-nav a{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:6px 2px;font-size:11px;font-weight:500;color:var(--pui-muted-foreground);
+    border-radius:var(--radius-sm);position:relative;
+  }
+  .bottom-nav a[aria-current="page"]{color:var(--ax-accent);font-weight:700}
+  .bottom-nav a[aria-current="page"]::before{
+    content:"";position:absolute;top:-7px;left:25%;right:25%;height:3px;
+    border-radius:0 0 3px 3px;background:var(--ax-accent);
+  }
+  .bottom-nav .nav-rail__icon{font-size:18px}
+  .page-header{padding:12px 16px;gap:10px;flex-wrap:wrap}
+  .page-header__titles{flex:1 1 100%;order:1}
+  .page-header__search{order:3;flex:1 1 100%;width:auto;max-width:none}
+  .bell-wrap{order:2}
+  .content{padding:16px 16px 96px;gap:16px}
+  .section-head h2{font-size:22px}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .kpi{padding:14px}
+  .kpi__value{font-size:26px}
+  .frame__panel{padding:16px}
+  .barchart{height:150px}
+  .page-footer{padding:16px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- PanelUI NavRail: aria-label="Main", tonal variant, expanded 15rem -->
+  <nav class="nav-rail" aria-label="Main">
+    <div class="nav-rail__header">
+      <a class="nav-rail__brand" href="#" aria-label="Greenwood High home">
+        <span class="nav-rail__mark" aria-hidden="true">G</span><span>Greenwood High</span>
+      </a>
+      <button class="nav-rail__trigger" id="railTrigger" type="button"
+              aria-expanded="true" aria-label="Collapse navigation">‹</button>
+    </div>
+    <div class="nav-rail__group" role="group" aria-label="Workspace">
+      <p class="nav-rail__group-label">Workspace</p>
+      <button type="button" class="nav-rail__item" aria-current="page" data-nav="overview">
+        <span class="nav-rail__icon" aria-hidden="true">▦</span><span class="nav-rail__text">Overview</span>
+      </button>
+      <button type="button" class="nav-rail__item" data-nav="students">
+        <span class="nav-rail__icon" aria-hidden="true">👥</span><span class="nav-rail__text">Students</span>
+      </button>
+      <button type="button" class="nav-rail__item" data-nav="attendance">
+        <span class="nav-rail__icon" aria-hidden="true">✓</span><span class="nav-rail__text">Attendance</span>
+      </button>
+      <button type="button" class="nav-rail__item" data-nav="notices">
+        <span class="nav-rail__icon" aria-hidden="true">🔔</span><span class="nav-rail__text">Notices</span>
+        <span class="nav-rail__badge">3</span>
+      </button>
+      <button type="button" class="nav-rail__item" data-nav="fees">
+        <span class="nav-rail__icon" aria-hidden="true">₹</span><span class="nav-rail__text">Fees</span>
+      </button>
+    </div>
+    <div class="nav-rail__footer">
+      <button type="button" class="nav-rail__item" data-nav="settings">
+        <span class="nav-rail__icon" aria-hidden="true">⚙</span><span class="nav-rail__text">Settings</span>
+      </button>
+      <div class="nav-rail__user">
+        <span class="nav-rail__avatar" aria-hidden="true">RK</span>
+        <div class="nav-rail__user-meta">
+          <p>Ritu Kapoor</p>
+          <small>Class Teacher · 8-A</small>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- 1. Header -->
+    <header class="page-header">
+      <div class="page-header__titles">
+        <h1>Greenwood High</h1>
+        <p>Class 8-A · Academic year 2025–26</p>
+      </div>
+      <label class="page-header__search" for="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="search" type="search" placeholder="Search students by name or roll…" autocomplete="off">
+      </label>
+      <span class="bell-wrap">
+        <button class="bell" id="bellBtn" type="button" aria-label="Notifications, 3 unread" aria-expanded="false" aria-haspopup="true">
+          <span aria-hidden="true">🔔</span><span class="bell__dot" aria-hidden="true"></span>
+        </button>
+        <span class="bell__panel" id="bellPanel" role="menu" aria-label="Notifications">
+          <p>Science fair on Friday<small>Notice · Today</small></p>
+          <p>Fee deadline 20 Nov<small>Notice · Due soon</small></p>
+          <p>Parent-teacher meet 25 Nov<small>Notice · Scheduled</small></p>
+        </span>
+      </span>
+    </header>
+
+    <main class="content">
+      <div class="section-head">
+        <h2>Class 8-A Overview</h2>
+        <p>Today · 12 students · 72 teachers school-wide</p>
+      </div>
+
+      <!-- 3. Four stat cards — PanelUI Kpi.Group / Kpi -->
+      <section class="kpi-grid" aria-label="Key figures">
+        <article class="kpi">
+          <div class="kpi__header">
+            <span class="kpi__icon kpi__icon--primary" aria-hidden="true">👥</span>
+            <span class="kpi__title">Students</span>
+          </div>
+          <div class="kpi__value">1,248</div>
+          <p class="kpi__trend kpi__trend--info">▲ 2.1% <span>vs last term</span></p>
+          <p class="kpi__footer">12 in Class 8-A</p>
+        </article>
+        <article class="kpi">
+          <div class="kpi__header">
+            <span class="kpi__icon kpi__icon--info" aria-hidden="true">🎓</span>
+            <span class="kpi__title">Teachers</span>
+          </div>
+          <div class="kpi__value">72</div>
+          <p class="kpi__trend kpi__trend--info">▲ 1.4% <span>vs last term</span></p>
+          <p class="kpi__footer">1 : 17 teacher–student ratio</p>
+        </article>
+        <article class="kpi">
+          <div class="kpi__header">
+            <span class="kpi__icon kpi__icon--success" aria-hidden="true">✓</span>
+            <span class="kpi__title">Attendance today</span>
+          </div>
+          <div class="kpi__value">95.2<small>%</small></div>
+          <p class="kpi__trend kpi__trend--success">▲ 1.2 pts <span>vs yesterday</span></p>
+          <div class="kpi__progress kpi__progress--success" role="progressbar" aria-valuenow="95.2" aria-valuemin="0" aria-valuemax="100" aria-label="Attendance today"><i style="width:95.2%"></i></div>
+          <p class="kpi__footer">1,188 present · 60 absent</p>
+        </article>
+        <article class="kpi">
+          <div class="kpi__header">
+            <span class="kpi__icon kpi__icon--warning" aria-hidden="true">₹</span>
+            <span class="kpi__title">Fees collected</span>
+          </div>
+          <div class="kpi__value">84<small>%</small></div>
+          <p class="kpi__trend kpi__trend--warning">● On track <span>₹25.2L of ₹30L</span></p>
+          <div class="kpi__progress kpi__progress--warning" role="progressbar" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100" aria-label="Fees collected"><i style="width:84%"></i></div>
+          <p class="kpi__footer">Deadline 20 Nov</p>
+        </article>
+      </section>
+
+      <!-- 4. Attendance trend — PanelUI BarChart in a Frame band -->
+      <section class="frame" aria-label="Attendance trend">
+        <div class="frame__header">
+          <h3 class="frame__title">Attendance trend</h3>
+          <span class="frame__action">This week</span>
+        </div>
+        <div class="frame__panel">
+          <div class="barchart__head">
+            <span class="barchart__head-title">Daily attendance</span>
+            <span class="barchart__head-value">95.2%</span>
+            <span class="barchart__head-caption">Friday · week average 95.0%</span>
+          </div>
+          <div class="barchart" role="img" aria-label="Attendance trend Monday to Friday: 94, 96, 93, 97, 95 percent">
+            <div class="barchart__col">
+              <span class="barchart__value">94%</span>
+              <div class="barchart__bar-wrap"><div class="barchart__bar" style="height:94%"></div></div>
+              <span class="barchart__label">Mon</span>
+            </div>
+            <div class="barchart__col">
+              <span class="barchart__value">96%</span>
+              <div class="barchart__bar-wrap"><div class="barchart__bar" style="height:96%"></div></div>
+              <span class="barchart__label">Tue</span>
+            </div>
+            <div class="barchart__col">
+              <span class="barchart__value">93%</span>
+              <div class="barchart__bar-wrap"><div class="barchart__bar" style="height:93%"></div></div>
+              <span class="barchart__label">Wed</span>
+            </div>
+            <div class="barchart__col">
+              <span class="barchart__value">97%</span>
+              <div class="barchart__bar-wrap"><div class="barchart__bar" style="height:97%"></div></div>
+              <span class="barchart__label">Thu</span>
+            </div>
+            <div class="barchart__col">
+              <span class="barchart__value">95%</span>
+              <div class="barchart__bar-wrap"><div class="barchart__bar" style="height:95%"></div></div>
+              <span class="barchart__label">Fri</span>
+            </div>
+          </div>
+          <div class="barchart__foot">
+            <span class="barchart__legend"><span class="barchart__swatch" aria-hidden="true"></span> Attendance % (axis starts at 0)</span>
+            <span>Highest: Thu 97%</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="split">
+        <!-- 5. Student table — PanelUI Table in a Frame -->
+        <section class="frame" aria-label="Class 8-A students">
+          <div class="frame__header">
+            <h3 class="frame__title">Class 8-A students</h3>
+            <span class="frame__action">12 students</span>
+          </div>
+          <div class="frame__panel">
+            <div class="table-wrap">
+              <table>
+                <caption>Attendance and marks for Class 8-A, 2025–26. Use the search above to filter.</caption>
+                <thead>
+                  <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col" class="num">Attendance</th><th scope="col" class="num">Marks</th><th scope="col">Status</th></tr>
+                </thead>
+                <tbody id="studentBody">
+                  <tr><td><span class="student"><span class="student__avatar" aria-hidden="true">AS</span><span class="student__name">Aarav Sharma</span></span></td><td class="roll">8A-01</td><td class="num">96%</td><td class="num">88%</td><td><span class="badge badge--success">Excellent</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--info" aria-hidden="true">DP</span><span class="student__name">Diya Patel</span></span></td><td class="roll">8A-02</td><td class="num">94%</td><td class="num">91%</td><td><span class="badge badge--success">Excellent</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--warning" aria-hidden="true">KS</span><span class="student__name">Kabir Singh</span></span></td><td class="roll">8A-03</td><td class="num">89%</td><td class="num">76%</td><td><span class="badge badge--warning">Watch</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--success" aria-hidden="true">AG</span><span class="student__name">Ananya Gupta</span></span></td><td class="roll">8A-04</td><td class="num">98%</td><td class="num">93%</td><td><span class="badge badge--success">Excellent</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar" aria-hidden="true">RM</span><span class="student__name">Rohan Mehta</span></span></td><td class="roll">8A-05</td><td class="num">92%</td><td class="num">82%</td><td><span class="badge badge--primary">Good</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--info" aria-hidden="true">IV</span><span class="student__name">Ishita Verma</span></span></td><td class="roll">8A-06</td><td class="num">97%</td><td class="num">89%</td><td><span class="badge badge--success">Excellent</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--warning" aria-hidden="true">AN</span><span class="student__name">Arjun Nair</span></span></td><td class="roll">8A-07</td><td class="num">90%</td><td class="num">79%</td><td><span class="badge badge--primary">Good</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--success" aria-hidden="true">SR</span><span class="student__name">Sneha Reddy</span></span></td><td class="roll">8A-08</td><td class="num">95%</td><td class="num">86%</td><td><span class="badge badge--success">Excellent</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--warning" aria-hidden="true">VJ</span><span class="student__name">Vikram Joshi</span></span></td><td class="roll">8A-09</td><td class="num">88%</td><td class="num">74%</td><td><span class="badge badge--warning">Watch</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--success" aria-hidden="true">PD</span><span class="student__name">Priya Das</span></span></td><td class="roll">8A-10</td><td class="num">99%</td><td class="num">95%</td><td><span class="badge badge--success">Excellent</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar" aria-hidden="true">AR</span><span class="student__name">Aditya Rao</span></span></td><td class="roll">8A-11</td><td class="num">93%</td><td class="num">84%</td><td><span class="badge badge--primary">Good</span></td></tr>
+                  <tr><td><span class="student"><span class="student__avatar student__avatar--info" aria-hidden="true">KI</span><span class="student__name">Kavya Iyer</span></span></td><td class="roll">8A-12</td><td class="num">96%</td><td class="num">90%</td><td><span class="badge badge--success">Excellent</span></td></tr>
+                </tbody>
+              </table>
+              <p class="empty-note" id="emptyNote">No students match that search.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. Notices — PanelUI Frame rows -->
+        <section class="frame" aria-label="Notices">
+          <div class="frame__header">
+            <h3 class="frame__title">Notices</h3>
+            <span class="frame__action">3 new</span>
+          </div>
+          <div class="frame__panel">
+            <div class="notice-row">
+              <span class="notice-row__media notice-row__media--info" aria-hidden="true">🔬</span>
+              <div class="notice-row__content">
+                <p class="notice-row__title">Science fair on Friday</p>
+                <p class="notice-row__desc">Projects due in the lab by 9:00 AM · Main hall</p>
+              </div>
+              <div class="notice-row__actions"><span class="badge badge--info">Event</span></div>
+            </div>
+            <div class="notice-row">
+              <span class="notice-row__media notice-row__media--warning" aria-hidden="true">₹</span>
+              <div class="notice-row__content">
+                <p class="notice-row__title">Fee deadline 20 Nov</p>
+                <p class="notice-row__desc">Term fees: ₹25.2L of ₹30L collected so far</p>
+              </div>
+              <div class="notice-row__actions"><span class="badge badge--warning">Due soon</span></div>
+            </div>
+            <div class="notice-row">
+              <span class="notice-row__media notice-row__media--success" aria-hidden="true">👨‍👩‍👧</span>
+              <div class="notice-row__content">
+                <p class="notice-row__title">Parent-teacher meet 25 Nov</p>
+                <p class="notice-row__desc">Slots from 10:00 AM · Bring the report card</p>
+              </div>
+              <div class="notice-row__actions"><span class="badge badge--success">Scheduled</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- 7. Footer -->
+    <footer class="page-footer">
+      <span>Fictional demo data — UI Forge Experiment 1</span>
+      <span>PanelUI web × Astryx (theme-neutral) · Variant 27</span>
+    </footer>
+  </div>
+</div>
+
+<!-- Mobile bottom nav: NavRail folded to a bottom bar -->
+<nav class="bottom-nav" aria-label="Main mobile">
+  <a href="#" aria-current="page" data-nav="overview"><span class="nav-rail__icon" aria-hidden="true">▦</span>Overview</a>
+  <a href="#" data-nav="students"><span class="nav-rail__icon" aria-hidden="true">👥</span>Students</a>
+  <a href="#" data-nav="attendance"><span class="nav-rail__icon" aria-hidden="true">✓</span>Attendance</a>
+  <a href="#" data-nav="notices"><span class="nav-rail__icon" aria-hidden="true">🔔</span>Notices</a>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+  /* NavRail trigger: collapse / expand (aria-expanded mirrors state). */
+  var app = document.getElementById('app');
+  var trigger = document.getElementById('railTrigger');
+  trigger.addEventListener('click', function(){
+    var collapsed = app.classList.toggle('rail-collapsed');
+    trigger.setAttribute('aria-expanded', String(!collapsed));
+    trigger.setAttribute('aria-label', collapsed ? 'Expand navigation' : 'Collapse navigation');
+    trigger.textContent = collapsed ? '›' : '‹';
+  });
+
+  /* Nav items: single active pill (desktop rail + mobile bottom nav). */
+  function setActive(key){
+    document.querySelectorAll('[data-nav]').forEach(function(el){
+      if(el.getAttribute('data-nav') === key){ el.setAttribute('aria-current','page'); }
+      else { el.removeAttribute('aria-current'); }
+    });
+  }
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      setActive(el.getAttribute('data-nav'));
+    });
+  });
+
+  /* Bell: toggle notification panel; close on outside click / Escape. */
+  var bell = document.getElementById('bellBtn');
+  var panel = document.getElementById('bellPanel');
+  bell.addEventListener('click', function(ev){
+    ev.stopPropagation();
+    var open = panel.classList.toggle('open');
+    bell.setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('click', function(ev){
+    if(!panel.contains(ev.target)){ panel.classList.remove('open'); bell.setAttribute('aria-expanded','false'); }
+  });
+  document.addEventListener('keydown', function(ev){
+    if(ev.key === 'Escape'){ panel.classList.remove('open'); bell.setAttribute('aria-expanded','false'); }
+  });
+
+  /* Search: filter the student table by name or roll. */
+  var search = document.getElementById('search');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#studentBody tr'));
+  var emptyNote = document.getElementById('emptyNote');
+  search.addEventListener('input', function(){
+    var q = search.value.trim().toLowerCase();
+    var visible = 0;
+    rows.forEach(function(row){
+      var hit = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+      row.style.display = hit ? '' : 'none';
+      if(hit) visible++;
+    });
+    emptyNote.style.display = visible ? 'none' : 'block';
+  });
+
+  /* BarChart grow-in (skipped under prefers-reduced-motion by CSS). */
+  var bars = document.querySelectorAll('.barchart__bar');
+  bars.forEach(function(bar){
+    var h = bar.style.height;
+    bar.style.height = '0%';
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ bar.style.height = h; }); });
+  });
+})();
+</script>
+</body>
+</html>

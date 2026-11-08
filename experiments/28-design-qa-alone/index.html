@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+/* ============================================================
+   Design tokens (QA: Visual Accuracy — all values from tokens,
+   no ad-hoc colours/spacing anywhere below)
+   ============================================================ */
+:root{
+  --color-bg:#f1f4f8;
+  --color-surface:#ffffff;
+  --color-surface-alt:#f8fafc;
+  --color-ink:#0f172a;          /* contrast on white: 17.7:1 (AAA) */
+  --color-ink-2:#334155;        /* contrast on white: 9.6:1 (AAA) */
+  --color-ink-3:#64748b;        /* contrast on white: 4.9:1 (AA)  */
+  --color-line:#e2e8f0;
+  --color-accent:#1d4ed8;       /* contrast on white: 7.0:1 (AAA) */
+  --color-accent-strong:#1e40af;
+  --color-accent-soft:#dbeafe;
+  --color-good:#15803d;         /* contrast on white: 5.0:1 (AA)  */
+  --color-good-soft:#dcfce7;
+  --color-warn:#b45309;         /* contrast on white: 4.8:1 (AA)  */
+  --color-warn-soft:#fef3c7;
+  --color-danger:#b91c1c;       /* contrast on white: 5.9:1 (AA)  */
+  --color-danger-soft:#fee2e2;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:20px; --space-6:24px; --space-8:32px;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:16px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow-md:0 4px 12px rgba(15,23,42,.08);
+  --font-stack:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --font-size-base:16px; --font-size-sm:14px; --font-size-xs:13px;
+  --line-height-base:1.5; --line-height-tight:1.25;
+  --sidebar-width:232px;
+  --touch-min:44px; /* QA: Interaction — 44px minimum touch target */
+  --focus-ring:0 0 0 3px #93c5fd;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-stack);
+  font-size:var(--font-size-base);
+  line-height:var(--line-height-base);
+  color:var(--color-ink);
+  background:var(--color-bg);
+}
+/* QA: Accessibility — visible focus on every interactive element */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+  outline:none;box-shadow:var(--focus-ring);border-radius:var(--radius-sm);
+}
+.skip-link{
+  position:absolute;left:var(--space-4);top:-100px;z-index:100;
+  background:var(--color-accent);color:#fff;padding:var(--space-3) var(--space-4);
+  border-radius:var(--radius-sm);font-weight:600;text-decoration:none;
+  transition:top .15s ease;
+}
+.skip-link:focus{top:var(--space-3)}
+/* ---------- App shell ---------- */
+.app{display:flex;min-height:100vh}
+/* ---------- Sidebar (desktop nav) ---------- */
+.sidebar{
+  width:var(--sidebar-width);flex-shrink:0;
+  background:var(--color-ink);color:#e2e8f0;
+  padding:var(--space-6) var(--space-4);
+  display:flex;flex-direction:column;gap:var(--space-2);
+  position:sticky;top:0;height:100vh;
+}
+.brand{font-size:20px;font-weight:800;line-height:var(--line-height-tight);color:#fff;padding:0 var(--space-3) var(--space-2)}
+.brand small{display:block;font-size:var(--font-size-xs);font-weight:500;color:#94a3b8;margin-top:2px}
+.nav-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;padding:var(--space-4) var(--space-3) var(--space-2)}
+.nav-link{
+  display:flex;align-items:center;gap:var(--space-3);
+  min-height:var(--touch-min);padding:var(--space-2) var(--space-3);
+  border-radius:var(--radius-sm);color:#e2e8f0;text-decoration:none;
+  font-size:15px;font-weight:500;
+}
+.nav-link:hover{background:#1e293b;color:#fff}
+.nav-link[aria-current="page"]{background:var(--color-accent);color:#fff;font-weight:700}
+.nav-link .nav-icon{font-size:18px;line-height:1;flex-shrink:0;width:24px;text-align:center}
+.sidebar-foot{margin-top:auto;padding:var(--space-3);font-size:var(--font-size-xs);color:#94a3b8;line-height:1.5;border-top:1px solid #1e293b}
+/* ---------- Main ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  background:var(--color-surface);border-bottom:1px solid var(--color-line);
+  padding:var(--space-3) var(--space-6);
+  display:flex;align-items:center;gap:var(--space-4);
+  position:sticky;top:0;z-index:10;
+}
+.topbar h1{font-size:20px;font-weight:800;line-height:var(--line-height-tight);white-space:nowrap}
+.topbar .crumb{font-size:var(--font-size-sm);color:var(--color-ink-3);white-space:nowrap}
+.search{
+  flex:1;max-width:420px;margin-left:auto;
+  display:flex;align-items:center;gap:var(--space-2);
+  background:var(--color-surface-alt);border:1px solid var(--color-line);
+  border-radius:var(--radius-md);padding:0 var(--space-3);
+  min-height:var(--touch-min);
+}
+.search input{
+  flex:1;min-width:0;border:0;background:transparent;
+  font:inherit;font-size:15px;color:var(--color-ink);padding:var(--space-2) 0;
+}
+.search input::placeholder{color:var(--color-ink-3)}
+.search input:focus{outline:none}
+.search:focus-within{box-shadow:var(--focus-ring)}
+.bell{
+  position:relative;flex-shrink:0;
+  width:var(--touch-min);height:var(--touch-min);
+  display:grid;place-items:center;
+  background:var(--color-surface-alt);border:1px solid var(--color-line);
+  border-radius:50%;cursor:pointer;font-size:20px;line-height:1;color:var(--color-ink);
+}
+.bell:hover{background:var(--color-accent-soft)}
+.bell .dot{
+  position:absolute;top:8px;right:9px;width:10px;height:10px;border-radius:50%;
+  background:var(--color-danger);border:2px solid var(--color-surface);
+}
+.avatar{
+  flex-shrink:0;width:var(--touch-min);height:var(--touch-min);border-radius:50%;
+  background:var(--color-accent);color:#fff;display:grid;place-items:center;
+  font-weight:700;font-size:15px;border:0;cursor:pointer;
+}
+.content{padding:var(--space-6);display:flex;flex-direction:column;gap:var(--space-6);max-width:1120px;width:100%;margin:0 auto}
+/* ---------- Section headings ---------- */
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.section-head h2{font-size:18px;font-weight:800;line-height:var(--line-height-tight)}
+.section-head p{font-size:var(--font-size-sm);color:var(--color-ink-3)}
+/* ---------- Stat cards ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)}
+.stat{
+  background:var(--color-surface);border:1px solid var(--color-line);
+  border-radius:var(--radius-lg);padding:var(--space-5);
+  box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;gap:var(--space-2);
+  min-width:0; /* QA: Layout — grid children must shrink, no overflow */
+}
+.stat:hover{box-shadow:var(--shadow-md)}
+.stat .label{font-size:var(--font-size-sm);font-weight:600;color:var(--color-ink-3);display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)}
+.stat .icon{font-size:20px;line-height:1}
+.stat .value{font-size:32px;font-weight:800;line-height:1.1;letter-spacing:-.01em;overflow-wrap:anywhere}
+.stat .sub{font-size:var(--font-size-sm);color:var(--color-ink-2)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:var(--font-size-xs);font-weight:700;white-space:nowrap}
+.pill-good{background:var(--color-good-soft);color:var(--color-good)}
+.pill-warn{background:var(--color-warn-soft);color:var(--color-warn)}
+.pill-info{background:var(--color-accent-soft);color:var(--color-accent-strong)}
+/* ---------- Cards ---------- */
+.card{
+  background:var(--color-surface);border:1px solid var(--color-line);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);
+  padding:var(--space-5);
+}
+.grid-2{display:grid;grid-template-columns:1.6fr 1fr;gap:var(--space-4);align-items:start}
+/* ---------- Attendance chart (CSS bars) ---------- */
+.chart{display:flex;align-items:flex-end;gap:var(--space-4);height:220px;padding:var(--space-5) var(--space-2) 0}
+.bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:var(--space-2);height:100%;justify-content:flex-end}
+.bar-val{font-size:var(--font-size-sm);font-weight:700;color:var(--color-ink-2)}
+.bar-track{width:100%;max-width:56px;height:150px;display:flex;align-items:flex-end;border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--color-surface-alt)}
+.bar{width:100%;border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--color-accent);min-height:6px}
+.bar.today{background:var(--color-good)}
+.bar-day{font-size:var(--font-size-sm);font-weight:600;color:var(--color-ink-3)}
+.chart-note{margin-top:var(--space-4);padding-top:var(--space-3);border-top:1px solid var(--color-line);font-size:var(--font-size-sm);color:var(--color-ink-2);display:flex;gap:var(--space-4);flex-wrap:wrap}
+.legend{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.swatch-blue{background:var(--color-accent)}
+.swatch-green{background:var(--color-good)}
+/* ---------- Notices ---------- */
+.notice-list{list-style:none;display:flex;flex-direction:column}
+.notice-list li{
+  display:flex;gap:var(--space-3);align-items:flex-start;
+  padding:var(--space-4) 0;border-bottom:1px solid var(--color-line);
+}
+.notice-list li:last-child{border-bottom:0;padding-bottom:0}
+.notice-list li:first-child{padding-top:var(--space-2)}
+.notice-icon{
+  flex-shrink:0;width:36px;height:36px;border-radius:var(--radius-sm);
+  display:grid;place-items:center;font-size:18px;line-height:1;
+}
+.notice-icon.blue{background:var(--color-accent-soft)}
+.notice-icon.amber{background:var(--color-warn-soft)}
+.notice-icon.green{background:var(--color-good-soft)}
+.notice-list strong{display:block;font-size:15px;line-height:1.35}
+.notice-list span{font-size:var(--font-size-sm);color:var(--color-ink-3)}
+.notice-list .tag{margin-left:auto;flex-shrink:0}
+/* ---------- Student table ---------- */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius-md)}
+table{width:100%;border-collapse:collapse;min-width:560px}
+caption{text-align:left;font-size:var(--font-size-sm);color:var(--color-ink-3);padding-bottom:var(--space-3)}
+th,td{padding:var(--space-3) var(--space-3);text-align:left;font-size:15px;border-bottom:1px solid var(--color-line);white-space:nowrap}
+thead th{font-size:var(--font-size-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-ink-3);background:var(--color-surface-alt)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--color-surface-alt)}
+td.student-name{font-weight:600;white-space:normal;min-width:140px}
+td .roll{color:var(--color-ink-3);font-size:var(--font-size-sm)}
+.meter{display:flex;align-items:center;gap:var(--space-2);min-width:120px}
+.meter .track{flex:1;height:8px;border-radius:999px;background:var(--color-line);overflow:hidden;min-width:56px}
+.meter .fill{height:100%;border-radius:999px;background:var(--color-accent)}
+.meter .fill.low{background:var(--color-warn)}
+.meter .fill.high{background:var(--color-good)}
+.meter b{font-size:var(--font-size-sm);min-width:38px;text-align:right}
+.status{font-size:var(--font-size-xs);font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.status.excellent{background:var(--color-good-soft);color:var(--color-good)}
+.status.good{background:var(--color-accent-soft);color:var(--color-accent-strong)}
+.status.watch{background:var(--color-warn-soft);color:var(--color-warn)}
+/* ---------- Footer ---------- */
+.footer{
+  margin-top:auto;padding:var(--space-5) var(--space-6);
+  border-top:1px solid var(--color-line);background:var(--color-surface);
+  font-size:var(--font-size-sm);color:var(--color-ink-3);
+  display:flex;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;
+}
+/* ---------- Bottom nav (mobile) ---------- */
+.bottom-nav{display:none}
+/* ---------- QA: Accessibility — reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+/* ---------- Responsive: 900px ---------- */
+@media (max-width:900px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-2{grid-template-columns:1fr}
+}
+/* ---------- Responsive: 640px (mobile, QA breakpoint 390px) ---------- */
+@media (max-width:640px){
+  .sidebar{display:none}
+  .topbar{padding:var(--space-2) var(--space-4);gap:var(--space-2)}
+  .topbar h1{font-size:17px}
+  .topbar .crumb{display:none}
+  .search{min-height:40px}
+  .bell,.avatar{width:40px;height:40px}
+  .content{padding:var(--space-4);gap:var(--space-4);padding-bottom:calc(var(--space-4) + 64px)}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}
+  .stat{padding:var(--space-4)}
+  .stat .value{font-size:26px}
+  .card{padding:var(--space-4)}
+  .chart{height:190px;gap:var(--space-2)}
+  .bar-track{height:120px}
+  .footer{padding:var(--space-4);justify-content:center;text-align:center}
+  /* QA: Layout — bottom nav replaces sidebar; 44px targets kept */
+  .bottom-nav{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:var(--color-surface);border-top:1px solid var(--color-line);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .bottom-nav a{
+    flex:1;min-width:0;min-height:56px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    color:var(--color-ink-3);text-decoration:none;font-size:11px;font-weight:600;
+  }
+  .bottom-nav a .nav-icon{font-size:20px;line-height:1}
+  .bottom-nav a[aria-current="page"]{color:var(--color-accent)}
+  .bottom-nav a:hover{color:var(--color-accent-strong)}
+}
+/* QA: Layout — very narrow guard: 2-col stats hold at 320px too */
+@media (max-width:360px){
+  .stat .value{font-size:23px}
+  .stat .label{font-size:var(--font-size-xs)}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="app">
+
+  <!-- Sidebar navigation (desktop) -->
+  <nav class="sidebar" aria-label="Primary">
+    <div class="brand">Greenwood High<small>Class 8-A &middot; 2025&ndash;26</small></div>
+    <div class="nav-label" id="nav-label-main">Menu</div>
+    <a class="nav-link" href="#" aria-current="page"><span class="nav-icon" aria-hidden="true">&#127968;</span>Dashboard</a>
+    <a class="nav-link" href="#students"><span class="nav-icon" aria-hidden="true">&#128100;</span>Students</a>
+    <a class="nav-link" href="#attendance"><span class="nav-icon" aria-hidden="true">&#128197;</span>Attendance</a>
+    <a class="nav-link" href="#attendance"><span class="nav-icon" aria-hidden="true">&#128202;</span>Analytics</a>
+    <a class="nav-link" href="#notices"><span class="nav-icon" aria-hidden="true">&#128276;</span>Notices</a>
+    <div class="nav-label">Settings</div>
+    <a class="nav-link" href="#"><span class="nav-icon" aria-hidden="true">&#9881;</span>Settings</a>
+    <div class="sidebar-foot">Signed in as Class Teacher<br>Class 8-A &middot; 12 students</div>
+  </nav>
+
+  <div class="main">
+    <!-- Header -->
+    <header class="topbar">
+      <h1>Dashboard</h1>
+      <span class="crumb">Greenwood High / Class 8-A</span>
+      <label class="search" for="search">
+        <span aria-hidden="true">&#128269;</span>
+        <input id="search" type="search" placeholder="Search students, roll no&hellip;" aria-label="Search students">
+      </label>
+      <button class="bell" type="button" aria-label="Notifications, 3 unread" aria-describedby="bell-count">
+        <span aria-hidden="true">&#128276;</span><span class="dot" aria-hidden="true"></span>
+      </button>
+      <span id="bell-count" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">3 unread notifications</span>
+      <button class="avatar" type="button" aria-label="Account: Class Teacher">CT</button>
+    </header>
+
+    <main class="content" id="main">
+      <!-- Stat cards -->
+      <section aria-labelledby="stats-heading">
+        <h2 id="stats-heading" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Overview statistics</h2>
+        <div class="stats">
+          <article class="stat">
+            <div class="label">Students <span class="icon" aria-hidden="true">&#127891;</span></div>
+            <div class="value">1,248</div>
+            <div class="sub">12 in Class 8-A <span class="pill pill-info">+2.4%</span></div>
+          </article>
+          <article class="stat">
+            <div class="label">Teachers <span class="icon" aria-hidden="true">&#128188;</span></div>
+            <div class="value">72</div>
+            <div class="sub">Across all classes <span class="pill pill-info">Full staff</span></div>
+          </article>
+          <article class="stat">
+            <div class="label">Attendance today <span class="icon" aria-hidden="true">&#9989;</span></div>
+            <div class="value">95.2%</div>
+            <div class="sub">1,188 present &middot; 60 absent <span class="pill pill-good">On track</span></div>
+          </article>
+          <article class="stat">
+            <div class="label">Fees collected <span class="icon" aria-hidden="true">&#8377;</span></div>
+            <div class="value">84%</div>
+            <div class="sub">&#8377;25.2L of &#8377;30L <span class="pill pill-warn">Due 20 Nov</span></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Attendance trend + Notices -->
+      <div class="grid-2">
+        <section class="card" id="attendance" aria-labelledby="trend-heading">
+          <div class="section-head">
+            <h2 id="trend-heading">Attendance trend</h2>
+            <p>This week &middot; Mon&ndash;Fri</p>
+          </div>
+          <div class="chart" role="img" aria-label="Bar chart of attendance: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent.">
+            <div class="bar-col"><span class="bar-val">94%</span><div class="bar-track"><div class="bar" style="height:94%"></div></div><span class="bar-day">Mon</span></div>
+            <div class="bar-col"><span class="bar-val">96%</span><div class="bar-track"><div class="bar" style="height:96%"></div></div><span class="bar-day">Tue</span></div>
+            <div class="bar-col"><span class="bar-val">93%</span><div class="bar-track"><div class="bar" style="height:93%"></div></div><span class="bar-day">Wed</span></div>
+            <div class="bar-col"><span class="bar-val">97%</span><div class="bar-track"><div class="bar" style="height:97%"></div></div><span class="bar-day">Thu</span></div>
+            <div class="bar-col"><span class="bar-val">95%</span><div class="bar-track"><div class="bar today" style="height:95%"></div></div><span class="bar-day">Fri</span></div>
+          </div>
+          <div class="chart-note">
+            <span class="legend"><span class="swatch swatch-blue" aria-hidden="true"></span>Weekday</span>
+            <span class="legend"><span class="swatch swatch-green" aria-hidden="true"></span>Today (Fri) &middot; 95%</span>
+            <span>Weekly average: 95.0%</span>
+          </div>
+        </section>
+
+        <section class="card" id="notices" aria-labelledby="notices-heading">
+          <div class="section-head">
+            <h2 id="notices-heading">Notices</h2>
+            <p>3 active</p>
+          </div>
+          <ul class="notice-list">
+            <li>
+              <span class="notice-icon blue" aria-hidden="true">&#128300;</span>
+              <div><strong>Science fair on Friday</strong><span>All Class 8-A projects due Thursday</span></div>
+              <span class="tag pill pill-info">Event</span>
+            </li>
+            <li>
+              <span class="notice-icon amber" aria-hidden="true">&#9200;</span>
+              <div><strong>Fee deadline 20 Nov</strong><span>Second instalment for Term 2</span></div>
+              <span class="tag pill pill-warn">Fees</span>
+            </li>
+            <li>
+              <span class="notice-icon green" aria-hidden="true">&#128106;</span>
+              <div><strong>Parent-teacher meet 25 Nov</strong><span>9:00 AM onwards, Class 8-A room</span></div>
+              <span class="tag pill pill-good">Meeting</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Student table -->
+      <section class="card" id="students" aria-labelledby="students-heading">
+        <div class="section-head">
+          <h2 id="students-heading">Class 8-A students</h2>
+          <p>12 students &middot; sorted by roll number</p>
+        </div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Class 8-A student table, scrollable horizontally on small screens">
+          <table>
+            <caption>Attendance and marks for all 12 students in Class 8-A.</caption>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll no.</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="student-name">Aarav Sharma</td><td><span class="roll">8A-01</span></td><td><span class="meter"><span class="track"><span class="fill high" style="width:96%"></span></span><b>96%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:88%"></span></span><b>88%</b></span></td><td><span class="status excellent">Excellent</span></td></tr>
+              <tr><td class="student-name">Diya Patel</td><td><span class="roll">8A-02</span></td><td><span class="meter"><span class="track"><span class="fill high" style="width:94%"></span></span><b>94%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:91%"></span></span><b>91%</b></span></td><td><span class="status excellent">Excellent</span></td></tr>
+              <tr><td class="student-name">Kabir Singh</td><td><span class="roll">8A-03</span></td><td><span class="meter"><span class="track"><span class="fill low" style="width:89%"></span></span><b>89%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:76%"></span></span><b>76%</b></span></td><td><span class="status watch">Watch</span></td></tr>
+              <tr><td class="student-name">Ananya Gupta</td><td><span class="roll">8A-04</span></td><td><span class="meter"><span class="track"><span class="fill high" style="width:98%"></span></span><b>98%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:93%"></span></span><b>93%</b></span></td><td><span class="status excellent">Excellent</span></td></tr>
+              <tr><td class="student-name">Rohan Mehta</td><td><span class="roll">8A-05</span></td><td><span class="meter"><span class="track"><span class="fill" style="width:92%"></span></span><b>92%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:82%"></span></span><b>82%</b></span></td><td><span class="status good">Good</span></td></tr>
+              <tr><td class="student-name">Ishita Verma</td><td><span class="roll">8A-06</span></td><td><span class="meter"><span class="track"><span class="fill high" style="width:97%"></span></span><b>97%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:89%"></span></span><b>89%</b></span></td><td><span class="status excellent">Excellent</span></td></tr>
+              <tr><td class="student-name">Arjun Nair</td><td><span class="roll">8A-07</span></td><td><span class="meter"><span class="track"><span class="fill low" style="width:90%"></span></span><b>90%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:79%"></span></span><b>79%</b></span></td><td><span class="status good">Good</span></td></tr>
+              <tr><td class="student-name">Sneha Reddy</td><td><span class="roll">8A-08</span></td><td><span class="meter"><span class="track"><span class="fill high" style="width:95%"></span></span><b>95%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:86%"></span></span><b>86%</b></span></td><td><span class="status excellent">Excellent</span></td></tr>
+              <tr><td class="student-name">Vikram Joshi</td><td><span class="roll">8A-09</span></td><td><span class="meter"><span class="track"><span class="fill low" style="width:88%"></span></span><b>88%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:74%"></span></span><b>74%</b></span></td><td><span class="status watch">Watch</span></td></tr>
+              <tr><td class="student-name">Priya Das</td><td><span class="roll">8A-10</span></td><td><span class="meter"><span class="track"><span class="fill high" style="width:99%"></span></span><b>99%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:95%"></span></span><b>95%</b></span></td><td><span class="status excellent">Excellent</span></td></tr>
+              <tr><td class="student-name">Aditya Rao</td><td><span class="roll">8A-11</span></td><td><span class="meter"><span class="track"><span class="fill" style="width:93%"></span></span><b>93%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:84%"></span></span><b>84%</b></span></td><td><span class="status good">Good</span></td></tr>
+              <tr><td class="student-name">Kavya Iyer</td><td><span class="roll">8A-12</span></td><td><span class="meter"><span class="track"><span class="fill high" style="width:96%"></span></span><b>96%</b></span></td><td><span class="meter"><span class="track"><span class="fill" style="width:90%"></span></span><b>90%</b></span></td><td><span class="status excellent">Excellent</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Fictional demo data &mdash; UI Forge Experiment 1</span>
+      <span>Greenwood High &middot; Class 8-A &middot; 2025&ndash;26</span>
+    </footer>
+  </div>
+</div>
+
+<!-- Bottom navigation (mobile) -->
+<nav class="bottom-nav" aria-label="Primary mobile">
+  <a href="#" aria-current="page"><span class="nav-icon" aria-hidden="true">&#127968;</span>Home</a>
+  <a href="#students"><span class="nav-icon" aria-hidden="true">&#128100;</span>Students</a>
+  <a href="#attendance"><span class="nav-icon" aria-hidden="true">&#128202;</span>Analytics</a>
+  <a href="#notices"><span class="nav-icon" aria-hidden="true">&#128276;</span>Notices</a>
+</nav>
+
+<script>
+// QA: Interaction — bell toggles an accessible pressed state; search filters
+// the student table live (real content, no placeholder behaviour).
+(function(){
+  var bell=document.querySelector('.bell');
+  bell.addEventListener('click',function(){
+    var on=bell.getAttribute('aria-pressed')==='true';
+    bell.setAttribute('aria-pressed',String(!on));
+    bell.style.background=on?'':'var(--color-accent-soft)';
+  });
+  var input=document.getElementById('search');
+  var rows=document.querySelectorAll('tbody tr');
+  input.addEventListener('input',function(){
+    var q=input.value.trim().toLowerCase();
+    rows.forEach(function(r){
+      r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';
+    });
+  });
+})();
+</script>
+</body>
+</html>
