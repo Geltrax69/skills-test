@@ -217,3 +217,229 @@ Bottom three: **29-motion, 01-typography, 00-baseline**. Top five: **04, 13, 14,
 - Same-builder order test (Typography → Layout vs Layout → Typography).
 - Real React build for Astryx / PanelUI-web and a live-browser screenshot pass on real hardware.
 - Further combinations beyond this bounded set of 31 (e.g. shadcn + pstack + ECC, taste + emil, accessibility + motion) — only with parent approval, per the Experiment 2 bound.
+
+---
+
+
+# UI Forge — Experiment 3: Results (provisional, repeats averaged where available)
+
+
+25 new variants (31–55), same TASK.md, same data, same constraints. Total 56 variants with Experiments 1–2. Built by fresh subagent builders, one per variant, isolated folders, no variant read another variant's folder. (Note: the brief said "24 new variants (31–54), total 55" but listed 31–55 — 25 variants; the total is 56, not 55.)
+
+
+## Uniform content check (run by the coordinator, 2026-11-09)
+
+
+Same script as Experiments 1–2, re-run over **all 56 variants** (students 12/12, rolls 12/12, stats 4/4, notices 3/3, footer, external URLs 0). All 56 pass.
+
+
+| Variant | Size | Students | Rolls | Stats | Notices | Footer | External URLs |
+|---|---|---|---|---|---|---|---|
+| 31-shadcn-pstack-ecc | 26.9 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 32-taste-emil | 31.3 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 33-taste-pstack-ecc | 18.3 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 34-emil-pstack-ecc | 22.1 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 35-better-interface-pstack-ecc | 22.0 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 36-shadcn-typography | 27.7 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 37-shadcn-layout | 27.7 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 38-apple-alone | 31.1 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 39-emil-astryx | 23.0 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 40-emil-panelui | 29.4 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 41-panelui-opensourceui | 34.0 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 42-motion-interface | 26.0 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 43-accessibility-interface | 22.8 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 44-colors-layout | 22.0 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 45-jakubkrehel-all | 23.6 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 46-prototyper-pstack-ecc | 23.7 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 47-impeccable-pstack-ecc | 31.2 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 48-uiuxpromax-pstack-ecc | 26.4 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 49-taste-typography | 18.3 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 50-layout-colors-typography | 22.6 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 51-ecc-alone | 20.8 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 52-pstack-alone | 11.0 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 53-pstack-ecc-custom-r3 | 25.0 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 54-panelui-web-r3 | 32.7 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+| 55-full-ui-stack-r2 | 24.9 KB | 12/12 | 12/12 | 4/4 | 3/3 | yes | 0 |
+
+## Render check (headless Chromium 156 over CDP, run by the coordinator, 2026-11-09)
+
+
+Same method as Experiment 2, re-run over **all 56 variants at 1280px and 390px** (112 screenshots, `/tmp/renders-exp3/`, not committed). Result: **no document horizontal scroll anywhere, 0 console errors, all required text present in the rendered page** — for all 56, both widths.
+
+
+Two check artefacts, investigated, not defects:
+
+
+- **19-better-interface-alone, "names missing from rendered text" (both widths):** same as Experiment 2 — the names render in `text-transform: uppercase` (`AARAV SHARMA`), so the case-sensitive probe missed them. The 1280px screenshot was viewed: all 12 names visibly present.
+
+- **Overflow flags at 390px (20 variants):** all are hidden off-canvas sidebars/drawers (`right=-14`, `-12`, `-28`) or visually-hidden labels (`right=-9861`, `-9891`) — 10, 11, 13, 15, 25, 29, 31, 32, 33, 35, 39, 42, 44, 45, 46, 47, 48, 51, 55, plus 51's hidden span at 1280px. No document horizontal scroll in any of them. The 53 screenshot at 1280px and the 31 screenshot at 390px were viewed: clean.
+
+
+## Defects found and fixed, Experiment 3 (self-reported by each builder)
+
+
+Same caveat as before: "found + fixed" measures checking thoroughness as much as combo quality.
+
+
+| Variant | Found + fixed | Left known |
+|---|---|---|
+| 31-shadcn-pstack-ecc | 1 — invalid `&rupee;` entity rendering literally as text | 0 |
+| 32-taste-emil | 3 — invented notice sub-lines; hamburger + bottom nav both visible at 390px; search placeholder truncated | 0 |
+| 33-taste-pstack-ecc | 3 — invented notice sub-lines; chart bars overflowing the 200px plot; the word "violet" in a CSS comment | 0 |
+| 34-emil-pstack-ecc | 0 — none — first headless run was already green | 0 |
+| 35-better-interface-pstack-ecc | 1 — chart bars overflowing their container (no dedicated bar track) | 0 |
+| 36-shadcn-typography | 2 — invented notice caption lines; header subtitle ellipsis-clipped at 390px | 0 |
+| 37-shadcn-layout | 3 — invalid `&rupee;` entity; school name truncated at 390px; table caption clipped at card edge | 0 |
+| 38-apple-alone | 1 — table `<caption>` clipped at 390px inside the scrolling wrapper | 0 |
+| 39-emil-astryx | 4 — wrong class average 94.0% → 93.9%; invisible attendance meter bars; entity-hidden strings; invented teachers claim | 0 |
+| 40-emil-panelui | 1 — invented notice sub-lines | 0 |
+| 41-panelui-opensourceui | 0 — none — the merge itself broke nothing (14 conflicts recorded instead) | 0 |
+| 42-motion-interface | 1 — reduced-motion CSS nulled the mobile drawer's closed state, sidebar covering the page at 390px | 0 |
+| 43-accessibility-interface | 5 — header inside the desktop flex row; chart bars overflowing the track; invalid box-shadow alpha; dead CSS; bottom-nav item past the 390px viewport | 0 |
+| 44-colors-layout | 5 — chart bars as ~8px slivers (no definite containing block); search squeezed to ~20px at 390px; hidden empty h2; false chart note; notices before the student table | 0 |
+| 45-jakubkrehel-all | 2 — wrong class average 94.0% → 93.9%; header overflow at 390px | 0 |
+| 46-prototyper-pstack-ecc | 0 — none — check pass found zero objective violations | 0 |
+| 47-impeccable-pstack-ecc | 3 — chart bars overflowing their 190px track; topbar title squeezing search at 390px; unexplained pill tiers | 0 |
+| 48-uiuxpromax-pstack-ecc | 1 — search input clipped at 390px (placeholder showed only "Search") | 0 |
+| 49-taste-typography | 1 — mobile header crowding at 390px (~424px of content in 358px) | 0 |
+| 50-layout-colors-typography | 1 — school name truncated to "Greenwo…" at 390px | 0 |
+| 51-ecc-alone | 4 — 3px horizontal overflow at 390px; search collapsed to a sliver; DOM order (nav before header); entity-hidden strings | 0 |
+| 52-pstack-alone | 1 — rupee entity typo `&?#8377;` rendering literally | 0 |
+| 53-pstack-ecc-custom-r3 | 5 — invalid `&rupee;` entity; nav `aria-labelledby` naming links "Menu"; undefined `.visually-hidden` class; search `aria-describedby` pointing at a hidden element; bell close stealing focus | 0 |
+| 54-panelui-web-r3 | 1 — KPI footers clipped at 390px ("Across Greenwoo…", "1,188 present · 60 a…") | 0 |
+| 55-full-ui-stack-r2 | 1 — search placeholder clipped at 390px ("Try Aar…"); header-height token 112px → 113px (measured) | 0 |
+
+## Repeat evidence — averages after 3 runs (04 / 07) and 2 runs (02 / 30)
+
+
+| Combo | Runs | Defects fixed per run | Average | Did the ranking hold? |
+|---|---|---|---|---|
+| pstack+ecc+custom (04 / 13 / 53) | 3 | 7, 1, 5 | **4.33** | Yes — all three runs are the top 3. Same 2 conflicts resolved identically in all three runs (press 0.96, stagger 100ms). Run 1's "7" and run 3's "5" vs run 2's "1" show the count is builder-dependent; the quality is not. |
+| PanelUI web (07 / 14 / 54) | 3 | 4, 5, 1 | **3.33** | Yes — all three runs are in the top 6. Same defect classes in runs 1–2 (chart baseline, table/stat at 390px); run 3 found a new class (KPI footer clipping). |
+| Typography → Layout (02 / 12) | 2 | 0, 4 | **2.00** | Quality held (0 real layout failures in both); count did not reproduce. |
+| Full UI stack (30 / 55) | 2 | 1, 1 | **1.00** | Yes — both runs 1 defect fixed, 0 left. Conflict count did NOT reproduce: 10 in run 1, 19 in run 2 (run 2 logged more granular conflicts, e.g. easing/stagger/entrance split into separate decisions). |
+
+**Repeat lesson, strengthened:** after 3 runs, 04 still wins — highest repeat average (4.33) and all three runs in the top 3. But no defect count is a reproducible score: the same combo produced 7, 1 and 5 across three fresh builders. Rankings below use repeat averages for repeated combos, not single-run counts.
+
+
+## Order findings (02 / 10 / 11 / 45 / 50)
+
+
+- 02 (Typography → Layout): 0 real defects. 11 (Layout → Typography): 5 fixed incl 1 HIGH. 10 (Colors → Typography): 4 fixed. 50 (Layout → Colors → Typography): 1 fixed, 9/9 headless checks PASS. 45 (Typography → Layout → Colors → Accessibility → Writing → UI): 2 fixed.
+
+- **Verdict: still inconclusive.** Five order points, no consistent direction: the Layout-first variants range from 1 to 5 fixed, the Typography-first variants from 0 to 4. No order rule predicts the outcome; builder variance still dominates. A real order test needs the same builder (or several builders per order) — not run here.
+
+
+## ECC alone vs pstack alone vs combined (51 / 52 vs 03)
+
+
+- **51 ECC alone: 4 fixed, 0 left.** ECC's frontend-patterns + frontend-design-direction carry real design guidance on their own (composition, immutable state + reducer-style dispatch, debounced search, design direction's utilitarian ops-tool tone). Ranked #15.
+
+- **52 pstack alone: 1 fixed, 0 left.** pstack is process, not design: it sequenced and verified the work, but every visual choice (navy header, system stack, ad hoc spacing, 768px breakpoint) was a plain neutral default the builder named as unguided. Ranked #49.
+
+- **03 pstack + ECC (Exp 1): 0 defects, working search popover + filter with empty state.** Ranked #9.
+
+- **Verdict:** the combination's value is now measurable — ECC supplies the design, pstack supplies the checking rigour. ECC alone is a competent builder; pstack alone is a competent checker with nothing to check against. Neither alone beats the combination.
+
+
+## Conflict findings (41 / 55 — plus 26 / 27 / 30 from Experiment 2)
+
+
+| Variant | Conflicts recorded | Sharpest resolutions |
+|---|---|---|
+| 41-panelui-opensourceui | 14 | OpenSourceUI flat paper cards beat PanelUI Frame bands; PanelUI's 5 status roles win, but its `--info` indigo hue was remapped to OpenSourceUI cyan (OSUI bans indigo-family); NavRail wins navigation; OSUI wins radii/typography/focus/flat/shadows. |
+| 55-full-ui-stack-r2 | 19 | better-ui beat Emil on press (0.96/150ms), easing and stagger (100ms), and first-render entrance (skipped entirely); PanelUI beat Astryx as the component system and accent source; better-colors beat PanelUI on the info hue (teal, ≥15° from blue accent); task beat PanelUI on viewport-driven nav collapse. |
+
+Total conflicts across the five conflict tests: 12 + 9 + 10 + 14 + 19 = **64**. Run 2 of the full stack recorded 19 vs run 1's 10 — the merge did not get worse; the logging got more granular. No conflict was unresolvable in any run.
+
+
+## Provisional ranking — all 56 (repeats averaged where available, headless-render verified)
+
+
+Ranked on: defects left known (0 for 55 of 56; 1 deliberate in variant 12), repeat-averaged defect counts for repeated combos, thoroughness of checking, accessibility work, working interaction, conflict-resolution quality, and repeat consistency — not on rendered visual feel, which was measured only for scroll/console/text, not judged.
+
+
+| # | Variant | Skills | Defects fixed (avg if repeated) | Left | Size |
+|---|---|---|---|---|---|
+| 1 | 04-pstack-ecc-custom | pstack feature + ECC frontend-patterns + emil-design-eng + better-interface | 7 (avg 4.33) | 0 | 15.3 KB |
+| 2 | 53-pstack-ecc-custom-r3 | pstack feature + ECC frontend-patterns + emil-design-eng + better-interface | 5 (avg 4.33) | 0 | 25.0 KB |
+| 3 | 13-pstack-ecc-custom-r2 | pstack feature + ECC frontend-patterns + emil-design-eng + better-interface | 1 (avg 4.33) | 0 | 35.7 KB |
+| 4 | 14-panelui-web-r2 | local-panelui + panelui-web | 5 (avg 3.33) | 0 | 32.2 KB |
+| 5 | 07-panelui-web | local-panelui + panelui-web | 4 (avg 3.33) | 0 | 30.8 KB |
+| 6 | 54-panelui-web-r3 | local-panelui + panelui-web | 1 (avg 3.33) | 0 | 32.7 KB |
+| 7 | 55-full-ui-stack-r2 | pstack feature + ECC frontend-patterns + emil-design-eng + better-interface + local-astryx + local-panelui (web) | 1 (avg 1.00) | 0 | 24.9 KB |
+| 8 | 30-full-ui-stack | pstack feature + ECC frontend-patterns + emil-design-eng + better-interface + local-astryx + local-panelui (web) | 1 (avg 1.00) | 0 | 34.4 KB |
+| 9 | 03-pstack-ecc | pstack feature + ECC frontend-patterns | 0 | 0 | 19.8 KB |
+| 10 | 43-accessibility-interface | Better Accessibility + better-interface | 5 | 0 | 22.8 KB |
+| 11 | 44-colors-layout | Better Colors + Better Layout | 5 | 0 | 22.0 KB |
+| 12 | 11-layout-typography | Better Layout + Better Typography | 5 | 0 | 24.3 KB |
+| 13 | 18-emil-alone | emil-design-eng | 5 | 0 | 28.7 KB |
+| 14 | 26-astryx-opensourceui | local-astryx + local-opensourceui | 5 | 0 | 28.5 KB |
+| 15 | 51-ecc-alone | ECC frontend-patterns + frontend-design-direction | 4 | 0 | 20.8 KB |
+| 16 | 39-emil-astryx | emil-design-eng + local-astryx | 4 | 0 | 23.0 KB |
+| 17 | 17-panelui-pstack-ecc | local-panelui (web) + pstack feature + ECC frontend-patterns | 4 | 0 | 39.7 KB |
+| 18 | 22-impeccable-alone | impeccable | 4 | 0 | 32.7 KB |
+| 19 | 10-colors-typography | Better Colors + Better Typography | 4 | 0 | 24.8 KB |
+| 20 | 12-typography-layout-r2 | Better Typography + Better Layout | 4 (avg 2.00) | 1 deliberate | 17.9 KB |
+| 21 | 02-typography-layout | Better Typography + Better Layout | 0 (avg 2.00) | 0 | 17.0 KB |
+| 22 | 47-impeccable-pstack-ecc | impeccable + pstack feature + ECC frontend-patterns | 3 | 0 | 31.2 KB |
+| 23 | 37-shadcn-layout | shadcn + Better Layout | 3 | 0 | 27.7 KB |
+| 24 | 08-layout-alone | Better Layout | 2 | 0 | 16.3 KB |
+| 25 | 32-taste-emil | taste-skill + emil-design-eng | 3 | 0 | 31.3 KB |
+| 26 | 33-taste-pstack-ecc | taste-skill + pstack feature + ECC frontend-patterns | 3 | 0 | 18.3 KB |
+| 27 | 19-better-interface-alone | better-interface + 6 domain skills | 3 | 0 | 24.1 KB |
+| 28 | 20-accessibility-alone | Better Accessibility | 3 | 0 | 20.7 KB |
+| 29 | 23-uiuxpromax-alone | ui-ux-pro-max | 3 | 0 | 29.1 KB |
+| 30 | 25-prototyper-alone | local-prototyper-ui | 3 | 0 | 42.8 KB |
+| 31 | 09-colors-alone | Better Colors | 3 | 0 | 21.2 KB |
+| 32 | 45-jakubkrehel-all | Better Typography + Better Layout + Better Colors + Better Accessibility + Better Writing + Better UI | 2 | 0 | 23.6 KB |
+| 33 | 38-apple-alone | apple-design-skill | 1 | 0 | 31.1 KB |
+| 34 | 36-shadcn-typography | shadcn + Better Typography | 2 | 0 | 27.7 KB |
+| 35 | 15-astryx-pstack-ecc | local-astryx + pstack feature + ECC frontend-patterns | 2 | 0 | 41.2 KB |
+| 36 | 16-opensourceui-pstack-ecc | local-opensourceui + pstack feature + ECC frontend-patterns | 2 | 0 | 25.9 KB |
+| 37 | 21-taste-alone | taste-skill | 2 | 0 | 21.6 KB |
+| 38 | 24-shadcn-alone | shadcn | 2 | 0 | 44.4 KB |
+| 39 | 28-design-qa-alone | design-qa-checklist | 2 | 0 | 26.6 KB |
+| 40 | 27-panelui-astryx | local-panelui (web) + local-astryx | 2 | 0 | 37.4 KB |
+| 41 | 41-panelui-opensourceui | local-panelui (web) + local-opensourceui | 0 | 0 | 34.0 KB |
+| 42 | 06-opensourceui | local-opensourceui | 2 | 0 | 23.5 KB |
+| 43 | 05-astryx | local-astryx | 1 | 0 | 18.0 KB |
+| 44 | 35-better-interface-pstack-ecc | better-interface + 6 domain skills + pstack feature + ECC frontend-patterns | 1 | 0 | 22.0 KB |
+| 45 | 31-shadcn-pstack-ecc | shadcn + pstack feature + ECC frontend-patterns | 1 | 0 | 26.9 KB |
+| 46 | 48-uiuxpromax-pstack-ecc | ui-ux-pro-max + pstack feature + ECC frontend-patterns | 1 | 0 | 26.4 KB |
+| 47 | 49-taste-typography | taste-skill + Better Typography | 1 | 0 | 18.3 KB |
+| 48 | 50-layout-colors-typography | Better Layout, then Better Colors, then Better Typography | 1 | 0 | 22.6 KB |
+| 49 | 40-emil-panelui | emil-design-eng + local-panelui (web) | 1 | 0 | 29.4 KB |
+| 50 | 42-motion-interface | animate + accessible-animation + better-interface | 1 | 0 | 26.0 KB |
+| 51 | 52-pstack-alone | pstack feature playbook | 1 | 0 | 11.0 KB |
+| 52 | 34-emil-pstack-ecc | emil-design-eng + pstack feature + ECC frontend-patterns | 0 | 0 | 22.1 KB |
+| 53 | 46-prototyper-pstack-ecc | prototyper-ui + pstack feature + ECC frontend-patterns | 0 | 0 | 23.7 KB |
+| 54 | 29-motion | animate + accessible-animation | 2 | 0 | 19.7 KB |
+| 55 | 01-typography | Better Typography | 0 | 0 | 14.3 KB |
+| 56 | 00-baseline | (no skills — control) | 0 | 0 | 11.7 KB |
+
+Bottom three: **29-motion, 01-typography, 00-baseline** — unchanged from Experiment 2. Top five: **04, 53, 13, 14, 07**.
+
+
+## What this ranking does NOT prove (updated)
+
+
+- Layout, horizontal scroll, console errors and rendered text are now **measured** (headless Chromium 156, all 56 variants, both widths) — but visual feel, taste, and real-device behaviour are still unjudged. No variant was eyeballed on real hardware.
+
+- Defect counts did not reproduce across repeats (04: 7 → 1 → 5; 07: 4 → 5 → 1; 30 conflicts: 10 → 19), so counts are builder-dependent; this ranking uses repeat averages for repeated combos, but single-run counts elsewhere are still one builder's thoroughness.
+
+- Order effect is still inconclusive after five order points — builder variance dominates.
+
+- Astryx, OpenSourceUI and PanelUI were adapted to single-file HTML here, not real React / Expo builds. The ui-ux-pro-max skill's real entry point is `.claude/skills/ui-ux-pro-max/SKILL.md` (the repo-root path given in the Experiment 3 brief does not exist) — variant 48 read the correct file; variant 23 (Exp 2) used the path as given then.
+
+- The Studio's own design (repo root `index.html`) uses better-interface / emil guidance; it is a showcase, not a 57th experiment — it was not built under the same fixed task.
+
+
+## Next experiments
+
+
+- Same-builder order test (one builder builds both orders) to settle the order question.
+
+- Real React build for Astryx / PanelUI-web and a live-browser screenshot pass on real hardware.
+
+- Further combinations beyond this bounded set of 56 — only with parent approval, per the Experiment 2 bound.

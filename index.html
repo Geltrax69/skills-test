@@ -141,13 +141,13 @@
 <header class="site-header">
   <div class="wrap">
     <h1>UI Forge — Skill Experimentation Studio</h1>
-    <p class="sub">One fixed task. Thirty-one skill combinations. Every variant builds the same student management dashboard from the same data — then we compare what the skills actually did, rank the combinations by fewest defects, and show you the real pages.</p>
+    <p class="sub">One fixed task. Fifty-six skill combinations. Every variant builds the same student management dashboard from the same data — then we compare what the skills actually did, rank the combinations by fewest defects, and show you the real pages.</p>
     <div class="meta">
-      <span class="pill"><b>31</b> variants</span>
+      <span class="pill"><b>56</b> variants</span>
       <span class="pill"><b>567</b> skills in the library</span>
-      <span class="pill"><b>2</b> experiments</span>
-      <span class="pill"><b>3</b> repeats</span>
-      <span class="pill"><b>31</b> conflicts resolved</span>
+      <span class="pill"><b>3</b> experiments</span>
+      <span class="pill"><b>6</b> repeats</span>
+      <span class="pill"><b>64</b> conflicts resolved</span>
       <span class="pill">Fixed task: student dashboard · Greenwood High, Class 8-A</span>
     </div>
   </div>
@@ -168,14 +168,18 @@
     <h2 id="overview-h">Overview — how this studio works</h2>
     <p class="lede">UI Forge is not another autonomous coding harness. It is a studio for testing UI skills: pick a combination, run the same task with it, compare the rendered result side by side, and rank combinations by fewest defects. Skill sources stay read-only, skill instructions are preserved, and only skills actually read in full count as used.</p>
     <div class="stats">
-      <div class="stat"><div class="k">Variants built</div><div class="v">31</div><div class="d">8 in Experiment 1 · 23 in Experiment 2</div></div>
-      <div class="stat"><div class="k">Uniform check</div><div class="v">31 / 31</div><div class="d">12 students, 12 rolls, 4 stats, 3 notices, 0 external URLs</div></div>
-      <div class="stat"><div class="k">Render check</div><div class="v">31 / 31</div><div class="d">Headless Chromium 156 · no h-scroll, 0 console errors at 1280 &amp; 390px</div></div>
+      <div class="stat"><div class="k">Variants built</div><div class="v">56</div><div class="d">8 in Experiment 1 · 23 in Experiment 2 · 25 in Experiment 3</div></div>
+      <div class="stat"><div class="k">Uniform check</div><div class="v">56 / 56</div><div class="d">12 students, 12 rolls, 4 stats, 3 notices, 0 external URLs</div></div>
+      <div class="stat"><div class="k">Render check</div><div class="v">56 / 56</div><div class="d">Headless Chromium 156 · no h-scroll, 0 console errors at 1280 &amp; 390px</div></div>
       <div class="stat"><div class="k">Defects left known</div><div class="v">1</div><div class="d">One deliberate flat-chart note in variant 12; everything else fixed</div></div>
     </div>
     <div class="callout">
       <h3>Fixed baseline — identical for every variant</h3>
       <p>Task: “Create a modern student management dashboard with attendance, student profiles, analytics and responsive navigation.” Data: Greenwood High, Class 8-A, 2025–26 — 1,248 students, 72 teachers, 95.2% attendance (1,188 / 60), 84% fees (₹25.2L of ₹30L); 12 named students 8A-01 to 8A-12; trend Mon–Fri 94, 96, 93, 97, 95; notices “Science fair on Friday”, “Fee deadline 20 Nov”, “Parent-teacher meet 25 Nov”. Each variant is one self-contained <code>index.html</code> — inline CSS + JS, no build, no npm, no external images — plus a <code>SKILLS_ACTUALLY_READ.md</code> recording every skill read in full, in order. Full method: <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> · task: <a href="TASK.md">TASK.md</a>.</p>
+    </div>
+    <div class="callout good">
+      <h3>What changed in Experiment 3</h3>
+      <p>25 more variants (31–55), total 56. Third runs of the top two combos (53 of 04, 54 of 07), a second run of the full stack (55), ECC-alone vs pstack-alone (51 vs 52), a 3-way order variant (50), and a new conflict test (41, PanelUI + OpenSourceUI, 14 conflicts). <strong>04 still wins after 3 runs</strong> — repeat average 4.33 defects fixed, all three runs in the top 3, the same two conflicts resolved identically every time. ECC alone fixed 4; pstack alone fixed 1 and guided process only, not design. Full results: <a href="experiments/RESULTS.md">experiments/RESULTS.md</a>.</p>
     </div>
     <div class="callout good">
       <h3>What changed in Experiment 2</h3>
@@ -209,12 +213,13 @@
   </section>
 
   <section id="experiments" aria-labelledby="exp-h">
-    <h2 id="exp-h">Experiments — all 31 variants</h2>
+    <h2 id="exp-h">Experiments — all 56 variants</h2>
     <p class="lede">Click <strong>Preview</strong> on any card to load it in the big preview below, or set two variants as Left / Right for a side-by-side compare. Every card links to the variant’s own page and its <code>SKILLS_ACTUALLY_READ.md</code>.</p>
     <div class="filters" id="filters" role="group" aria-label="Filter variants">
-      <button class="chip" data-filter="all" aria-pressed="true">All 31</button>
+      <button class="chip" data-filter="all" aria-pressed="true">All 56</button>
       <button class="chip" data-filter="exp1" aria-pressed="false">Experiment 1</button>
       <button class="chip" data-filter="exp2" aria-pressed="false">Experiment 2</button>
+      <button class="chip" data-filter="exp3" aria-pressed="false">Experiment 3</button>
       <button class="chip" data-filter="repeat" aria-pressed="false">Repeats</button>
       <button class="chip" data-filter="conflict" aria-pressed="false">Conflict tests</button>
       <button class="chip" data-filter="single" aria-pressed="false">Single skills</button>
@@ -254,9 +259,9 @@
 
   <section id="insights" aria-labelledby="insights-h">
     <h2 id="insights-h">Insights — what the experiments actually showed</h2>
-    <p class="lede">Provisional ranking, single run except the three repeats. Ranked on defects left known (0 for 30 of 31), thoroughness of checking, accessibility work, working interaction, conflict-resolution quality, and repeat consistency — not on rendered visual feel, which was measured only for scroll, console errors, and text presence.</p>
+    <p class="lede">Provisional ranking, repeats averaged where available. Ranked on defects left known (0 for 55 of 56), thoroughness of checking, accessibility work, working interaction, conflict-resolution quality, and repeat consistency — not on rendered visual feel, which was measured only for scroll, console errors, and text presence.</p>
 
-    <h3 style="margin-top:24px">Provisional ranking — all 31</h3>
+    <h3 style="margin-top:24px">Provisional ranking — all 56</h3>
     <div class="table-scroll"><table class="data" id="rank-table">
       <thead><tr><th>#</th><th>Variant</th><th>Skills</th><th>Defects fixed</th><th>Left</th><th>Size</th></tr></thead>
       <tbody></tbody>
@@ -268,56 +273,60 @@
 
     <div class="twocol">
       <div class="panel">
-        <h3>Repeat consistency — did the win reproduce?</h3>
+        <h3>Repeat consistency — did the win reproduce? (now 3 runs)</h3>
         <ul>
-          <li><strong>Typography → Layout (02 → 12):</strong> run 1 found 0 real defects; run 2 found 4 items (2 fixes + 2 pre-build changes) and 1 deliberate known-left (flat bars). Quality held; the <em>count</em> did not reproduce.</li>
-          <li><strong>pstack+ecc+custom (04 → 13):</strong> run 1 found 7; run 2 found 1 — but resolved the same 2 conflicts identically (press 0.96, stagger 100ms). The repeat draft was cleaner; run 1’s “7” looks like builder thoroughness, not combo quality.</li>
-          <li><strong>PanelUI web (07 → 14):</strong> 4 → 5, same defect classes (chart baseline, table/stat at 390px). Most reproducible repeat.</li>
-          <li><strong>Lesson:</strong> ranking order held for all three repeats, but defect counts are builder-dependent. Future rankings should average 2–3 builders per combo.</li>
+          <li><strong>pstack+ecc+custom (04 / 13 / 53):</strong> 7, 1, 5 — average <strong>4.33</strong>. All three runs are the top 3, and the same 2 conflicts were resolved identically in all three (press 0.96, stagger 100ms). <strong>04 still wins after 3 runs.</strong></li>
+          <li><strong>PanelUI web (07 / 14 / 54):</strong> 4, 5, 1 — average <strong>3.33</strong>. All three runs in the top 6; same defect classes in runs 1–2, a new class (KPI footer clipping) in run 3.</li>
+          <li><strong>Typography → Layout (02 / 12):</strong> 0, 4 — average 2.00. Quality held; count did not reproduce.</li>
+          <li><strong>Full UI stack (30 / 55):</strong> 1, 1 — average 1.00. Defects reproduced exactly; conflict count did not (10 → 19, more granular logging in run 2).</li>
+          <li><strong>Lesson:</strong> no defect count is a reproducible score — the same combo produced 7, 1 and 5 across three fresh builders. This ranking uses repeat averages for repeated combos.</li>
         </ul>
       </div>
       <div class="panel">
-        <h3>Order effect — Typography → Layout vs Layout → Typography</h3>
+<h3>Order effect + ECC alone vs pstack alone</h3>
         <ul>
-          <li><strong>02</strong> (Typography → Layout): 0 real defects.</li>
-          <li><strong>11</strong> (Layout → Typography): 5 fixed, including 1 HIGH — mobile search never displayed, a base CSS rule overriding a media query by cascade order.</li>
-          <li><strong>Verdict: inconclusive.</strong> 11 found more, but builders differ and the HIGH defect is a plain cascade-order mistake no skill-order rule predicts. Builder variance dominates; a real order test needs the same builder (or several per order).</li>
+          <li><strong>Order — five points, still inconclusive:</strong> 02 (Typography → Layout) 0; 11 (Layout → Typography) 5 incl 1 HIGH; 10 (Colors → Typography) 4; 50 (Layout → Colors → Typography) 1, 9/9 headless PASS; 45 (six skills in order) 2. No direction is consistent — builder variance still dominates.</li>
+          <li><strong>51 ECC alone: 4 fixed, #15.</strong> ECC carries real design guidance on its own (composition, immutable state, design direction).</li>
+          <li><strong>52 pstack alone: 1 fixed, #49.</strong> Process only — every visual choice was an unguided neutral default, named as such by the builder.</li>
+          <li><strong>03 pstack + ECC: 0 defects, #9.</strong> The combination's value is now measurable: ECC supplies the design, pstack supplies the checking rigour. Neither alone beats the combination.</li>
         </ul>
       </div>
     </div>
 
     <div class="twocol">
       <div class="panel">
-        <h3>Conflict findings — two design systems, one page</h3>
+<h3>Conflict findings — two design systems, one page (now 64 total)</h3>
         <ul>
           <li><strong>26 Astryx + OpenSourceUI — 12 conflicts.</strong> Radius: Astryx 12/10/6 beat OSUI 16px. Elevation: OSUI flat won — the frosted-glass notification banner was flattened, the most visible casualty.</li>
           <li><strong>27 PanelUI + Astryx — 9 conflicts.</strong> One merged token layer (<code>--ax-*</code> values, <code>--pui-*</code> roles). Radii: shadcn scale won. Charts: PanelUI BarChart won (Astryx charts are <code>@canary</code>-only).</li>
           <li><strong>30 full UI stack — 10 conflicts.</strong> Press 0.96, stagger 100ms, easing split by use; Astryx values on PanelUI semantic names. Still shipped with 0 defects left.</li>
+          <li><strong>41 PanelUI + OpenSourceUI — 14 conflicts.</strong> OSUI flat cards beat PanelUI Frame bands; PanelUI's 5 status roles win, but its indigo <code>--info</code> hue was remapped to OSUI cyan. The merge itself broke nothing (0 defects).</li>
+          <li><strong>55 full UI stack, run 2 — 19 conflicts.</strong> better-ui beat Emil on press, easing, stagger and entrance; PanelUI beat Astryx as the component system. Run 2 logged more granular conflicts than run 1's 10 — the merge did not get worse, the logging got better.</li>
           <li><strong>Lesson:</strong> merges work, but every one costs a named decision and at least one visible casualty. No variant failed to build; no conflict was unresolvable.</li>
         </ul>
       </div>
       <div class="panel">
-        <h3>What worked</h3>
+<h3>What worked</h3>
         <ul>
-          <li><strong>Process beats any single skill:</strong> pstack + ECC + custom (04/13) tops the ranking — the rigour (prove-it-works, checklists) caught what design systems alone did not.</li>
-          <li><strong>One strong component system is enough:</strong> PanelUI web alone (07/14) is #3/#4 — NavRail, KPI, BarChart, Table, Frame as a complete kit.</li>
-          <li><strong>Single atomic skills are measurable:</strong> layout alone (08) and colors alone (09) each fixed real, specific defects — 2 and 3 — proving the singles do visible work.</li>
-          <li><strong>Accessibility-only is not a side quest:</strong> variant 20 fixed 3 real a11y defects (outline removal, visual-only chart, pointer-only scroll) that no other single skill caught.</li>
-          <li><strong>“Everything” is viable, not magical:</strong> the full stack (30) ranks #5 — good, but not better than the focused 04 combo, and it cost 10 recorded decisions.</li>
+          <li><strong>Process beats any single skill — and it reproduces:</strong> pstack + ECC + custom (04/13/53) is #1/#2/#3 after three independent runs. The rigour (prove-it-works, checklists) caught what design systems alone did not.</li>
+          <li><strong>One strong component system is enough:</strong> PanelUI web alone (07/14/54) is #4/#5/#6 after three runs — NavRail, KPI, BarChart, Table, Frame as a complete kit.</li>
+          <li><strong>ECC alone builds; pstack alone checks:</strong> 51 (ECC alone) fixed 4 and ranks #15; 52 (pstack alone) fixed 1 and ranks #49, with every visual choice an unguided default. The combination (03) is #9 with 0 defects.</li>
+          <li><strong>Single atomic skills are measurable:</strong> layout alone (08) and colors alone (09) each fixed real, specific defects — 2 and 3 — proving the singles do visible work. Accessibility-first (43) fixed 5, the most of any new single/pair.</li>
+          <li><strong>“Everything” is viable, not magical:</strong> the full stack (30/55) ranks #7/#8 — good, but not better than the focused 04 combo, and it cost 10–19 recorded decisions.</li>
         </ul>
       </div>
     </div>
 
-    <div class="callout" style="margin-top:24px">
+<div class="callout" style="margin-top:24px">
       <h3>Honest limits</h3>
-      <p>Layout, horizontal scroll, console errors and rendered text are <strong>measured</strong> (headless Chromium 156, all 31 variants, 1280px and 390px). Visual feel, taste, touch behaviour, screen readers, and Safari/Firefox are <strong>not</strong> — no variant was eyeballed on real hardware. One run per variant except the three repeats, and defect counts did not reproduce across repeats. Astryx, OpenSourceUI and PanelUI were adapted to single-file HTML, not real React / Expo builds. This ranking is provisional until repeated — see <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> for the full method.</p>
+      <p>Layout, horizontal scroll, console errors and rendered text are <strong>measured</strong> (headless Chromium 156, all 56 variants, 1280px and 390px). Visual feel, taste, touch behaviour, screen readers, and Safari/Firefox are <strong>not</strong> — no variant was eyeballed on real hardware. One run per variant except the three repeats, and defect counts did not reproduce across repeats. Astryx, OpenSourceUI and PanelUI were adapted to single-file HTML, not real React / Expo builds. This ranking is provisional until repeated — see <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> for the full method.</p>
     </div>
   </section>
 </main>
 
 <footer class="site">
   <div class="wrap">
-    <p><strong>UI Forge — Skill Experimentation Studio.</strong> Experiments 1 + 2 · 31 variants · 567 skills. The studio itself was designed with <strong>better-interface</strong> guidance (hierarchy, spacing, one accent, accessible contrast, focus-visible rings) and <strong>emil-design-eng</strong> motion values as resolved in variant 30 (press 0.96 / 150ms, stagger 100ms on stat cards only) — it is a showcase, not a 32nd experiment.</p>
+    <p><strong>UI Forge — Skill Experimentation Studio.</strong> Experiments 1 + 2 + 3 · 56 variants · 567 skills. The studio itself was designed with <strong>better-interface</strong> guidance (hierarchy, spacing, one accent, accessible contrast, focus-visible rings) and <strong>emil-design-eng</strong> motion values as resolved in variant 30 (press 0.96 / 150ms, stagger 100ms on stat cards only) — it is a showcase, not a 32nd experiment.</p>
     <p>Method: <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> · Fixed task: <a href="TASK.md">TASK.md</a> · Skills inventory: <a href="skills-inventory.md">skills-inventory.md</a> (567 skills) · Repo: <a href="https://github.com/Geltrax69/skills-test">Geltrax69/skills-test</a></p>
     <p>Fictional demo data — UI Forge Experiment 1. All student data is invented for the fixed task.</p>
   </div>
@@ -325,37 +334,62 @@
 
 <script>
 const VARIANTS = [
- {n:"00",slug:"00-baseline",name:"Baseline",skills:["(no skills — control)"],effect:"Control: what the task produces with no skill guidance.",defects:2,left:"1 possible",rank:31,size:"11.7 KB",exp:1,kind:"single",conflicts:0},
- {n:"01",slug:"01-typography",name:"Typography",skills:["Better Typography"],effect:"Type scale, line-height and hierarchy only.",defects:0,left:"0",rank:30,size:"14.3 KB",exp:1,kind:"single",conflicts:0},
- {n:"02",slug:"02-typography-layout",name:"Typography + Layout",skills:["Better Typography","Better Layout"],effect:"Type first, then layout — the reference order for the swap test.",defects:0,left:"0",rank:10,size:"17.0 KB",exp:1,kind:"combo",conflicts:0},
- {n:"03",slug:"03-pstack-ecc",name:"PStack + ECC",skills:["pstack feature playbook","ECC frontend-patterns"],effect:"Rigour + structure: prove-it-works inside a planned, tested build.",defects:0,left:"0",rank:6,size:"19.8 KB",exp:1,kind:"combo",conflicts:0},
+ {n:"00",slug:"00-baseline",name:"Baseline",skills:["(no skills — control)"],effect:"Control: what the task produces with no skill guidance.",defects:2,left:"1 possible",rank:56,size:"11.7 KB",exp:1,kind:"single",conflicts:0},
+ {n:"01",slug:"01-typography",name:"Typography",skills:["Better Typography"],effect:"Type scale, line-height and hierarchy only.",defects:0,left:"0",rank:55,size:"14.3 KB",exp:1,kind:"single",conflicts:0},
+ {n:"02",slug:"02-typography-layout",name:"Typography + Layout",skills:["Better Typography","Better Layout"],effect:"Type first, then layout — the reference order for the swap test.",defects:0,left:"0",rank:21,size:"17.0 KB",exp:1,kind:"combo",conflicts:0},
+ {n:"03",slug:"03-pstack-ecc",name:"PStack + ECC",skills:["pstack feature playbook","ECC frontend-patterns"],effect:"Rigour + structure: prove-it-works inside a planned, tested build.",defects:0,left:"0",rank:9,size:"19.8 KB",exp:1,kind:"combo",conflicts:0},
  {n:"04",slug:"04-pstack-ecc-custom",name:"PStack + ECC + Custom",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface"],effect:"The winning combo in Experiment 1: rigour + structure + feel + interface rules.",defects:7,left:"0",rank:1,size:"15.3 KB",exp:1,kind:"combo",conflicts:2},
- {n:"05",slug:"05-astryx",name:"Astryx",skills:["local-astryx"],effect:"Meta design system (174 components, 7 themes) adapted to HTML.",defects:1,left:"0",rank:27,size:"18.0 KB",exp:1,kind:"single",conflicts:0},
- {n:"06",slug:"06-opensourceui",name:"OpenSourceUI",skills:["local-opensourceui"],effect:"Copy-paste React components adapted to HTML.",defects:2,left:"0",rank:28,size:"23.5 KB",exp:1,kind:"single",conflicts:0},
- {n:"07",slug:"07-panelui-web",name:"PanelUI web",skills:["local-panelui","panelui-web"],effect:"PanelUI web on shadcn tokens — NavRail, KPI, BarChart, Table, Frame.",defects:4,left:"0",rank:4,size:"30.8 KB",exp:1,kind:"combo",conflicts:0},
- {n:"08",slug:"08-layout-alone",name:"Layout alone",skills:["Better Layout"],effect:"Does one atomic skill do visible work on its own? Yes — 2 real fixes.",defects:2,left:"0",rank:15,size:"16.3 KB",exp:2,kind:"single",conflicts:0},
- {n:"09",slug:"09-colors-alone",name:"Colors alone",skills:["Better Colors"],effect:"Colour system only — measured contrast, token discipline.",defects:3,left:"0",rank:20,size:"21.2 KB",exp:2,kind:"single",conflicts:0},
- {n:"10",slug:"10-colors-typography",name:"Colors + Typography",skills:["Better Colors","Better Typography"],effect:"Colour first, then type — the pair in the opposite order to 02.",defects:4,left:"0",rank:14,size:"24.8 KB",exp:2,kind:"combo",conflicts:0},
- {n:"11",slug:"11-layout-typography",name:"Layout + Typography",skills:["Better Layout","Better Typography"],effect:"Order swap of 02 (Typography → Layout). Tests whether skill order matters.",defects:5,left:"0",rank:7,size:"24.3 KB",exp:2,kind:"combo",conflicts:0},
- {n:"12",slug:"12-typography-layout-r2",name:"Typography + Layout (repeat)",skills:["Better Typography","Better Layout"],effect:"REPEAT of 02, same skills/order, fresh builder. Does the result reproduce?",defects:4,left:"1 deliberate",rank:11,size:"17.9 KB",exp:2,kind:"repeat",conflicts:0},
- {n:"13",slug:"13-pstack-ecc-custom-r2",name:"PStack + ECC + Custom (repeat)",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface"],effect:"REPEAT of 04, the Experiment 1 winner. Does the win reproduce?",defects:1,left:"0",rank:2,size:"35.7 KB",exp:2,kind:"repeat",conflicts:2},
- {n:"14",slug:"14-panelui-web-r2",name:"PanelUI web (repeat)",skills:["local-panelui","panelui-web"],effect:"REPEAT of 07. Does the component-system result reproduce?",defects:5,left:"0",rank:3,size:"32.2 KB",exp:2,kind:"repeat",conflicts:0},
- {n:"15",slug:"15-astryx-pstack-ecc",name:"Astryx + PStack + ECC",skills:["local-astryx","pstack feature playbook","ECC frontend-patterns"],effect:"Design system inside the rigour/structure harness.",defects:2,left:"0",rank:21,size:"41.2 KB",exp:2,kind:"combo",conflicts:0},
- {n:"16",slug:"16-opensourceui-pstack-ecc",name:"OpenSourceUI + PStack + ECC",skills:["local-opensourceui","pstack feature playbook","ECC frontend-patterns"],effect:"Copy-paste components inside the rigour/structure harness.",defects:2,left:"0",rank:22,size:"25.9 KB",exp:2,kind:"combo",conflicts:0},
- {n:"17",slug:"17-panelui-pstack-ecc",name:"PanelUI + PStack + ECC",skills:["local-panelui (web)","pstack feature playbook","ECC frontend-patterns"],effect:"Component system inside the rigour/structure harness.",defects:4,left:"0",rank:12,size:"39.7 KB",exp:2,kind:"combo",conflicts:0},
- {n:"18",slug:"18-emil-alone",name:"emil alone",skills:["emil-design-eng"],effect:"Motion, press, stagger and feel on their own — 5 real fixes.",defects:5,left:"0",rank:8,size:"28.7 KB",exp:2,kind:"single",conflicts:0},
- {n:"19",slug:"19-better-interface-alone",name:"better-interface alone",skills:["better-interface","better-accessibility","better-layout","better-writing","better-typography","better-colors","better-ui"],effect:"The full better-interface family in its own order — 7 skills, one system.",defects:3,left:"0",rank:16,size:"24.1 KB",exp:2,kind:"combo",conflicts:0},
- {n:"20",slug:"20-accessibility-alone",name:"Accessibility alone",skills:["Better Accessibility"],effect:"A11y only — skip link, chart text alternative, keyboard-scrollable table.",defects:3,left:"0",rank:17,size:"20.7 KB",exp:2,kind:"single",conflicts:0},
- {n:"21",slug:"21-taste-alone",name:"taste alone",skills:["taste-skill"],effect:"Taste-driven polish on its own, with its own checkers.",defects:2,left:"0",rank:23,size:"21.6 KB",exp:2,kind:"single",conflicts:0},
- {n:"22",slug:"22-impeccable-alone",name:"impeccable alone",skills:["impeccable"],effect:"Impeccable’s craft rules on their own.",defects:4,left:"0",rank:13,size:"32.7 KB",exp:2,kind:"single",conflicts:0},
- {n:"23",slug:"23-uiuxpromax-alone",name:"ui-ux-pro-max alone",skills:["ui-ux-pro-max"],effect:"UI/UX Pro Max’s rules on their own.",defects:3,left:"0",rank:18,size:"29.1 KB",exp:2,kind:"single",conflicts:0},
- {n:"24",slug:"24-shadcn-alone",name:"shadcn alone",skills:["shadcn"],effect:"shadcn conventions on their own.",defects:2,left:"0",rank:24,size:"44.4 KB",exp:2,kind:"single",conflicts:0},
- {n:"25",slug:"25-prototyper-alone",name:"Prototyper UI alone",skills:["local-prototyper-ui"],effect:"Accessible Base UI primitives instead of hand-rolled ones.",defects:3,left:"0",rank:19,size:"42.8 KB",exp:2,kind:"single",conflicts:0},
- {n:"26",slug:"26-astryx-opensourceui",name:"Astryx + OpenSourceUI",skills:["local-astryx","local-opensourceui"],effect:"CONFLICT TEST — two design systems, one page. 12 conflicts recorded.",defects:5,left:"0",rank:9,size:"28.5 KB",exp:2,kind:"conflict",conflicts:12},
- {n:"27",slug:"27-panelui-astryx",name:"PanelUI + Astryx",skills:["local-panelui (web)","local-astryx"],effect:"CONFLICT TEST — component system vs design system. 9 conflicts recorded.",defects:2,left:"0",rank:25,size:"37.4 KB",exp:2,kind:"conflict",conflicts:9},
- {n:"28",slug:"28-design-qa-alone",name:"design-qa alone",skills:["design-qa-checklist (designer-skills)"],effect:"A QA checklist as the only skill — what does checking alone catch?",defects:2,left:"0",rank:26,size:"26.6 KB",exp:2,kind:"single",conflicts:0},
- {n:"29",slug:"29-motion",name:"Motion",skills:["animate","accessible-animation"],effect:"Motion only — entry stagger, bar-grow, count-up, reduced-motion tiers.",defects:2,left:"0",rank:29,size:"19.7 KB",exp:2,kind:"single",conflicts:0},
- {n:"30",slug:"30-full-ui-stack",name:"Full UI stack",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface","local-astryx","local-panelui (web)"],effect:"The “everything” combo. 10 conflicts recorded — decision overhead, not breakage.",defects:1,left:"0",rank:5,size:"34.4 KB",exp:2,kind:"combo",conflicts:10}
+ {n:"05",slug:"05-astryx",name:"Astryx",skills:["local-astryx"],effect:"Meta design system (174 components, 7 themes) adapted to HTML.",defects:1,left:"0",rank:43,size:"18.0 KB",exp:1,kind:"single",conflicts:0},
+ {n:"06",slug:"06-opensourceui",name:"OpenSourceUI",skills:["local-opensourceui"],effect:"Copy-paste React components adapted to HTML.",defects:2,left:"0",rank:42,size:"23.5 KB",exp:1,kind:"single",conflicts:0},
+ {n:"07",slug:"07-panelui-web",name:"PanelUI web",skills:["local-panelui","panelui-web"],effect:"PanelUI web on shadcn tokens — NavRail, KPI, BarChart, Table, Frame.",defects:4,left:"0",rank:5,size:"30.8 KB",exp:1,kind:"combo",conflicts:0},
+ {n:"08",slug:"08-layout-alone",name:"Layout alone",skills:["Better Layout"],effect:"Does one atomic skill do visible work on its own? Yes — 2 real fixes.",defects:2,left:"0",rank:24,size:"16.3 KB",exp:2,kind:"single",conflicts:0},
+ {n:"09",slug:"09-colors-alone",name:"Colors alone",skills:["Better Colors"],effect:"Colour system only — measured contrast, token discipline.",defects:3,left:"0",rank:31,size:"21.2 KB",exp:2,kind:"single",conflicts:0},
+ {n:"10",slug:"10-colors-typography",name:"Colors + Typography",skills:["Better Colors","Better Typography"],effect:"Colour first, then type — the pair in the opposite order to 02.",defects:4,left:"0",rank:19,size:"24.8 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"11",slug:"11-layout-typography",name:"Layout + Typography",skills:["Better Layout","Better Typography"],effect:"Order swap of 02 (Typography → Layout). Tests whether skill order matters.",defects:5,left:"0",rank:12,size:"24.3 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"12",slug:"12-typography-layout-r2",name:"Typography + Layout (repeat)",skills:["Better Typography","Better Layout"],effect:"REPEAT of 02, same skills/order, fresh builder. Does the result reproduce?",defects:4,left:"1 deliberate",rank:20,size:"17.9 KB",exp:2,kind:"repeat",conflicts:0},
+ {n:"13",slug:"13-pstack-ecc-custom-r2",name:"PStack + ECC + Custom (repeat)",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface"],effect:"REPEAT of 04, the Experiment 1 winner. Does the win reproduce?",defects:1,left:"0",rank:3,size:"35.7 KB",exp:2,kind:"repeat",conflicts:2},
+ {n:"14",slug:"14-panelui-web-r2",name:"PanelUI web (repeat)",skills:["local-panelui","panelui-web"],effect:"REPEAT of 07. Does the component-system result reproduce?",defects:5,left:"0",rank:4,size:"32.2 KB",exp:2,kind:"repeat",conflicts:0},
+ {n:"15",slug:"15-astryx-pstack-ecc",name:"Astryx + PStack + ECC",skills:["local-astryx","pstack feature playbook","ECC frontend-patterns"],effect:"Design system inside the rigour/structure harness.",defects:2,left:"0",rank:35,size:"41.2 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"16",slug:"16-opensourceui-pstack-ecc",name:"OpenSourceUI + PStack + ECC",skills:["local-opensourceui","pstack feature playbook","ECC frontend-patterns"],effect:"Copy-paste components inside the rigour/structure harness.",defects:2,left:"0",rank:36,size:"25.9 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"17",slug:"17-panelui-pstack-ecc",name:"PanelUI + PStack + ECC",skills:["local-panelui (web)","pstack feature playbook","ECC frontend-patterns"],effect:"Component system inside the rigour/structure harness.",defects:4,left:"0",rank:17,size:"39.7 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"18",slug:"18-emil-alone",name:"emil alone",skills:["emil-design-eng"],effect:"Motion, press, stagger and feel on their own — 5 real fixes.",defects:5,left:"0",rank:13,size:"28.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"19",slug:"19-better-interface-alone",name:"better-interface alone",skills:["better-interface","better-accessibility","better-layout","better-writing","better-typography","better-colors","better-ui"],effect:"The full better-interface family in its own order — 7 skills, one system.",defects:3,left:"0",rank:27,size:"24.1 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"20",slug:"20-accessibility-alone",name:"Accessibility alone",skills:["Better Accessibility"],effect:"A11y only — skip link, chart text alternative, keyboard-scrollable table.",defects:3,left:"0",rank:28,size:"20.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"21",slug:"21-taste-alone",name:"taste alone",skills:["taste-skill"],effect:"Taste-driven polish on its own, with its own checkers.",defects:2,left:"0",rank:37,size:"21.6 KB",exp:2,kind:"single",conflicts:0},
+ {n:"22",slug:"22-impeccable-alone",name:"impeccable alone",skills:["impeccable"],effect:"Impeccable’s craft rules on their own.",defects:4,left:"0",rank:18,size:"32.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"23",slug:"23-uiuxpromax-alone",name:"ui-ux-pro-max alone",skills:["ui-ux-pro-max"],effect:"UI/UX Pro Max’s rules on their own.",defects:3,left:"0",rank:29,size:"29.1 KB",exp:2,kind:"single",conflicts:0},
+ {n:"24",slug:"24-shadcn-alone",name:"shadcn alone",skills:["shadcn"],effect:"shadcn conventions on their own.",defects:2,left:"0",rank:38,size:"44.4 KB",exp:2,kind:"single",conflicts:0},
+ {n:"25",slug:"25-prototyper-alone",name:"Prototyper UI alone",skills:["local-prototyper-ui"],effect:"Accessible Base UI primitives instead of hand-rolled ones.",defects:3,left:"0",rank:30,size:"42.8 KB",exp:2,kind:"single",conflicts:0},
+ {n:"26",slug:"26-astryx-opensourceui",name:"Astryx + OpenSourceUI",skills:["local-astryx","local-opensourceui"],effect:"CONFLICT TEST — two design systems, one page. 12 conflicts recorded.",defects:5,left:"0",rank:14,size:"28.5 KB",exp:2,kind:"conflict",conflicts:12},
+ {n:"27",slug:"27-panelui-astryx",name:"PanelUI + Astryx",skills:["local-panelui (web)","local-astryx"],effect:"CONFLICT TEST — component system vs design system. 9 conflicts recorded.",defects:2,left:"0",rank:40,size:"37.4 KB",exp:2,kind:"conflict",conflicts:9},
+ {n:"28",slug:"28-design-qa-alone",name:"design-qa alone",skills:["design-qa-checklist (designer-skills)"],effect:"A QA checklist as the only skill — what does checking alone catch?",defects:2,left:"0",rank:39,size:"26.6 KB",exp:2,kind:"single",conflicts:0},
+ {n:"29",slug:"29-motion",name:"Motion",skills:["animate","accessible-animation"],effect:"Motion only — entry stagger, bar-grow, count-up, reduced-motion tiers.",defects:2,left:"0",rank:54,size:"19.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"30",slug:"30-full-ui-stack",name:"Full UI stack",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface","local-astryx","local-panelui (web)"],effect:"The “everything” combo. 10 conflicts recorded — decision overhead, not breakage.",defects:1,left:"0",rank:8,size:"34.4 KB",exp:2,kind:"combo",conflicts:10},
+ {n:"31",slug:"31-shadcn-pstack-ecc",name:"shadcn + PStack + ECC",skills:["shadcn","pstack feature playbook","ECC frontend-patterns"],effect:"shadcn tokens inside the rigour/structure harness.",defects:1,left:"0",rank:45,size:"26.9 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"32",slug:"32-taste-emil",name:"taste + emil",skills:["taste-skill","emil-design-eng"],effect:"Taste + Emil: one system, feel-driven motion.",defects:3,left:"0",rank:25,size:"31.3 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"33",slug:"33-taste-pstack-ecc",name:"taste + PStack + ECC",skills:["taste-skill","pstack feature playbook","ECC frontend-patterns"],effect:"Taste inside the rigour/structure harness.",defects:3,left:"0",rank:26,size:"18.3 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"34",slug:"34-emil-pstack-ecc",name:"emil + PStack + ECC",skills:["emil-design-eng","pstack feature playbook","ECC frontend-patterns"],effect:"Emil + rigour/structure — no better-interface, unlike 04. Clean first draft, 0 defects.",defects:0,left:"0",rank:52,size:"22.1 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"35",slug:"35-better-interface-pstack-ecc",name:"better-interface + PStack + ECC",skills:["better-interface","better-accessibility","better-layout","better-writing","better-typography","better-colors","better-ui","pstack feature playbook","ECC frontend-patterns"],effect:"better-interface family + rigour/structure — no emil, unlike 04.",defects:1,left:"0",rank:44,size:"22.0 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"36",slug:"36-shadcn-typography",name:"shadcn + Typography",skills:["shadcn","Better Typography"],effect:"shadcn + type scale.",defects:2,left:"0",rank:34,size:"27.7 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"37",slug:"37-shadcn-layout",name:"shadcn + Layout",skills:["shadcn","Better Layout"],effect:"shadcn + layout rules.",defects:3,left:"0",rank:23,size:"27.7 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"38",slug:"38-apple-alone",name:"apple alone",skills:["apple-design-skill"],effect:"Apple HIG alone — type scale, tab bar, dark mode, 44px targets.",defects:1,left:"0",rank:33,size:"31.1 KB",exp:3,kind:"single",conflicts:0},
+ {n:"39",slug:"39-emil-astryx",name:"emil + Astryx",skills:["emil-design-eng","local-astryx"],effect:"Emil feel on Astryx tokens and anatomy.",defects:4,left:"0",rank:16,size:"23.0 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"40",slug:"40-emil-panelui",name:"emil + PanelUI",skills:["emil-design-eng","local-panelui (web)"],effect:"Emil feel on PanelUI web components.",defects:1,left:"0",rank:49,size:"29.4 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"41",slug:"41-panelui-opensourceui",name:"PanelUI + OpenSourceUI",skills:["local-panelui (web)","local-opensourceui"],effect:"CONFLICT TEST — PanelUI web + OpenSourceUI. 14 conflicts recorded.",defects:0,left:"0",rank:41,size:"34.0 KB",exp:3,kind:"conflict",conflicts:14},
+ {n:"42",slug:"42-motion-interface",name:"Motion + Interface",skills:["animate","accessible-animation","better-interface"],effect:"Motion + interface family, reduced-motion tiers — caught a real reduced-motion defect.",defects:1,left:"0",rank:50,size:"26.0 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"43",slug:"43-accessibility-interface",name:"Accessibility + Interface",skills:["Better Accessibility","better-interface"],effect:"Accessibility first, then the interface family — strongest a11y build (live announcements).",defects:5,left:"0",rank:10,size:"22.8 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"44",slug:"44-colors-layout",name:"Colors + Layout",skills:["Better Colors","Better Layout"],effect:"Colour system + layout rules — contrast computed 12.4–17.9:1.",defects:5,left:"0",rank:11,size:"22.0 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"45",slug:"45-jakubkrehel-all",name:"jakubkrehel all",skills:["Better Typography","Better Layout","Better Colors","Better Accessibility","Better Writing","Better UI"],effect:"All six jakubkrehel domain skills in one order.",defects:2,left:"0",rank:32,size:"23.6 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"46",slug:"46-prototyper-pstack-ecc",name:"Prototyper + PStack + ECC",skills:["local-prototyper-ui","pstack feature playbook","ECC frontend-patterns"],effect:"Prototyper UI primitives inside the rigour/structure harness. Clean first draft, 0 defects.",defects:0,left:"0",rank:53,size:"23.7 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"47",slug:"47-impeccable-pstack-ecc",name:"impeccable + PStack + ECC",skills:["impeccable","pstack feature playbook","ECC frontend-patterns"],effect:"Impeccable craft inside the rigour/structure harness.",defects:3,left:"0",rank:22,size:"31.2 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"48",slug:"48-uiuxpromax-pstack-ecc",name:"ui-ux-pro-max + PStack + ECC",skills:["ui-ux-pro-max","pstack feature playbook","ECC frontend-patterns"],effect:"UI/UX Pro Max inside the rigour/structure harness.",defects:1,left:"0",rank:46,size:"26.4 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"49",slug:"49-taste-typography",name:"taste + Typography",skills:["taste-skill","Better Typography"],effect:"Taste + type scale.",defects:1,left:"0",rank:47,size:"18.3 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"50",slug:"50-layout-colors-typography",name:"Layout + Colors + Typography",skills:["Better Layout","Better Colors","Better Typography"],effect:"3-WAY ORDER — Layout → Colors → Typography. 9/9 headless checks PASS.",defects:1,left:"0",rank:48,size:"22.6 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"51",slug:"51-ecc-alone",name:"ECC alone",skills:["ECC frontend-patterns","ECC frontend-design-direction"],effect:"ECC ALONE — structure and design direction, no pstack. 4 fixed: ECC carries real design guidance.",defects:4,left:"0",rank:15,size:"20.8 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"52",slug:"52-pstack-alone",name:"pstack alone",skills:["pstack feature playbook"],effect:"PSTACK ALONE — process only, no design skill. Every visual choice was an unguided default.",defects:1,left:"0",rank:51,size:"11.0 KB",exp:3,kind:"combo",conflicts:0},
+ {n:"53",slug:"53-pstack-ecc-custom-r3",name:"PStack + ECC + Custom (run 3)",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface"],effect:"THIRD RUN of 04. Same conflicts resolved identically for the third time (press 0.96, stagger 100ms).",defects:5,left:"0",rank:2,size:"25.0 KB",exp:3,kind:"repeat",conflicts:2},
+ {n:"54",slug:"54-panelui-web-r3",name:"PanelUI web (run 3)",skills:["local-panelui","panelui-web"],effect:"THIRD RUN of 07. Confirms the component-system result.",defects:1,left:"0",rank:6,size:"32.7 KB",exp:3,kind:"repeat",conflicts:0},
+ {n:"55",slug:"55-full-ui-stack-r2",name:"Full UI stack (run 2)",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface","local-astryx","local-panelui (web)"],effect:"SECOND RUN of the full stack. 19 conflicts recorded — more granular logging, not a worse merge.",defects:1,left:"0",rank:7,size:"24.9 KB",exp:3,kind:"repeat",conflicts:19}
 ];
 const url = v => "experiments/" + v.slug + "/index.html";
 const mdUrl = v => "experiments/" + v.slug + "/SKILLS_ACTUALLY_READ.md";
@@ -373,7 +407,7 @@ document.getElementById("lab-grid").innerHTML = VARIANTS.map(v =>
 const expGrid = document.getElementById("exp-grid");
 function renderExp(filter){
   const list = VARIANTS.filter(v =>
-    filter === "all" || (filter === "exp1" && v.exp === 1) || (filter === "exp2" && v.exp === 2) ||
+    filter === "all" || (filter === "exp1" && v.exp === 1) || (filter === "exp2" && v.exp === 2) || (filter === "exp3" && v.exp === 3) ||
     (filter === "repeat" && v.kind === "repeat") || (filter === "conflict" && v.kind === "conflict") ||
     (filter === "single" && v.kind === "single") || (filter === "combo" && v.kind === "combo"));
   expGrid.innerHTML = list.map(v =>

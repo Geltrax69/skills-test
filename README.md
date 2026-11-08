@@ -23,13 +23,19 @@ Each variant lives in `experiments/<variant>/index.html`, with a `SKILLS_ACTUALL
 
 ## The Studio — open `index.html`
 
-The repo root `index.html` is the full Studio website (one self-contained file, no build): Overview, Skill Library (567 skills, grouped by bundle — full list in `skills-inventory.md`), Combination Lab (all 31 combinations with skills in order), Experiments (all 31 variants as clickable cards), Compare (click any variant to preview it live in an iframe, pick two side-by-side, switch viewport 1280 / 390px), and Insights (ranking, defect counts, repeat consistency, conflicts, what worked). The Studio itself is designed with better-interface guidance and emil motion values as resolved in variant 30.
+The repo root `index.html` is the full Studio website (one self-contained file, no build): Overview, Skill Library (567 skills, grouped by bundle — full list in `skills-inventory.md`), Combination Lab (all 56 combinations with skills in order), Experiments (all 56 variants as clickable cards), Compare (click any variant to preview it live in an iframe, pick two side-by-side, switch viewport 1280 / 390px), and Insights (ranking, defect counts, repeat consistency, conflicts, what worked). The Studio itself is designed with better-interface guidance and emil motion values as resolved in variant 30.
 
 ## Experiment 2 — 23 more variants (total 31)
 
 Singles (layout, colors, accessibility, emil, taste, impeccable, ui-ux-pro-max, shadcn, prototyper, design-qa, motion), pairs and order swaps (colors+typography, layout+typography vs 02's typography+layout), library+pstack+ecc combos (15–17), repeats of 02/04/07 (12–14), conflict tests (26 Astryx+OpenSourceUI, 27 PanelUI+Astryx), and the full stack (30). Results, repeat evidence, order verdict (inconclusive), and the 31-variant ranking: `experiments/RESULTS.md`.
 
-Headless render check (Playwright Chromium 156 over CDP): all 31 variants pass at 1280px and 390px — no horizontal scroll, 0 console errors, all required text rendered. Feel on real hardware is still unverified.
+Headless render check (Playwright Chromium 156 over CDP): all 56 variants pass at 1280px and 390px — no horizontal scroll, 0 console errors, all required text rendered. Feel on real hardware is still unverified.
+
+## Experiment 3 — 25 more variants (total 56)
+
+Third runs of the top two combos (53 of 04, 54 of 07), second run of the full stack (55), ECC-alone vs pstack-alone (51 vs 52), a 3-way order variant (50: Layout → Colors → Typography), singles/pairs (taste+emil, emil pairs, apple-alone, jakubkrehel-all), library+pstack+ecc combos (31, 33–35, 46–48), and a new conflict test (41 PanelUI+OpenSourceUI, 14 conflicts). Results, repeat averages, order verdict (still inconclusive), ECC/pstack-alone verdict, and the 56-variant ranking: `experiments/RESULTS.md`.
+
+Headline: **04 still wins after 3 runs** — repeat average 4.33 defects fixed, all three runs in the top 3, same 2 conflicts resolved identically every time. ECC alone fixed 4 (#15); pstack alone fixed 1 (#49) and guided process only, not design. (Note: the brief said 24 new variants / total 55, but listed 31–55 — 25 variants, total 56.)
 
 ## How ranking works here
 
