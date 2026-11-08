@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* ============================================================
+     Variant 10 — colors + typography
+     Color system (better-colors): ramps, not colors. One neutral
+     ramp, one accent ramp (indigo, hue 262), and only the status
+     ramps this page actually renders: success and warning.
+     No danger ramp: nothing on this page renders a danger state.
+     Primitives name a hue value; semantic tokens name a role and
+     are the only tier components reference. All pairs below were
+     measured (oklch -> sRGB -> WCAG ratio); see
+     SKILLS_ACTUALLY_READ.md for the measured values.
+     ============================================================ */
+  :root {
+    /* --- Primitives: neutral ramp, hue 264, chroma near zero --- */
+    --neutral-50:  oklch(0.985 0.004 264);
+    --neutral-100: oklch(0.970 0.005 264);
+    --neutral-200: oklch(0.920 0.008 264);
+    --neutral-300: oklch(0.840 0.010 264);
+    --neutral-500: oklch(0.620 0.012 264);
+    --neutral-700: oklch(0.440 0.015 264);
+    --neutral-900: oklch(0.210 0.020 264);
+    /* --- Primitives: accent ramp, one hue (262) end to end --- */
+    --accent-50:  oklch(0.960 0.030 262);
+    --accent-100: oklch(0.910 0.050 262);
+    --accent-600: oklch(0.550 0.180 262);
+    --accent-700: oklch(0.480 0.180 262);
+    --accent-text: oklch(0.450 0.180 262);
+    /* --- Primitives: success ramp, hue 150 (112 deg from accent) --- */
+    --success-50:   oklch(0.960 0.030 150);
+    --success-text: oklch(0.420 0.130 150);
+    /* --- Primitives: warning ramp, hue 75 (173 deg from accent) --- */
+    --warning-50:   oklch(0.960 0.040 75);
+    --warning-text: oklch(0.420 0.120 75);
+
+    /* --- Semantic tokens: the only tier components use --- */
+    --color-bg-page:      var(--neutral-100);
+    --color-bg-surface:   var(--neutral-50);
+    --color-bg-subtle:    var(--accent-50);
+    --color-bg-active:    var(--accent-100);
+    --color-border:       var(--neutral-200);
+    --color-border-strong: var(--neutral-300);
+    --color-text-primary:   var(--neutral-900);
+    --color-text-secondary: var(--neutral-700);
+    --color-text-inverse:   var(--neutral-50);
+    --color-accent-solid:   var(--accent-700);
+    --color-accent-solid-hover: oklch(0.430 0.180 262);
+    --color-accent-bar:     var(--accent-600);
+    --color-accent-bar-peak: var(--accent-700);
+    --color-accent-text:    var(--accent-text);
+    --color-status-good-bg:   var(--success-50);
+    --color-status-good-text: var(--success-text);
+    --color-status-watch-bg:   var(--warning-50);
+    --color-status-watch-text: var(--warning-text);
+
+    /* --- Type scale (better-typography): semantic names, one
+         size + line-height + weight per role. System stack only:
+         no external font is loaded, so every weight used (400,
+         500, 600, 700) is one the system faces ship. --- */
+    --text-display: 1.75rem;   /* 28px page title */
+    --text-heading: 1.25rem;   /* 20px section headings */
+    --text-body: 1rem;         /* 16px body, the browser default */
+    --text-body-sm: 0.875rem;  /* 14px secondary text, inputs, menus */
+    --text-caption: 0.8125rem; /* 13px labels and captions */
+    --text-stat: 1.875rem;     /* 30px stat figures */
+    --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-stack);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    font-weight: 400;
+    color: var(--color-text-primary);
+    background: var(--color-bg-page);
+    text-align: start;
+  }
+
+  ::selection {
+    background: var(--color-bg-active);
+    color: var(--color-text-primary);
+  }
+
+  /* --- Type roles --- */
+  h1 {
+    font-size: var(--text-display);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h2 {
+    font-size: var(--text-heading);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: var(--text-body);
+    line-height: 1.3;
+    font-weight: 600;
+    margin: 0;
+  }
+  p { margin: 0; text-wrap: pretty; }
+  .caption {
+    font-size: var(--text-caption);
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+  .lede {
+    color: var(--color-text-secondary);
+    max-width: 65ch; /* 60-75 character measure */
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: normal;
+  }
+
+  a { color: var(--color-accent-text); text-decoration-thickness: from-font; text-underline-position: from-font; }
+  a:hover { color: var(--color-accent-solid-hover); }
+
+  button { font-family: inherit; cursor: pointer; }
+
+  /* --- Header --- */
+  .site-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.875rem 1.5rem;
+    background: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .brand { min-width: 0; }
+  .brand-name {
+    font-size: var(--text-heading);
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .brand-sub {
+    font-size: var(--text-caption);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+  .search {
+    flex: 1 1 12rem;
+    min-width: 0;
+    max-width: 26rem;
+    margin-inline-start: auto;
+  }
+  .search input {
+    width: 100%;
+    font-size: 1rem; /* 16px at every viewport: no iOS zoom */
+    line-height: 1.5;
+    padding: 0.5rem 0.75rem;
+    color: var(--color-text-primary);
+    background: var(--color-bg-page);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 0.5rem;
+  }
+  .search input::placeholder { color: var(--color-text-secondary); }
+  .search input:focus-visible,
+  .btn-primary:focus-visible,
+  .btn-ghost:focus-visible,
+  .nav-link:focus-visible,
+  .bottom-nav a:focus-visible {
+    outline: 2px solid var(--color-accent-solid);
+    outline-offset: 2px;
+  }
+  .icon-btn {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 0.5rem 0.625rem;
+    font-size: var(--text-body);
+    line-height: 1.5;
+    color: var(--color-text-primary);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 0.5rem;
+  }
+  .icon-btn .dot {
+    position: absolute;
+    top: -0.375rem;
+    inset-inline-end: -0.375rem;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--color-accent-solid);
+    color: var(--color-text-inverse);
+    font-size: 0.6875rem;
+    line-height: 1.125rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  /* One filled action per view (better-colors): the primary
+     button is the only filled accent element on the page. */
+  .btn-primary {
+    flex: 0 0 auto;
+    padding: 0.5rem 1rem;
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+    font-weight: 600;
+    color: var(--color-text-inverse);
+    background: var(--color-accent-solid);
+    border: 1px solid var(--color-accent-solid);
+    border-radius: 0.5rem;
+    text-box: trim-both cap alphabetic;
+  }
+  .btn-primary:hover { background: var(--color-accent-solid-hover); }
+  .btn-ghost {
+    padding: 0.375rem 0.75rem;
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    background: transparent;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 0.5rem;
+  }
+  .btn-ghost:hover { background: var(--color-bg-page); }
+
+  /* --- Layout: sidebar + main --- */
+  .shell {
+    display: grid;
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    align-items: start;
+    max-width: 80rem;
+    margin: 0 auto;
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    padding: 1.5rem 1rem;
+  }
+  .sidebar nav { display: flex; flex-direction: column; gap: 0.125rem; }
+  .nav-link {
+    display: block;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+  .nav-link:hover { background: var(--color-bg-surface); color: var(--color-text-primary); }
+  .nav-link[aria-current="page"] {
+    background: var(--color-bg-active);
+    color: var(--color-accent-text);
+    font-weight: 600;
+  }
+  .bottom-nav { display: none; }
+
+  main {
+    min-width: 0;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .page-head { display: flex; flex-direction: column; gap: 0.375rem; }
+
+  /* --- Stat cards --- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .card {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    min-width: 0;
+  }
+  .stat-value {
+    font-size: var(--text-stat);
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0.5rem 0 0.25rem;
+    overflow-wrap: break-word;
+  }
+  .stat-sub {
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    overflow-wrap: break-word;
+  }
+  .meter {
+    height: 0.375rem;
+    margin-top: 0.75rem;
+    border-radius: 999px;
+    background: var(--color-bg-page);
+    overflow: hidden;
+  }
+  .meter > span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--color-accent-bar);
+  }
+
+  /* --- Sections --- */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .section-head .caption { flex: 0 0 auto; }
+
+  /* --- Trend chart: CSS bars, one accent hue, steps of the ramp --- */
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    height: 11rem;
+    padding-top: 1.75rem;
+  }
+  .bar-col {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .bar-value {
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .bar {
+    width: 100%;
+    max-width: 3.5rem;
+    border-radius: 0.375rem 0.375rem 0 0;
+    background: var(--color-accent-bar);
+  }
+  .bar.peak { background: var(--color-accent-bar-peak); }
+  .bar-day {
+    font-size: var(--text-caption);
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+  .chart-note {
+    font-size: var(--text-caption);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    margin-top: 0.75rem;
+  }
+
+  /* --- Student table --- */
+  .table-wrap { overflow-x: auto; margin: 0 -1.25rem; padding: 0 1.25rem; }
+  table {
+    width: 100%;
+    min-width: 34rem;
+    border-collapse: collapse;
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+  }
+  caption {
+    text-align: start;
+    padding-bottom: 0.75rem;
+    color: var(--color-text-secondary);
+  }
+  th, td {
+    padding: 0.625rem 0.75rem;
+    text-align: start;
+    border-bottom: 1px solid var(--color-border);
+    overflow-wrap: break-word;
+  }
+  th {
+    font-size: var(--text-caption);
+    line-height: 1.5;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+  tbody tr:last-child th,
+  tbody tr:last-child td { border-bottom: 0; }
+  td.student-name { font-weight: 600; color: var(--color-text-primary); }
+  td .roll { color: var(--color-text-secondary); }
+  /* Status pills: color is never the only carrier — each pill
+     also carries a word (Excellent / Watch). Success green means
+     "at or above 95% attendance" everywhere; warning amber means
+     "below 90% attendance" everywhere; the middle band is neutral. */
+  .pill {
+    display: inline-block;
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    font-size: var(--text-caption);
+    line-height: 1.5;
+    font-weight: 600;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+  }
+  .pill-good { background: var(--color-status-good-bg); color: var(--color-status-good-text); }
+  .pill-watch { background: var(--color-status-watch-bg); color: var(--color-status-watch-text); }
+  .pill-neutral { background: var(--color-bg-page); color: var(--color-text-secondary); }
+
+  /* --- Notices --- */
+  .notices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .notices li {
+    display: flex;
+    gap: 0.875rem;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .notices li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .notices li:first-child { padding-top: 0; }
+  .notice-mark {
+    flex: 0 0 auto;
+    width: 0.25rem;
+    border-radius: 999px;
+    background: var(--color-accent-bar);
+  }
+  .notice-body { min-width: 0; }
+  .notice-body p { font-size: var(--text-body-sm); line-height: 1.5; }
+  .notice-body .caption { display: block; margin-bottom: 0.125rem; }
+
+  footer {
+    padding: 1.25rem 1.5rem 1.5rem;
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+
+  .demo-note {
+    display: none;
+    font-size: var(--text-body-sm);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.875rem;
+  }
+  .demo-note.show { display: block; }
+
+  /* --- 390px: sidebar becomes a bottom nav, stats go 2-up --- */
+  @media (max-width: 48rem) {
+    .shell { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { display: none; }
+    main { padding: 1rem 1rem 5.5rem; }
+    .site-header { padding: 0.75rem 1rem; gap: 0.625rem; }
+    .brand-name { font-size: 1.125rem; }
+    .search { order: 3; flex-basis: 100%; max-width: none; }
+    .btn-primary { margin-inline-start: auto; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    h1 { font-size: 1.5rem; }
+    .chart { gap: 0.5rem; }
+    .bottom-nav {
+      display: flex;
+      position: fixed;
+      inset-inline: 0;
+      bottom: 0;
+      z-index: 10;
+      background: var(--color-bg-surface);
+      border-top: 1px solid var(--color-border);
+      padding: 0.375rem 0.25rem calc(0.375rem + env(safe-area-inset-bottom));
+    }
+    .bottom-nav a {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0.375rem 0.125rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      overflow-wrap: break-word;
+    }
+    .bottom-nav a[aria-current="page"] {
+      background: var(--color-bg-active);
+      color: var(--color-accent-text);
+      font-weight: 600;
+    }
+  }
+  @media (max-width: 23rem) {
+    .stats { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-name">Greenwood High</div>
+    <div class="brand-sub">Class 8-A &middot; 2025&ndash;26</div>
+  </div>
+  <div class="search">
+    <label class="caption" for="student-search" style="position:absolute;left:-9999px">Search students</label>
+    <input id="student-search" type="search" placeholder="Search students by name or roll&hellip;" autocomplete="off">
+  </div>
+  <button class="icon-btn" type="button" aria-label="Notifications, 3 unread">
+    &#128276;<span class="dot" aria-hidden="true">3</span>
+  </button>
+  <button class="btn-primary" type="button" id="add-student">Add student</button>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Primary">
+    <nav aria-label="Sections">
+      <a class="nav-link" href="#" aria-current="page">Dashboard</a>
+      <a class="nav-link" href="#students">Students</a>
+      <a class="nav-link" href="#attendance">Attendance</a>
+      <a class="nav-link" href="#analytics">Analytics</a>
+      <a class="nav-link" href="#notices">Notices</a>
+      <a class="nav-link" href="#">Settings</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <h1>Class 8-A dashboard</h1>
+      <p class="lede">Attendance, marks and notices for Class 8-A, updated for today. Twelve students, one class, everything in one place.</p>
+      <p class="demo-note" id="demo-note" role="status">Demo only: adding students is disabled in this fictional demo.</p>
+    </div>
+
+    <section class="stats" aria-label="School statistics">
+      <div class="card">
+        <span class="caption">Students</span>
+        <p class="stat-value num">1,248</p>
+        <p class="stat-sub"><span class="num">12</span> in Class 8-A</p>
+      </div>
+      <div class="card">
+        <span class="caption">Teachers</span>
+        <p class="stat-value num">72</p>
+        <p class="stat-sub">Across all classes</p>
+      </div>
+      <div class="card">
+        <span class="caption">Attendance today</span>
+        <p class="stat-value num">95.2%</p>
+        <p class="stat-sub"><span class="num">1,188</span> present &middot; <span class="num">60</span> absent</p>
+        <div class="meter" role="img" aria-label="Attendance 95.2 percent"><span style="width:95.2%"></span></div>
+      </div>
+      <div class="card">
+        <span class="caption">Fees collected</span>
+        <p class="stat-value num">84%</p>
+        <p class="stat-sub">&#8377;<span class="num">25.2L</span> of &#8377;<span class="num">30L</span></p>
+        <div class="meter" role="img" aria-label="Fees collected 84 percent"><span style="width:84%"></span></div>
+      </div>
+    </section>
+
+    <section class="card" id="attendance" aria-labelledby="trend-heading">
+      <div class="section-head">
+        <h2 id="trend-heading">Attendance trend</h2>
+        <span class="caption">This week &middot; Mon&ndash;Fri</span>
+      </div>
+      <div class="chart" role="img" aria-label="Attendance trend: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent. Highest on Thursday.">
+        <div class="bar-col"><span class="bar-value num">94%</span><div class="bar" style="height:60%"></div><span class="bar-day">Mon</span></div>
+        <div class="bar-col"><span class="bar-value num">96%</span><div class="bar" style="height:73.3%"></div><span class="bar-day">Tue</span></div>
+        <div class="bar-col"><span class="bar-value num">93%</span><div class="bar" style="height:53.3%"></div><span class="bar-day">Wed</span></div>
+        <div class="bar-col"><span class="bar-value num">97%</span><div class="bar peak" style="height:80%"></div><span class="bar-day">Thu</span></div>
+        <div class="bar-col"><span class="bar-value num">95%</span><div class="bar" style="height:66.7%"></div><span class="bar-day">Fri</span></div>
+      </div>
+      <p class="chart-note">Bars are scaled from 85% so the day-to-day change is visible. Thursday was the highest day at 97%.</p>
+    </section>
+
+    <section class="card" id="students" aria-labelledby="students-heading">
+      <div class="section-head">
+        <h2 id="students-heading">Class 8-A students</h2>
+        <span class="caption"><span class="num">12</span> students</span>
+      </div>
+      <div class="table-wrap">
+        <table id="analytics">
+          <caption>Attendance and marks for every student in Class 8-A. Use the search above to filter by name or roll number.</caption>
+          <thead>
+            <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody id="student-rows">
+            <tr><td class="student-name">Aarav Sharma</td><td class="roll num">8A-01</td><td class="num">96%</td><td class="num">88%</td><td><span class="pill pill-good">Excellent</span></td></tr>
+            <tr><td class="student-name">Diya Patel</td><td class="roll num">8A-02</td><td class="num">94%</td><td class="num">91%</td><td><span class="pill pill-neutral">On track</span></td></tr>
+            <tr><td class="student-name">Kabir Singh</td><td class="roll num">8A-03</td><td class="num">89%</td><td class="num">76%</td><td><span class="pill pill-watch">Watch</span></td></tr>
+            <tr><td class="student-name">Ananya Gupta</td><td class="roll num">8A-04</td><td class="num">98%</td><td class="num">93%</td><td><span class="pill pill-good">Excellent</span></td></tr>
+            <tr><td class="student-name">Rohan Mehta</td><td class="roll num">8A-05</td><td class="num">92%</td><td class="num">82%</td><td><span class="pill pill-neutral">On track</span></td></tr>
+            <tr><td class="student-name">Ishita Verma</td><td class="roll num">8A-06</td><td class="num">97%</td><td class="num">89%</td><td><span class="pill pill-good">Excellent</span></td></tr>
+            <tr><td class="student-name">Arjun Nair</td><td class="roll num">8A-07</td><td class="num">90%</td><td class="num">79%</td><td><span class="pill pill-neutral">On track</span></td></tr>
+            <tr><td class="student-name">Sneha Reddy</td><td class="roll num">8A-08</td><td class="num">95%</td><td class="num">86%</td><td><span class="pill pill-good">Excellent</span></td></tr>
+            <tr><td class="student-name">Vikram Joshi</td><td class="roll num">8A-09</td><td class="num">88%</td><td class="num">74%</td><td><span class="pill pill-watch">Watch</span></td></tr>
+            <tr><td class="student-name">Priya Das</td><td class="roll num">8A-10</td><td class="num">99%</td><td class="num">95%</td><td><span class="pill pill-good">Excellent</span></td></tr>
+            <tr><td class="student-name">Aditya Rao</td><td class="roll num">8A-11</td><td class="num">93%</td><td class="num">84%</td><td><span class="pill pill-neutral">On track</span></td></tr>
+            <tr><td class="student-name">Kavya Iyer</td><td class="roll num">8A-12</td><td class="num">96%</td><td class="num">90%</td><td><span class="pill pill-good">Excellent</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="chart-note" id="no-results" hidden>No students match that search.</p>
+    </section>
+
+    <section class="card" id="notices" aria-labelledby="notices-heading">
+      <div class="section-head">
+        <h2 id="notices-heading">Notices</h2>
+        <span class="caption"><span class="num">3</span> active</span>
+      </div>
+      <ul class="notices">
+        <li><span class="notice-mark" aria-hidden="true"></span><div class="notice-body"><span class="caption">Friday</span><p>Science fair on Friday</p></div></li>
+        <li><span class="notice-mark" aria-hidden="true"></span><div class="notice-body"><span class="caption">20 Nov</span><p>Fee deadline 20 Nov</p></div></li>
+        <li><span class="notice-mark" aria-hidden="true"></span><div class="notice-body"><span class="caption">25 Nov</span><p>Parent-teacher meet 25 Nov</p></div></li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Sections">
+  <a href="#" aria-current="page">Dashboard</a>
+  <a href="#students">Students</a>
+  <a href="#attendance">Attendance</a>
+  <a href="#notices">Notices</a>
+  <a href="#">Settings</a>
+</nav>
+
+<footer>Fictional demo data &mdash; UI Forge Experiment 1</footer>
+
+<script>
+  // Search filters the student table by name or roll; the count in
+  // the section heading is left as the class total (12).
+  (function () {
+    var input = document.getElementById("student-search");
+    var rows = document.querySelectorAll("#student-rows tr");
+    var empty = document.getElementById("no-results");
+    input.addEventListener("input", function () {
+      var q = input.value.trim().toLowerCase();
+      var visible = 0;
+      rows.forEach(function (row) {
+        var match = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+        row.style.display = match ? "" : "none";
+        if (match) visible += 1;
+      });
+      empty.hidden = visible !== 0;
+    });
+
+    // The single primary action: demo-safe, it explains itself
+    // instead of pretending to add a student.
+    document.getElementById("add-student").addEventListener("click", function () {
+      var note = document.getElementById("demo-note");
+      note.classList.add("show");
+      document.getElementById("students").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    // Sidebar / bottom-nav active state follows the tapped link.
+    document.querySelectorAll(".nav-link, .bottom-nav a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        document.querySelectorAll("[aria-current='page']").forEach(function (el) {
+          el.removeAttribute("aria-current");
+        });
+        link.setAttribute("aria-current", "page");
+      });
+    });
+  })();
+</script>
+</body>
+</html>

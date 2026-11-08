@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* Better Layout applied:
+     - One spacing step (16px) per nesting level; 8px inside a group,
+       16px+ between groups, 32px between sections.
+     - Shared alignment edges: every block aligns to the same inline
+       margin (16px mobile / 24px desktop) and the same content column.
+     - Logical properties throughout (inline-start/end, block-start/end)
+       so the layout mirrors for RTL without a rewrite.
+     - No fixed widths/heights on text boxes: max-width + min-height,
+       rows wrap, so translated text can grow.
+     - minmax(0, 1fr) on every grid track that holds long text or the
+       table, and min-width: 0 on flex children, so nothing overflows
+       its track. width: 100%, never 100vw.
+     - scroll-padding-block-start equals the sticky header height.
+  */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --gap-in: 8px;      /* inside one group */
+    --gap-group: 16px;  /* between groups */
+    --gap-section: 32px;/* between sections */
+    --margin: 16px;     /* layout margin, mobile */
+    --ink: #1c2430;
+    --muted: #5b6675;
+    --line: #dfe4ea;
+    --surface: #ffffff;
+    --page: #f2f4f7;
+    --accent: #2457e7;
+    --accent-soft: #e8eefc;
+    --good: #1e7d4f;
+    --warn: #b26a00;
+    --header-h: 60px;
+  }
+
+  html { scroll-padding-block-start: var(--header-h); }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background: var(--page);
+    line-height: 1.5;
+  }
+
+  /* ---- App shell: sidebar + main, one shared grid ---- */
+  .app {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "header"
+      "main"
+      "footer";
+    min-height: 100dvh;
+  }
+  header { grid-area: header; }
+  nav.sidebar { grid-area: sidebar; }
+  main { grid-area: main; }
+  footer { grid-area: footer; }
+
+  /* ---- Header: sticky chrome, controls float inside margins ---- */
+  header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 10;
+    min-height: var(--header-h);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap-group);
+    padding-inline: var(--margin);
+    padding-block: var(--gap-in);
+    background: var(--surface);
+    border-block-end: 1px solid var(--line);
+  }
+  .brand { display: flex; flex-direction: column; min-width: 0; }
+  .brand strong { font-size: 1.05rem; white-space: nowrap; }
+  .brand span { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+
+  /* Search: identifying content leads, action trails. */
+  .search {
+    flex: 1 1 160px; /* wraps to a full-width second row when it stops fitting */
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .search input {
+    width: 100%;
+    max-width: 420px;
+    min-height: 40px;
+    padding-inline: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+    background: var(--page);
+  }
+
+  /* Borderless icon controls: 24px clearance between glyphs. */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-inline-start: auto;
+  }
+  .bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+  .bell .dot {
+    position: absolute;
+    inset-block-start: 6px;
+    inset-inline-end: 6px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: #d21c2c;
+    border: 2px solid var(--surface);
+  }
+  .menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+    padding-inline: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* ---- Sidebar navigation (desktop) ---- */
+  nav.sidebar {
+    display: none;
+    background: var(--surface);
+    border-inline-end: 1px solid var(--line);
+    padding-block: var(--gap-group);
+    padding-inline: var(--gap-group);
+  }
+  nav.sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-in);
+  }
+  nav.sidebar a {
+    display: block;
+    padding-block: 10px;
+    padding-inline: 12px;
+    border-radius: 8px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  nav.sidebar a[aria-current="page"] {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ---- Main column: sections grouped by space, not lines ---- */
+  main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-section);
+    padding-block: var(--gap-group);
+    padding-inline: var(--margin);
+    padding-block-end: calc(var(--gap-section) + 72px); /* room for bottom nav */
+  }
+  .page-head h1 { margin: 0 0 4px; font-size: 1.4rem; }
+  .page-head p { margin: 0; color: var(--muted); }
+
+  section { min-width: 0; }
+  section > h2 { margin: 0 0 var(--gap-group); font-size: 1.1rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: var(--gap-group);
+    min-width: 0;
+  }
+
+  /* ---- Stat cards: hold structure until it breaks ---- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap-group);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    min-height: 96px;
+    padding: var(--gap-group);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .stat .label { color: var(--muted); font-size: 0.85rem; }
+  .stat .value { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+  .stat .sub { color: var(--muted); font-size: 0.8rem; }
+
+  /* ---- Trend chart: CSS bars, labels lead, values trail ---- */
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--gap-group);
+    min-height: 180px;
+    padding-block-start: var(--gap-group);
+  }
+  .bar-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-in);
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar-col .val { font-size: 0.8rem; font-weight: 600; }
+  .bar {
+    width: 100%;
+    max-width: 56px;
+    background: var(--accent);
+    border-radius: 6px 6px 0 0;
+  }
+  .bar-col .day { font-size: 0.85rem; color: var(--muted); }
+
+  /* ---- Student table: scrolls inside its card, with a visible cue ---- */
+  .table-wrap {
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--gap-group));
+    padding-inline: var(--gap-group);
+    /* hint at hidden content: the last column peeks past the scroll edge */
+    scrollbar-width: thin;
+  }
+  table { width: 100%; min-width: 560px; border-collapse: collapse; }
+  th, td {
+    padding-block: 10px;
+    padding-inline: 12px;
+    text-align: start;
+    border-block-end: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  th { color: var(--muted); font-size: 0.85rem; font-weight: 600; }
+  tbody tr:last-child th, tbody tr:last-child td { border-block-end: 0; }
+  .pill {
+    display: inline-block;
+    padding-block: 2px;
+    padding-inline: 8px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .pill.good { background: #e3f2e9; color: var(--good); }
+  .pill.warn { background: #fdf0d5; color: var(--warn); }
+
+  /* ---- Notices: one group, 8px within, 16px between items ---- */
+  .notices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--gap-group); }
+  .notices li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding-block: 12px;
+    border-block-end: 1px solid var(--line);
+  }
+  .notices li:last-child { border-block-end: 0; padding-block-end: 0; }
+  .notices li:first-child { padding-block-start: 0; }
+  .notices .mark {
+    flex: 0 0 auto;
+    width: 10px; height: 10px;
+    margin-block-start: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .notices p { margin: 0; }
+
+  /* ---- Primary action: one per view, inset from the edges ---- */
+  .primary-action {
+    display: inline-block;
+    align-self: flex-start;
+    min-height: 44px;
+    padding-block: 10px;
+    padding-inline: 20px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  footer {
+    padding-block: var(--gap-group);
+    padding-inline: var(--margin);
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  /* ---- Bottom nav (mobile): collapsed nav with a visible cue ---- */
+  nav.bottom {
+    position: fixed;
+    inset-block-end: 0;
+    inset-inline: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: space-around;
+    gap: 24px;
+    padding-block: 8px;
+    padding-inline: var(--margin);
+    padding-block-end: calc(8px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-block-start: 1px solid var(--line);
+  }
+  nav.bottom a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+  }
+  nav.bottom a[aria-current="page"] { color: var(--accent); font-weight: 600; }
+
+  /* ---- Breakpoints from the content, not device presets ---- */
+  @media (min-width: 640px) {
+    .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (min-width: 900px) {
+    :root { --margin: 24px; }
+    .app {
+      grid-template-columns: 232px minmax(0, 1fr);
+      grid-template-areas:
+        "header header"
+        "sidebar main"
+        "footer footer";
+    }
+    nav.sidebar { display: block; position: sticky; inset-block-start: var(--header-h); height: calc(100dvh - var(--header-h)); }
+    nav.bottom { display: none; }
+    .menu-btn { display: none; }
+    main { padding-block-end: var(--gap-section); }
+    .content-wide {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: var(--gap-section);
+      align-items: start;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <strong>Greenwood High</strong>
+      <span>Class 8-A &middot; 2025&ndash;26</span>
+    </div>
+    <div class="search">
+      <input type="search" placeholder="Search students&hellip;" aria-label="Search students">
+    </div>
+    <div class="header-actions">
+      <button class="bell" type="button" aria-label="Notifications, 3 unread">&#128276;<span class="dot" aria-hidden="true"></span></button>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="bottom-nav" id="menu-btn">&#9776; Menu</button>
+    </div>
+  </header>
+
+  <nav class="sidebar" aria-label="Primary">
+    <ul>
+      <li><a href="#" aria-current="page">Dashboard</a></li>
+      <li><a href="#students">Students</a></li>
+      <li><a href="#attendance">Attendance</a></li>
+      <li><a href="#notices">Notices</a></li>
+      <li><a href="#">Fees</a></li>
+      <li><a href="#">Settings</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="page-head">
+      <h1>Class 8-A Dashboard</h1>
+      <p>Attendance, profiles and analytics for Greenwood High, 2025&ndash;26.</p>
+    </div>
+
+    <section aria-label="Key figures">
+      <ul class="stats">
+        <li class="stat"><span class="label">Students</span><span class="value">1,248</span><span class="sub">12 in Class 8-A</span></li>
+        <li class="stat"><span class="label">Teachers</span><span class="value">72</span><span class="sub">Across all classes</span></li>
+        <li class="stat"><span class="label">Attendance today</span><span class="value">95.2%</span><span class="sub">1,188 present &middot; 60 absent</span></li>
+        <li class="stat"><span class="label">Fees collected</span><span class="value">84%</span><span class="sub">&#8377;25.2L of &#8377;30L</span></li>
+      </ul>
+    </section>
+
+    <div class="content-wide">
+      <section id="attendance" aria-label="Attendance trend">
+        <h2>Attendance trend</h2>
+        <div class="card">
+          <div class="chart" role="img" aria-label="Attendance Mon to Fri: 94, 96, 93, 97, 95 percent">
+            <div class="bar-col"><span class="val">94%</span><div class="bar" style="height:94px"></div><span class="day">Mon</span></div>
+            <div class="bar-col"><span class="val">96%</span><div class="bar" style="height:96px"></div><span class="day">Tue</span></div>
+            <div class="bar-col"><span class="val">93%</span><div class="bar" style="height:93px"></div><span class="day">Wed</span></div>
+            <div class="bar-col"><span class="val">97%</span><div class="bar" style="height:97px"></div><span class="day">Thu</span></div>
+            <div class="bar-col"><span class="val">95%</span><div class="bar" style="height:95px"></div><span class="day">Fri</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="notices" aria-label="Notices">
+        <h2>Notices</h2>
+        <div class="card">
+          <ul class="notices">
+            <li><span class="mark" aria-hidden="true"></span><p>Science fair on Friday</p></li>
+            <li><span class="mark" aria-hidden="true"></span><p>Fee deadline 20 Nov</p></li>
+            <li><span class="mark" aria-hidden="true"></span><p>Parent-teacher meet 25 Nov</p></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <section id="students" aria-label="Students">
+      <h2>Class 8-A students</h2>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Name</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Aarav Sharma</td><td>8A-01</td><td><span class="pill good">96%</span></td><td>88%</td></tr>
+              <tr><td>Diya Patel</td><td>8A-02</td><td><span class="pill good">94%</span></td><td>91%</td></tr>
+              <tr><td>Kabir Singh</td><td>8A-03</td><td><span class="pill warn">89%</span></td><td>76%</td></tr>
+              <tr><td>Ananya Gupta</td><td>8A-04</td><td><span class="pill good">98%</span></td><td>93%</td></tr>
+              <tr><td>Rohan Mehta</td><td>8A-05</td><td><span class="pill good">92%</span></td><td>82%</td></tr>
+              <tr><td>Ishita Verma</td><td>8A-06</td><td><span class="pill good">97%</span></td><td>89%</td></tr>
+              <tr><td>Arjun Nair</td><td>8A-07</td><td><span class="pill good">90%</span></td><td>79%</td></tr>
+              <tr><td>Sneha Reddy</td><td>8A-08</td><td><span class="pill good">95%</span></td><td>86%</td></tr>
+              <tr><td>Vikram Joshi</td><td>8A-09</td><td><span class="pill warn">88%</span></td><td>74%</td></tr>
+              <tr><td>Priya Das</td><td>8A-10</td><td><span class="pill good">99%</span></td><td>95%</td></tr>
+              <tr><td>Aditya Rao</td><td>8A-11</td><td><span class="pill good">93%</span></td><td>84%</td></tr>
+              <tr><td>Kavya Iyer</td><td>8A-12</td><td><span class="pill good">96%</span></td><td>90%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <button class="primary-action" type="button">Take attendance</button>
+  </main>
+
+  <nav class="bottom" id="bottom-nav" aria-label="Primary mobile">
+    <a href="#" aria-current="page">&#127968;<span>Home</span></a>
+    <a href="#students">&#128100;<span>Students</span></a>
+    <a href="#attendance">&#128202;<span>Attendance</span></a>
+    <a href="#notices">&#128276;<span>Notices</span></a>
+  </nav>
+
+  <footer>Fictional demo data &mdash; UI Forge Experiment 1</footer>
+</div>
+
+<script>
+  // Menu button scrolls the bottom nav into view on mobile (the collapsed
+  // nav's disclosure cue) and toggles its expanded state.
+  var btn = document.getElementById('menu-btn');
+  var nav = document.getElementById('bottom-nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function () {
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      nav.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    });
+  }
+</script>
+</body>
+</html>

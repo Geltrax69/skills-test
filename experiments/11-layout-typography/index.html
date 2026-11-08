@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+/*
+  Variant 11 — layout-typography (ORDER SWAP of Experiment 1 variant 02).
+  Skill order applied: (1) better-layout, then (2) better-typography.
+  Layout set the structure first: grouping by space, shared edges, logical
+  properties, DOM order = visual order, breakpoints from content.
+  Typography then set the type system inside that structure: one system
+  stack, a small rem scale, unitless line-heights, tabular numerals.
+  One self-contained file. Inline CSS + JS only. No external fonts/images.
+*/
+
+/* ---------- Tokens: one spacing scale, one type scale ---------- */
+:root {
+  /* Layout: spacing scale. Within a group 8px, between groups 16px or more. */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --radius: 12px;
+  --header-height: 64px;
+  --sidebar-width: 240px;
+
+  /* Typography: semantic scale, rem so reader font size still applies. */
+  --text-display: 1.75rem;   /* page title */
+  --text-h1: 1.5rem;
+  --text-h2: 1.25rem;
+  --text-h3: 1rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.8125rem;
+  --text-overline: 0.75rem;
+
+  --ink: #17233b;
+  --ink-muted: #5b6b82;
+  --ink-faint: #8593a8;
+  --line: #dfe6ee;
+  --page: #f2f5f8;
+  --card: #ffffff;
+  --accent: #1d4ed8;
+  --accent-soft: #e3ebfd;
+  --good: #15803d;
+  --good-soft: #dcfce7;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+
+  /* Font smoothing on the root only, never per component. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-padding-block-start: calc(var(--header-height) + var(--space-2));
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  /* One family only: system stack, no external font. */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--text-body);
+  line-height: 1.6; /* body copy 1.5-1.6, unitless */
+  text-align: start;
+}
+
+/* ---------- Type roles: size + line-height + weight as one decision ---------- */
+h1, h2, h3, p { margin: 0; overflow-wrap: break-word; }
+
+h1 {
+  font-size: var(--text-h1);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+h2 {
+  font-size: var(--text-h2);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+h3 {
+  font-size: var(--text-h3);
+  line-height: 1.4;
+  font-weight: 600;
+  text-wrap: balance;
+}
+p { text-wrap: pretty; } /* pretty on paragraphs, never balance */
+
+.overline {
+  font-size: var(--text-overline);
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.05em; /* uppercase labels at 14px or smaller */
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+a {
+  color: var(--accent);
+  text-underline-position: from-font;
+  text-decoration-thickness: from-font;
+}
+
+/* Changing values keep one digit width so nothing shifts. */
+.stat-value, .num, .chart-value, td:nth-child(3), td:nth-child(4) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- App shell: layout first ----------
+   Sidebar + content. minmax(0, 1fr) so long content (the table) can never
+   force its track wider than the viewport. min-width: 0 on the flex/grid
+   children for the same reason. No 100vw anywhere: it includes the
+   scrollbar and scrolls horizontally on desktop. */
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+.main { min-width: 0; display: flex; flex-direction: column; }
+
+/* ---------- Header: sticky chrome, controls distinct from content ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+  background: var(--card);
+  border-block-end: 1px solid var(--line);
+}
+.brand { min-width: 0; margin-inline-end: auto; }
+.brand-name {
+  font-size: var(--text-h3);
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brand-sub {
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu-btn {
+  display: none; /* shown only once the sidebar no longer fits */
+  flex: none;
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+.search {
+  flex: 0 1 320px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--page);
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem; /* 16px on mobile: iOS Safari must not zoom on focus */
+  line-height: 1.5;
+  padding-block: 10px;
+}
+.search input::placeholder { color: var(--ink-faint); }
+.search-mobile { display: none; } /* shown only at 640px and below, in the media query */
+.bell {
+  position: relative;
+  flex: none;
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.bell-badge {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  min-height: 18px;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--text-overline);
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------- Sidebar: identifying content leads, actions trail ---------- */
+.sidebar {
+  background: var(--ink);
+  color: #e8edf5;
+  padding: var(--space-3) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+.sidebar .overline { color: #9fb0c8; }
+.nav { display: flex; flex-direction: column; gap: var(--space-1); }
+.nav a {
+  display: block;
+  padding: 10px var(--space-2);
+  border-radius: 8px;
+  color: #e8edf5;
+  text-decoration: none;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  font-weight: 400;
+}
+.nav a:hover { background: rgba(255, 255, 255, 0.08); }
+.nav a[aria-current="page"] { background: var(--accent); color: #fff; font-weight: 600; }
+.sidebar-note {
+  margin-block-start: auto;
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: #9fb0c8;
+  max-width: 65ch;
+}
+.scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(23, 35, 59, 0.5);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ---------- Main content: groups separated by space, not lines ---------- */
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4); /* between groups: 2x the 16px within-group gap */
+  padding: var(--space-4);
+  max-width: 1120px;
+  width: 100%;
+  margin-inline: auto;
+}
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.page-head p {
+  margin-block-start: var(--space-1);
+  color: var(--ink-muted);
+  max-width: 65ch; /* measure cap, 60-75 characters */
+}
+/* One primary action per view. Inset from the layout margins, in flow. */
+.btn-primary {
+  flex: none;
+  min-height: 44px;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.btn-primary:hover { background: #1e40af; }
+
+/* ---------- Stat cards: hold the 4-across row until it breaks ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2);
+}
+.stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1); /* within-group gap */
+  min-width: 0;
+}
+.stat-value {
+  font-size: var(--text-display);
+  line-height: 1.1; /* display text */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  overflow-wrap: break-word;
+}
+.stat-sub {
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+/* ---------- Two-column row: chart + notices, stacked when it breaks ---------- */
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+}
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.panel-head { display: flex; flex-direction: column; gap: 4px; }
+.panel-head p { font-size: var(--text-small); line-height: 1.5; color: var(--ink-muted); }
+
+/* Chart: CSS bars, values on a shared baseline. */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  min-height: 11.25rem; /* min-height, never a fixed height on text */
+  margin: 0;
+  padding-block-start: var(--space-3);
+  padding-inline: 0;
+  border-block-end: 2px solid var(--line);
+  list-style: none;
+}
+.chart li {
+  flex: 1;
+  min-width: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+}
+.chart-value { font-size: var(--text-small); font-weight: 600; line-height: 1.5; }
+.chart-bar {
+  width: 100%;
+  max-width: 56px;
+  height: calc(var(--v) * 1.6px); /* 93-97 maps to ~149-155px of a 180px track */
+  border-radius: 6px 6px 0 0;
+  background: var(--accent);
+}
+.chart li.low .chart-bar { background: #93b4f5; }
+.chart-day { font-size: var(--text-caption); line-height: 1.5; color: var(--ink-muted); white-space: nowrap; }
+.chart-note { font-size: var(--text-small); line-height: 1.5; color: var(--ink-muted); }
+
+/* Notices: space groups, no separator lines. */
+.notices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.notices li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+.notices .dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-block-start: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.notices li:nth-child(2) .dot { background: var(--warn); }
+.notices li:nth-child(3) .dot { background: var(--good); }
+
+/* ---------- Student table: scrolls inside its card, with a visible cue ---------- */
+.table-card { padding: 0; overflow: hidden; }
+.table-card .panel-head { padding: var(--space-2) var(--space-2) 0; }
+.table-scroll { overflow-x: auto; padding-block-end: var(--space-1); }
+table {
+  width: 100%;
+  min-width: 560px; /* columns keep their shape; the wrapper scrolls instead */
+  border-collapse: collapse;
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+caption {
+  text-align: start;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--ink-muted);
+  padding: 0 var(--space-2) var(--space-2);
+}
+th, td {
+  padding: 12px var(--space-2);
+  text-align: start;
+  border-block-start: 1px solid var(--line);
+  white-space: nowrap;
+}
+th { font-size: var(--text-small); font-weight: 600; color: var(--ink-muted); }
+td:first-child { font-weight: 600; white-space: normal; min-width: 180px; }
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.pill-ok { background: var(--good-soft); color: var(--good); }
+.pill-watch { background: var(--warn-soft); color: var(--warn); }
+.scroll-hint {
+  display: none;
+  padding: 0 var(--space-2) var(--space-2);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+.empty-row td { text-align: center; color: var(--ink-muted); white-space: normal; }
+
+/* ---------- Footer ---------- */
+.footer {
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+/* ---------- Bottom nav: mobile chrome, inside safe areas ---------- */
+.bottomnav {
+  display: none;
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 20;
+  background: var(--card);
+  border-block-start: 1px solid var(--line);
+  padding-block-end: env(safe-area-inset-bottom, 0);
+}
+.bottomnav nav { display: flex; }
+.bottomnav a, .bottomnav button {
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-overline);
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  cursor: pointer;
+}
+.bottomnav a[aria-current="page"] { color: var(--accent); }
+
+/* ---------- Breakpoints from content, not device presets ----------
+   The sidebar (240px) + readable content stop fitting near 1020px, so the
+   sidebar becomes an overlay there. The two-column panels row breaks near
+   860px. The bottom nav appears once the header search crowds out, 640px. */
+@media (max-width: 1020px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 40;
+    width: min(280px, 84vw);
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+  }
+  [dir="rtl"] .sidebar { transform: translateX(105%); }
+  body.nav-open .sidebar { transform: translateX(0); }
+  body.nav-open .scrim { display: block; }
+}
+@media (max-width: 860px) {
+  .panels { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .content { padding: var(--space-2); gap: var(--space-3); padding-block-end: calc(var(--space-5) + 56px); }
+  .search { display: none; } /* search moves to the Students section on small screens */
+  .search-mobile { display: flex; }
+  .bottomnav { display: block; }
+  .scroll-hint { display: block; } /* visible cue that the table scrolls */
+  .btn-primary { width: 100%; } /* full-width action stays inside the 16px margins */
+}
+</style>
+</head>
+<body id="top">
+<div class="app">
+
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <p class="overline">Greenwood High</p>
+    <nav class="nav" aria-label="Sections">
+      <a href="#overview" aria-current="page">Overview</a>
+      <a href="#stats">Fees &amp; stats</a>
+      <a href="#attendance">Attendance</a>
+      <a href="#students">Students</a>
+      <a href="#notices">Notices</a>
+    </nav>
+    <p class="sidebar-note">Class 8-A · 2025–26 · 12 students · 72 teachers across the school.</p>
+  </aside>
+  <button class="scrim" id="scrim" aria-label="Close navigation" tabindex="-1"></button>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation">☰</button>
+      <div class="brand">
+        <p class="brand-name">Greenwood High</p>
+        <p class="brand-sub">Class 8-A · 2025–26</p>
+      </div>
+      <label class="search" for="searchInput">
+        <span aria-hidden="true">⌕</span>
+        <input id="searchInput" type="search" placeholder="Search students by name or roll…" autocomplete="off">
+      </label>
+      <button class="bell" id="bellBtn" aria-label="Notifications, 3 unread">🔔<span class="bell-badge" aria-hidden="true">3</span></button>
+    </header>
+
+    <main class="content" id="overview">
+      <div class="page-head">
+        <div>
+          <h1>Class 8-A overview</h1>
+          <p>Attendance, marks and notices for Class 8-A, Greenwood High, for the school year 2025–26.</p>
+        </div>
+        <button class="btn-primary" type="button" id="addStudentBtn">Add student</button>
+      </div>
+
+      <label class="search search-mobile" for="searchInputMobile">
+        <span aria-hidden="true">⌕</span>
+        <input id="searchInputMobile" type="search" placeholder="Search students by name or roll…" autocomplete="off">
+      </label>
+
+      <section class="stats" id="stats" aria-label="School statistics">
+        <article class="stat">
+          <p class="overline">Students</p>
+          <p class="stat-value">1,248</p>
+          <p class="stat-sub">12 in Class 8-A</p>
+        </article>
+        <article class="stat">
+          <p class="overline">Teachers</p>
+          <p class="stat-value">72</p>
+          <p class="stat-sub">Across all classes</p>
+        </article>
+        <article class="stat">
+          <p class="overline">Attendance today</p>
+          <p class="stat-value">95.2%</p>
+          <p class="stat-sub">1,188 present · 60 absent</p>
+        </article>
+        <article class="stat">
+          <p class="overline">Fees collected</p>
+          <p class="stat-value">84%</p>
+          <p class="stat-sub">₹25.2L of ₹30L</p>
+        </article>
+      </section>
+
+      <div class="panels">
+        <section class="panel" id="attendance" aria-labelledby="attendanceTitle">
+          <div class="panel-head">
+            <h2 id="attendanceTitle">Attendance trend</h2>
+            <p>This week, Monday to Friday</p>
+          </div>
+          <ul class="chart">
+            <li><span class="chart-value">94%</span><span class="chart-bar" style="--v:94"></span><span class="chart-day">Mon</span></li>
+            <li><span class="chart-value">96%</span><span class="chart-bar" style="--v:96"></span><span class="chart-day">Tue</span></li>
+            <li class="low"><span class="chart-value">93%</span><span class="chart-bar" style="--v:93"></span><span class="chart-day">Wed</span></li>
+            <li><span class="chart-value">97%</span><span class="chart-bar" style="--v:97"></span><span class="chart-day">Thu</span></li>
+            <li><span class="chart-value">95%</span><span class="chart-bar" style="--v:95"></span><span class="chart-day">Fri</span></li>
+          </ul>
+          <p class="chart-note">Highest on Thursday (97%) · lowest on Wednesday (93%) · weekly average 95%.</p>
+        </section>
+
+        <section class="panel" id="notices" aria-labelledby="noticesTitle">
+          <div class="panel-head">
+            <h2 id="noticesTitle">Notices</h2>
+            <p>Three notices for this week</p>
+          </div>
+          <ul class="notices">
+            <li><span class="dot" aria-hidden="true"></span><span>Science fair on Friday</span></li>
+            <li><span class="dot" aria-hidden="true"></span><span>Fee deadline 20 Nov</span></li>
+            <li><span class="dot" aria-hidden="true"></span><span>Parent-teacher meet 25 Nov</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="panel table-card" id="students" aria-labelledby="studentsTitle">
+        <div class="panel-head">
+          <h2 id="studentsTitle">Class 8-A students</h2>
+          <p>12 students · attendance and marks for this term</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <caption>Student name and roll, with attendance and marks percentages.</caption>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody id="studentRows">
+              <tr><td>Aarav Sharma</td><td>8A-01</td><td>96%</td><td>88%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Diya Patel</td><td>8A-02</td><td>94%</td><td>91%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Kabir Singh</td><td>8A-03</td><td>89%</td><td>76%</td><td><span class="pill pill-watch">Needs support</span></td></tr>
+              <tr><td>Ananya Gupta</td><td>8A-04</td><td>98%</td><td>93%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Rohan Mehta</td><td>8A-05</td><td>92%</td><td>82%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Ishita Verma</td><td>8A-06</td><td>97%</td><td>89%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Arjun Nair</td><td>8A-07</td><td>90%</td><td>79%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Sneha Reddy</td><td>8A-08</td><td>95%</td><td>86%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Vikram Joshi</td><td>8A-09</td><td>88%</td><td>74%</td><td><span class="pill pill-watch">Needs support</span></td></tr>
+              <tr><td>Priya Das</td><td>8A-10</td><td>99%</td><td>95%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Aditya Rao</td><td>8A-11</td><td>93%</td><td>84%</td><td><span class="pill pill-ok">On track</span></td></tr>
+              <tr><td>Kavya Iyer</td><td>8A-12</td><td>96%</td><td>90%</td><td><span class="pill pill-ok">On track</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="scroll-hint">Scroll sideways to see all columns →</p>
+      </section>
+
+      <footer class="footer">
+        <p>Fictional demo data — UI Forge Experiment 1</p>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<div class="bottomnav">
+  <nav aria-label="Primary">
+    <a href="#overview" aria-current="page">Overview</a>
+    <a href="#students">Students</a>
+    <a href="#attendance">Attendance</a>
+    <a href="#notices">Notices</a>
+    <button type="button" id="menuBtnMobile" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* Collapsible navigation: one toggle drives the overlay sidebar, the
+     scrim, and both menu buttons, so the cue is always visible. */
+  var menuBtns = [document.getElementById("menuBtn"), document.getElementById("menuBtnMobile")];
+  function setNav(open) {
+    document.body.classList.toggle("nav-open", open);
+    menuBtns.forEach(function (b) { if (b) b.setAttribute("aria-expanded", String(open)); });
+  }
+  menuBtns.forEach(function (b) {
+    if (b) b.addEventListener("click", function () {
+      setNav(!document.body.classList.contains("nav-open"));
+    });
+  });
+  document.getElementById("scrim").addEventListener("click", function () { setNav(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") setNav(false);
+  });
+  document.querySelectorAll(".sidebar .nav a").forEach(function (a) {
+    a.addEventListener("click", function () {
+      document.querySelectorAll(".sidebar .nav a").forEach(function (x) { x.removeAttribute("aria-current"); });
+      a.setAttribute("aria-current", "page");
+      setNav(false);
+    });
+  });
+
+  /* Bell jumps to the notices panel it counts. */
+  document.getElementById("bellBtn").addEventListener("click", function () {
+    document.getElementById("notices").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  /* Primary action: demo-only, so it says so instead of failing silently. */
+  document.getElementById("addStudentBtn").addEventListener("click", function () {
+    window.alert("Add student is not wired up in this fictional demo.");
+  });
+
+  /* Search filters the student table by name or roll, from either input. */
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#studentRows tr"));
+  var emptyRow = null;
+  function filter(q) {
+    var query = q.trim().toLowerCase();
+    var visible = 0;
+    rows.forEach(function (row) {
+      var hit = !query || row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.style.display = hit ? "" : "none";
+      if (hit) visible += 1;
+    });
+    if (!visible && !emptyRow) {
+      emptyRow = document.createElement("tr");
+      emptyRow.className = "empty-row";
+      emptyRow.innerHTML = "<td colspan=\"5\">No students match that search.</td>";
+      document.getElementById("studentRows").appendChild(emptyRow);
+    } else if (visible && emptyRow) {
+      emptyRow.remove();
+      emptyRow = null;
+    }
+  }
+  ["searchInput", "searchInputMobile"].forEach(function (id) {
+    var input = document.getElementById(id);
+    if (input) input.addEventListener("input", function () { filter(input.value); });
+  });
+})();
+</script>
+</body>
+</html>
