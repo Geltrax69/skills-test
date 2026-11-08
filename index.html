@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI Forge — Experiment 1: Compare</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#171717;background:#f6f5f0;line-height:1.5}
+  header{padding:24px 20px;background:#171717;color:#fff} header h1{margin:0;font-size:1.5rem} header p{margin:6px 0 0;color:#d4d4d4;max-width:70ch}
+  main{max-width:1200px;margin:0 auto;padding:20px}
+  table{width:100%;border-collapse:collapse;background:#fff} th,td{border:1px solid #ddd;padding:8px 10px;text-align:left;font-size:.9rem;vertical-align:top} th{background:#eee}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:20px 0}
+  .card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:16px} .card h3{margin:0 0 4px} .card p{margin:4px 0;color:#444;font-size:.9rem}
+  .card a{display:inline-block;margin-top:8px;color:#2457e7}
+  .warn{background:#fff8e1;border:1px solid #e6c200;border-radius:10px;padding:14px 16px}
+  iframe{width:100%;height:520px;border:1px solid #ccc;border-radius:10px;background:#fff}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px} @media(max-width:820px){.compare{grid-template-columns:1fr}}
+  select,button{font:inherit;padding:8px 10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>UI Forge — Experiment 1</h1>
+  <p>Student management dashboard. Same task, same data, same constraints for all 8 variants. Provisional ranking, single run — see RESULTS.md. No variant was rendered in a live browser in this run, so layout at 1280 / 390px is UNVERIFIED by measurement.</p>
+</header>
+<main>
+  <h2>Provisional ranking</h2>
+  <table>
+    <tr><th>#</th><th>Variant</th><th>Skills</th><th>Defects found + fixed</th></tr>
+    <tr><td>1</td><td>04-pstack-ecc-custom</td><td>PStack + ECC + emil + better-interface</td><td>7</td></tr>
+    <tr><td>2</td><td>07-panelui-web</td><td>PanelUI web</td><td>4</td></tr>
+    <tr><td>3</td><td>03-pstack-ecc</td><td>PStack + ECC frontend</td><td>0</td></tr>
+    <tr><td>4</td><td>02-typography-layout</td><td>Better Typography + Better Layout</td><td>0</td></tr>
+    <tr><td>5</td><td>05-astryx</td><td>Astryx</td><td>1</td></tr>
+    <tr><td>6</td><td>06-opensourceui</td><td>OpenSourceUI</td><td>2</td></tr>
+    <tr><td>7</td><td>01-typography</td><td>Better Typography</td><td>0</td></tr>
+    <tr><td>8</td><td>00-baseline</td><td>None (control)</td><td>2 (+1 possible left)</td></tr>
+  </table>
+  <p>Full method, defect table and limits: <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> · Fixed task: <a href="TASK.md">TASK.md</a></p>
+
+  <h2>All variants</h2>
+  <div class="grid">
+    <div class="card"><h3>00 — Baseline</h3><p>No UI skills. Control.</p><a href="experiments/00-baseline/index.html">Open →</a></div>
+    <div class="card"><h3>01 — Typography</h3><p>Better Typography only.</p><a href="experiments/01-typography/index.html">Open →</a></div>
+    <div class="card"><h3>02 — Typography + Layout</h3><p>Better Typography + Better Layout.</p><a href="experiments/02-typography-layout/index.html">Open →</a></div>
+    <div class="card"><h3>03 — PStack + ECC</h3><p>PStack feature + ECC frontend.</p><a href="experiments/03-pstack-ecc/index.html">Open →</a></div>
+    <div class="card"><h3>04 — PStack + ECC + Custom</h3><p>+ emil-design-eng + better-interface. Ranked #1 provisionally.</p><a href="experiments/04-pstack-ecc-custom/index.html">Open →</a></div>
+    <div class="card"><h3>05 — Astryx</h3><p>Meta design system, adapted to HTML.</p><a href="experiments/05-astryx/index.html">Open →</a></div>
+    <div class="card"><h3>06 — OpenSourceUI</h3><p>Copy-paste React components, adapted.</p><a href="experiments/06-opensourceui/index.html">Open →</a></div>
+    <div class="card"><h3>07 — PanelUI web</h3><p>PanelUI web, shadcn tokens.</p><a href="experiments/07-panelui-web/index.html">Open →</a></div>
+  </div>
+
+  <h2>Side by side</h2>
+  <p>Pick any two variants to compare in iframes. Open them full-screen from the cards above for the real look.</p>
+  <label>Left <select id="left">
+    <option value="experiments/04-pstack-ecc-custom/index.html">04 — PStack+ECC+Custom (#1)</option>
+    <option value="experiments/00-baseline/index.html">00 — Baseline</option>
+    <option value="experiments/01-typography/index.html">01 — Typography</option>
+    <option value="experiments/02-typography-layout/index.html">02 — Typography+Layout</option>
+    <option value="experiments/03-pstack-ecc/index.html">03 — PStack+ECC</option>
+    <option value="experiments/05-astryx/index.html">05 — Astryx</option>
+    <option value="experiments/06-opensourceui/index.html">06 — OpenSourceUI</option>
+    <option value="experiments/07-panelui-web/index.html">07 — PanelUI web</option>
+  </select></label>
+  <label>Right <select id="right">
+    <option value="experiments/07-panelui-web/index.html">07 — PanelUI web (#2)</option>
+    <option value="experiments/00-baseline/index.html">00 — Baseline</option>
+    <option value="experiments/01-typography/index.html">01 — Typography</option>
+    <option value="experiments/02-typography-layout/index.html">02 — Typography+Layout</option>
+    <option value="experiments/03-pstack-ecc/index.html">03 — PStack+ECC</option>
+    <option value="experiments/04-pstack-ecc-custom/index.html">04 — PStack+ECC+Custom</option>
+    <option value="experiments/05-astryx/index.html">05 — Astryx</option>
+    <option value="experiments/06-opensourceui/index.html">06 — OpenSourceUI</option>
+  </select></label>
+  <div class="compare" style="margin-top:12px">
+    <iframe id="frameL" src="experiments/04-pstack-ecc-custom/index.html" title="Left variant"></iframe>
+    <iframe id="frameR" src="experiments/07-panelui-web/index.html" title="Right variant"></iframe>
+  </div>
+  <div class="warn" style="margin-top:16px"><strong>Honest limit:</strong> this ranking is single-run and code-checked only. No live-browser screenshots were taken in this run — no Chromium/Playwright in the VM. Repeat 04 and 07 before treating the win as real, and eyeball them yourself at 1280px and 390px.</div>
+</main>
+<script>
+  const l=document.getElementById('left'), r=document.getElementById('right');
+  l.addEventListener('change',()=>document.getElementById('frameL').src=l.value);
+  r.addEventListener('change',()=>document.getElementById('frameR').src=r.value);
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Student Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f2f3f5; color: #1a1d21; line-height: 1.45; }
+  a { color: #1a56db; text-decoration: none; }
+
+  /* Header */
+  header { background: #ffffff; border-bottom: 1px solid #d9dce0; padding: 12px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; position: sticky; top: 0; z-index: 20; }
+  .school { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  .school h1 { font-size: 20px; white-space: nowrap; }
+  .school span { font-size: 13px; color: #5f6368; white-space: nowrap; }
+  .search { flex: 1; min-width: 160px; max-width: 420px; margin-left: auto; }
+  .search input { width: 100%; padding: 9px 12px; font-size: 15px; border: 1px solid #c6c9ce; border-radius: 6px; background: #f8f9fa; }
+  .bell { position: relative; background: #ffffff; border: 1px solid #c6c9ce; border-radius: 50%; width: 38px; height: 38px; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .bell .dot { position: absolute; top: 7px; right: 8px; width: 9px; height: 9px; background: #d93025; border-radius: 50%; border: 2px solid #fff; }
+
+  .layout { display: flex; align-items: flex-start; }
+
+  /* Sidebar (desktop) */
+  nav.sidebar { width: 200px; flex-shrink: 0; background: #ffffff; border-right: 1px solid #d9dce0; min-height: calc(100vh - 63px); padding: 16px 0; position: sticky; top: 63px; }
+  nav.sidebar a { display: block; padding: 10px 20px; font-size: 15px; color: #202124; }
+  nav.sidebar a.active { background: #e8f0fe; color: #1a56db; font-weight: 600; border-right: 3px solid #1a56db; }
+  nav.sidebar a:hover { background: #f1f3f4; }
+  .menu-btn { display: none; }
+
+  main { flex: 1; min-width: 0; padding: 20px; }
+  main h2 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #5f6368; font-size: 14px; margin-bottom: 18px; }
+
+  /* Stat cards */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .stat { background: #ffffff; border: 1px solid #d9dce0; border-radius: 8px; padding: 16px; min-width: 0; }
+  .stat .label { font-size: 13px; color: #5f6368; margin-bottom: 6px; }
+  .stat .value { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .stat .detail { font-size: 13px; color: #5f6368; margin-top: 6px; }
+
+  .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .card { background: #ffffff; border: 1px solid #d9dce0; border-radius: 8px; padding: 16px; min-width: 0; }
+  .card h3 { font-size: 17px; margin-bottom: 12px; }
+
+  /* Chart: CSS bars */
+  .chart { display: flex; align-items: flex-end; gap: 12px; height: 180px; padding-top: 8px; }
+  .bar-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar-val { font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+  .bar-track { height: 130px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .bar { width: 100%; max-width: 56px; background: #1a56db; border-radius: 4px 4px 0 0; }
+  .bar-day { font-size: 13px; margin-top: 6px; color: #202124; }
+
+  /* Notices */
+  .notice { border-left: 4px solid #1a56db; background: #f8f9fa; padding: 10px 12px; border-radius: 0 6px 6px 0; margin-bottom: 10px; font-size: 15px; }
+  .notice:last-child { margin-bottom: 0; }
+  .notice b { display: block; font-size: 15px; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e3e5e8; white-space: nowrap; }
+  th { background: #f8f9fa; font-size: 13px; color: #5f6368; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 13px; background: #e6f4ea; color: #137333; }
+  .pill.low { background: #fce8e6; color: #a50e0e; }
+  .no-results { padding: 14px 4px; color: #5f6368; display: none; }
+
+  footer { text-align: center; color: #5f6368; font-size: 13px; padding: 18px 12px 24px; }
+
+  /* Bottom nav (mobile only) */
+  nav.bottom { display: none; }
+
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    header { padding: 10px 12px; gap: 10px; }
+    .school h1 { font-size: 18px; }
+    .school span { display: none; }
+    .search { order: 3; flex-basis: 100%; max-width: none; margin-left: 0; }
+    nav.sidebar { display: none; }
+    nav.sidebar.open { display: block; position: fixed; left: 0; top: 0; bottom: 0; width: 220px; z-index: 30; padding-top: 56px; box-shadow: 0 0 20px rgba(0,0,0,0.2); }
+    .menu-btn { display: inline-block; background: #ffffff; border: 1px solid #c6c9ce; border-radius: 6px; padding: 7px 12px; font-size: 15px; cursor: pointer; flex-shrink: 0; }
+    main { padding: 14px 12px 76px; }
+    .stats { gap: 10px; }
+    .stat { padding: 12px; }
+    .stat .value { font-size: 24px; }
+    nav.bottom { display: flex; position: fixed; left: 0; right: 0; bottom: 0; background: #ffffff; border-top: 1px solid #d9dce0; z-index: 20; }
+    nav.bottom a { flex: 1; text-align: center; padding: 11px 4px; font-size: 13px; color: #202124; }
+    nav.bottom a.active { color: #1a56db; font-weight: 600; }
+    footer { padding-bottom: 76px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="menu-btn" id="menuBtn" aria-label="Open navigation">&#9776; Menu</button>
+  <div class="school">
+    <h1>Greenwood High</h1>
+    <span>Class 8-A &middot; 2025&ndash;26</span>
+  </div>
+  <div class="search">
+    <input type="search" id="searchInput" placeholder="Search students by name or roll&hellip;" aria-label="Search students">
+  </div>
+  <button class="bell" id="bellBtn" aria-label="Notifications">&#128276;<span class="dot"></span></button>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+    <a href="#" class="active">Dashboard</a>
+    <a href="#">Students</a>
+    <a href="#">Attendance</a>
+    <a href="#">Marks</a>
+    <a href="#">Fees</a>
+    <a href="#">Notices</a>
+    <a href="#">Settings</a>
+  </nav>
+
+  <main>
+    <h2>Student Management Dashboard</h2>
+    <p class="sub">Greenwood High &middot; Class 8-A &middot; 2025&ndash;26 &middot; 12 students in this class</p>
+
+    <section class="stats" aria-label="Key statistics">
+      <div class="stat">
+        <div class="label">Students</div>
+        <div class="value">1,248</div>
+        <div class="detail">72 teachers</div>
+      </div>
+      <div class="stat">
+        <div class="label">Teachers</div>
+        <div class="value">72</div>
+        <div class="detail">Across all classes</div>
+      </div>
+      <div class="stat">
+        <div class="label">Attendance today</div>
+        <div class="value">95.2%</div>
+        <div class="detail">1,188 present &middot; 60 absent</div>
+      </div>
+      <div class="stat">
+        <div class="label">Fees collected</div>
+        <div class="value">84%</div>
+        <div class="detail">&#8377;25.2L of &#8377;30L</div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card" aria-label="Attendance trend">
+        <h3>Attendance Trend &mdash; This Week</h3>
+        <div class="chart">
+          <div class="bar-wrap"><span class="bar-val">94%</span><div class="bar-track"><div class="bar" style="height: 94%"></div></div><span class="bar-day">Mon</span></div>
+          <div class="bar-wrap"><span class="bar-val">96%</span><div class="bar-track"><div class="bar" style="height: 96%"></div></div><span class="bar-day">Tue</span></div>
+          <div class="bar-wrap"><span class="bar-val">93%</span><div class="bar-track"><div class="bar" style="height: 93%"></div></div><span class="bar-day">Wed</span></div>
+          <div class="bar-wrap"><span class="bar-val">97%</span><div class="bar-track"><div class="bar" style="height: 97%"></div></div><span class="bar-day">Thu</span></div>
+          <div class="bar-wrap"><span class="bar-val">95%</span><div class="bar-track"><div class="bar" style="height: 95%"></div></div><span class="bar-day">Fri</span></div>
+        </div>
+      </section>
+
+      <section class="card" id="noticesCard" aria-label="Notices">
+        <h3>Notices</h3>
+        <div class="notice"><b>Science fair on Friday</b>All classes &middot; main hall</div>
+        <div class="notice"><b>Fee deadline 20 Nov</b>Pay remaining fees by 20 November</div>
+        <div class="notice"><b>Parent-teacher meet 25 Nov</b>Class 8-A &middot; 10:00 am</div>
+      </section>
+    </div>
+
+    <section class="card" aria-label="Class 8-A students">
+      <h3>Class 8-A Students</h3>
+      <div class="table-wrap">
+        <table id="studentTable">
+          <thead>
+            <tr><th>Student</th><th>Roll</th><th>Attendance</th><th>Marks</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Aarav Sharma</td><td>8A-01</td><td><span class="pill">96%</span></td><td>88%</td></tr>
+            <tr><td>Diya Patel</td><td>8A-02</td><td><span class="pill">94%</span></td><td>91%</td></tr>
+            <tr><td>Kabir Singh</td><td>8A-03</td><td><span class="pill low">89%</span></td><td>76%</td></tr>
+            <tr><td>Ananya Gupta</td><td>8A-04</td><td><span class="pill">98%</span></td><td>93%</td></tr>
+            <tr><td>Rohan Mehta</td><td>8A-05</td><td><span class="pill">92%</span></td><td>82%</td></tr>
+            <tr><td>Ishita Verma</td><td>8A-06</td><td><span class="pill">97%</span></td><td>89%</td></tr>
+            <tr><td>Arjun Nair</td><td>8A-07</td><td><span class="pill">90%</span></td><td>79%</td></tr>
+            <tr><td>Sneha Reddy</td><td>8A-08</td><td><span class="pill">95%</span></td><td>86%</td></tr>
+            <tr><td>Vikram Joshi</td><td>8A-09</td><td><span class="pill low">88%</span></td><td>74%</td></tr>
+            <tr><td>Priya Das</td><td>8A-10</td><td><span class="pill">99%</span></td><td>95%</td></tr>
+            <tr><td>Aditya Rao</td><td>8A-11</td><td><span class="pill">93%</span></td><td>84%</td></tr>
+            <tr><td>Kavya Iyer</td><td>8A-12</td><td><span class="pill">96%</span></td><td>90%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="no-results" id="noResults">No students match your search.</p>
+    </section>
+
+    <footer>Fictional demo data &mdash; UI Forge Experiment 1</footer>
+  </main>
+</div>
+
+<nav class="bottom" aria-label="Mobile navigation">
+  <a href="#" class="active">Dashboard</a>
+  <a href="#">Students</a>
+  <a href="#">Attendance</a>
+  <a href="#">Fees</a>
+</nav>
+
+<script>
+  // Search filters the student table by name or roll.
+  var input = document.getElementById('searchInput');
+  var rows = document.querySelectorAll('#studentTable tbody tr');
+  var noResults = document.getElementById('noResults');
+  input.addEventListener('input', function () {
+    var q = input.value.trim().toLowerCase();
+    var visible = 0;
+    rows.forEach(function (row) {
+      var match = row.textContent.toLowerCase().indexOf(q) !== -1;
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    noResults.style.display = visible === 0 ? 'block' : 'none';
+  });
+
+  // Mobile menu toggles the sidebar as an overlay.
+  var menuBtn = document.getElementById('menuBtn');
+  var sidebar = document.getElementById('sidebar');
+  menuBtn.addEventListener('click', function () {
+    sidebar.classList.toggle('open');
+  });
+
+  // Bell scrolls to the notices panel.
+  document.getElementById('bellBtn').addEventListener('click', function () {
+    document.getElementById('noticesCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+</script>
+</body>
+</html>

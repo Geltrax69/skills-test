@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* Better Typography — type scale with semantic names, sizes in rem.
+     Roles are one decision: size + unitless line-height + weight. */
+  :root {
+    --text-display: 1.75rem;   /* 28px, h1 */
+    --text-title: 1.25rem;     /* 20px, h2 */
+    --text-body: 1rem;         /* 16px, body floor */
+    --text-small: 0.875rem;    /* 14px, inputs / menus */
+    --text-caption: 0.8125rem; /* 13px, captions */
+    --ink: #171717;
+    --muted: #525252;
+    --line: #e5e5e5;
+    --card: #ffffff;
+    --page: #fafafa;
+    --accent: #1d4ed8;
+    --accent-soft: #dbeafe;
+    --good: #15803d;
+    --warn: #b45309;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html {
+    /* Font smoothing on the root only, never per component. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: var(--text-body);
+    line-height: 1.5; /* body copy 1.5–1.6, unitless */
+    text-align: start;
+  }
+  /* Headings descend with level; headings >=24px get -0.01em tracking. */
+  h1 {
+    font-size: var(--text-display);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+    margin: 0;
+    text-wrap: balance; /* headings / short text only */
+    overflow-wrap: break-word;
+  }
+  h2 {
+    font-size: var(--text-title);
+    line-height: 1.25;
+    font-weight: 650;
+    margin: 0 0 0.5rem;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  h3 {
+    font-size: var(--text-body);
+    line-height: 1.4;
+    font-weight: 650;
+    margin: 0;
+    text-wrap: balance;
+  }
+  p { margin: 0; text-wrap: pretty; overflow-wrap: break-word; max-width: 65ch; }
+  /* Uppercase labels at 14px or smaller take 0.05em tracking; body stays 0. */
+  .eyebrow, .stat-label, .nav-label {
+    font-size: var(--text-caption);
+    line-height: 1.4;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .muted { color: var(--muted); font-size: var(--text-small); line-height: 1.5; }
+  /* Tabular numbers on changing values / numeric columns, so digits do not shift. */
+  .stat-value, td.num, .bar-value {
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-value {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+    display: block;
+  }
+  a { color: var(--accent); text-underline-position: from-font; text-decoration-thickness: from-font; }
+  button { font: inherit; }
+  /* Input at 16px, so iOS Safari does not zoom the page on focus. */
+  input[type="search"] {
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: #fff;
+    width: 100%;
+    max-width: 22rem;
+    min-width: 0;
+  }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 13rem; flex: 0 0 13rem;
+    background: #fff; border-right: 1px solid var(--line);
+    padding: 1rem;
+  }
+  .sidebar nav a {
+    display: block; padding: 0.5rem 0.25rem;
+    font-size: var(--text-small); line-height: 1.5; font-weight: 500;
+    color: var(--ink); text-decoration: none;
+  }
+  .sidebar nav a[aria-current="page"] { color: var(--accent); font-weight: 700; }
+  .main { flex: 1; min-width: 0; padding: 1rem 1.25rem 5rem; }
+  header.top {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+  }
+  header.top .title { flex: 1 1 16rem; min-width: 0; }
+  .bell {
+    border: 1px solid var(--line); background: #fff; border-radius: 999px;
+    width: 2.5rem; height: 2.5rem; font-size: 1rem; line-height: 1;
+    position: relative; flex: 0 0 auto;
+  }
+  .bell .dot {
+    position: absolute; top: 0.4rem; right: 0.45rem;
+    width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #dc2626;
+  }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 0.75rem;
+    padding: 1rem; min-width: 0;
+  }
+  .card h2 { font-size: var(--text-body); }
+  .stat-label { display: block; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-note { font-size: var(--text-caption); line-height: 1.4; color: var(--muted); }
+  .grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 0.75rem; margin: 0.75rem 0; }
+  /* CSS bar chart: values are tabular, labels are 13px+ at weight 400+. */
+  .bars { display: flex; align-items: flex-end; gap: 0.75rem; height: 10rem; padding-top: 0.5rem; }
+  .bar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; height: 100%; justify-content: flex-end; }
+  .bar-value { font-size: var(--text-caption); line-height: 1.4; font-weight: 600; }
+  .bar { width: 100%; max-width: 3rem; background: var(--accent); border-radius: 0.375rem 0.375rem 0 0; }
+  .bar-day { font-size: var(--text-caption); line-height: 1.4; color: var(--muted); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--text-small); line-height: 1.5; }
+  th, td { padding: 0.5rem 0.5rem; text-align: start; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: var(--text-caption); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  td.name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; max-width: 11rem; }
+  .pill { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: var(--text-caption); line-height: 1.4; font-weight: 600; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+  .pill.good { background: #dcfce7; color: var(--good); }
+  .pill.warn { background: #fef3c7; color: var(--warn); }
+  .notices { list-style: none; margin: 0; padding: 0; }
+  .notices li { padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: var(--text-small); line-height: 1.5; text-wrap: pretty; }
+  .notices li:last-child { border-bottom: 0; }
+  .bottom-nav { display: none; }
+  footer { margin-top: 1rem; font-size: var(--text-caption); line-height: 1.4; color: var(--muted); text-align: start; }
+
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+    .main { padding: 0.75rem 0.75rem 5rem; }
+    h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -0.01em; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+    .stat-value { font-size: 1.375rem; line-height: 1.2; }
+    .bottom-nav {
+      display: flex; position: fixed; left: 0; right: 0; bottom: 0;
+      background: #fff; border-top: 1px solid var(--line);
+      padding: 0.5rem 0.25rem calc(0.5rem + env(safe-area-inset-bottom));
+    }
+    .bottom-nav a {
+      flex: 1; min-width: 0; text-align: center; text-decoration: none; color: var(--ink);
+      font-size: var(--text-caption); line-height: 1.4; font-weight: 600;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .bottom-nav a[aria-current="page"] { color: var(--accent); }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" aria-label="Primary navigation">
+    <p class="eyebrow">Greenwood High</p>
+    <nav aria-label="Sections">
+      <a href="#" aria-current="page">Dashboard</a>
+      <a href="#">Students</a>
+      <a href="#">Attendance</a>
+      <a href="#">Fees</a>
+      <a href="#">Notices</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div class="title">
+        <p class="eyebrow">Greenwood High · Class 8-A · 2025–26</p>
+        <h1>Student Management Dashboard</h1>
+        <p class="muted">Attendance, profiles and analytics for Class 8-A — all in one place.</p>
+      </div>
+      <input type="search" placeholder="Search students…" aria-label="Search students">
+      <button class="bell" type="button" aria-label="Notifications, 3 unread">🔔<span class="dot" aria-hidden="true"></span></button>
+    </header>
+
+    <section class="stats" aria-label="Key figures">
+      <div class="card">
+        <span class="stat-label" title="Students">Students</span>
+        <span class="stat-value">1,248</span>
+        <span class="stat-note">12 in Class 8-A</span>
+      </div>
+      <div class="card">
+        <span class="stat-label" title="Teachers">Teachers</span>
+        <span class="stat-value">72</span>
+        <span class="stat-note">Across Greenwood High</span>
+      </div>
+      <div class="card">
+        <span class="stat-label" title="Attendance today">Attendance</span>
+        <span class="stat-value">95.2%</span>
+        <span class="stat-note">1,188 present · 60 absent</span>
+      </div>
+      <div class="card">
+        <span class="stat-label" title="Fees collected">Fees</span>
+        <span class="stat-value">84%</span>
+        <span class="stat-note">₹25.2L of ₹30L collected</span>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <section class="card" aria-labelledby="trend-title">
+        <h2 id="trend-title">Attendance trend</h2>
+        <p class="muted">Monday to Friday this week, as a percentage of students present.</p>
+        <div class="bars" role="img" aria-label="Attendance: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent">
+          <div class="bar-col"><span class="bar-value">94%</span><div class="bar" style="height: 94%"></div><span class="bar-day">Mon</span></div>
+          <div class="bar-col"><span class="bar-value">96%</span><div class="bar" style="height: 96%"></div><span class="bar-day">Tue</span></div>
+          <div class="bar-col"><span class="bar-value">93%</span><div class="bar" style="height: 93%"></div><span class="bar-day">Wed</span></div>
+          <div class="bar-col"><span class="bar-value">97%</span><div class="bar" style="height: 97%"></div><span class="bar-day">Thu</span></div>
+          <div class="bar-col"><span class="bar-value">95%</span><div class="bar" style="height: 95%"></div><span class="bar-day">Fri</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="notices-title">
+        <h2 id="notices-title">Notices</h2>
+        <ul class="notices">
+          <li>Science fair on Friday</li>
+          <li>Fee deadline 20 Nov</li>
+          <li>Parent-teacher meet 25 Nov</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="students-title">
+      <h2 id="students-title">Class 8-A — Students</h2>
+      <p class="muted">Twelve students, with attendance and marks for this term.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="name" title="Aarav Sharma">Aarav Sharma</td><td class="num">8A-01</td><td class="num">96%</td><td class="num">88%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Diya Patel">Diya Patel</td><td class="num">8A-02</td><td class="num">94%</td><td class="num">91%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Kabir Singh">Kabir Singh</td><td class="num">8A-03</td><td class="num">89%</td><td class="num">76%</td><td><span class="pill warn">Watch</span></td></tr>
+            <tr><td class="name" title="Ananya Gupta">Ananya Gupta</td><td class="num">8A-04</td><td class="num">98%</td><td class="num">93%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Rohan Mehta">Rohan Mehta</td><td class="num">8A-05</td><td class="num">92%</td><td class="num">82%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Ishita Verma">Ishita Verma</td><td class="num">8A-06</td><td class="num">97%</td><td class="num">89%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Arjun Nair">Arjun Nair</td><td class="num">8A-07</td><td class="num">90%</td><td class="num">79%</td><td><span class="pill warn">Watch</span></td></tr>
+            <tr><td class="name" title="Sneha Reddy">Sneha Reddy</td><td class="num">8A-08</td><td class="num">95%</td><td class="num">86%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Vikram Joshi">Vikram Joshi</td><td class="num">8A-09</td><td class="num">88%</td><td class="num">74%</td><td><span class="pill warn">Watch</span></td></tr>
+            <tr><td class="name" title="Priya Das">Priya Das</td><td class="num">8A-10</td><td class="num">99%</td><td class="num">95%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Aditya Rao">Aditya Rao</td><td class="num">8A-11</td><td class="num">93%</td><td class="num">84%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td class="name" title="Kavya Iyer">Kavya Iyer</td><td class="num">8A-12</td><td class="num">96%</td><td class="num">90%</td><td><span class="pill good">On track</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Fictional demo data — UI Forge Experiment 1</footer>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Primary navigation, mobile">
+  <a href="#" aria-current="page">Dashboard</a>
+  <a href="#">Students</a>
+  <a href="#">Attendance</a>
+  <a href="#">Fees</a>
+  <a href="#">Notices</a>
+</nav>
+
+<script>
+  // Typography-only variant: no layout / animation behaviour.
+  // Search filters the student table by name or roll, without moving the page.
+  var input = document.querySelector('input[type="search"]');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('tbody tr'));
+  input.addEventListener('input', function () {
+    var q = input.value.trim().toLowerCase();
+    rows.forEach(function (row) {
+      row.style.display = (!q || row.textContent.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

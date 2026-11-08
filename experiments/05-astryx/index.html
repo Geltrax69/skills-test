@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Class 8-A Dashboard · Astryx variant</title>
+<!--
+  UI Forge Experiment 1, variant 05-astryx.
+  Assigned skill: Astryx only (local-astryx, read in full before building).
+  Adaptation, stated honestly: this experiment forbids a build step / npm /
+  React, so no @astryxdesign/core package is imported here. What IS applied
+  from Astryx: the theme-neutral token system (CSS custom properties for
+  colour, spacing, radius, typography, shadow), component anatomy
+  (AppBar / Sidebar navigation / Card / Stat / Table / Badge / Progress /
+  Button, per-component import thinking — one named component per job),
+  and its accessibility contract (semantic landmarks, labelled controls,
+  4.5:1 text contrast, visible focus, table th scope, no colour-only
+  meaning). The repo's contributor skills/commands were NOT used — they
+  are for building Astryx itself, not for using it.
+-->
+<style>
+  /* Astryx theme-neutral tokens, as CSS custom properties (theme = token overrides). */
+  :root{
+    --color-bg:#f5f5f4; --color-surface:#ffffff; --color-surface-subtle:#fafaf9;
+    --color-ink:#171717; --color-ink-secondary:#44403c; --color-ink-muted:#57534e;
+    --color-border:#e7e5e4; --color-border-strong:#d6d3d1;
+    --color-accent:#1d4ed8; --color-accent-strong:#1e40af; --color-accent-soft:#dbeafe;
+    --color-success:#15803d; --color-success-soft:#dcfce7;
+    --color-warning:#b45309; --color-warning-soft:#fef3c7;
+    --color-danger:#b91c1c; --color-danger-soft:#fee2e2;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+    --space-6:24px; --space-8:32px;
+    --radius-sm:6px; --radius-md:8px; --radius-lg:12px;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.06); --shadow-md:0 4px 12px rgba(0,0,0,.08);
+    --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --font-size-sm:13px; --font-size-base:14px; --font-size-lg:16px;
+    --font-size-xl:20px; --font-size-2xl:28px;
+    --line-tight:1.2; --line-base:1.5;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--font-sans);font-size:var(--font-size-base);line-height:var(--line-base);color:var(--color-ink);background:var(--color-bg)}
+  a{color:var(--color-accent)}
+  :focus-visible{outline:3px solid var(--color-accent);outline-offset:2px;border-radius:var(--radius-sm)}
+
+  /* AppBar (Astryx AppBar / Header anatomy: title, search, actions) */
+  .appbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:var(--space-4);padding:var(--space-3) var(--space-5);background:var(--color-surface);border-bottom:1px solid var(--color-border);box-shadow:var(--shadow-sm)}
+  .appbar h1{font-size:var(--font-size-lg);line-height:var(--line-tight);margin:0;white-space:nowrap}
+  .appbar .sub{font-size:var(--font-size-sm);color:var(--color-ink-muted);white-space:nowrap}
+  .search{flex:1;max-width:420px;margin-left:auto}
+  .search label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .search input{width:100%;padding:var(--space-2) var(--space-3);font:inherit;color:var(--color-ink);background:var(--color-surface-subtle);border:1px solid var(--color-border-strong);border-radius:var(--radius-md)}
+  .search input::placeholder{color:var(--color-ink-muted)}
+  .bell{position:relative;flex:none;width:40px;height:40px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer;font-size:18px;line-height:1}
+  .bell .dot{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--color-danger);border:2px solid var(--color-surface)}
+  .avatar{flex:none;width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--font-size-sm)}
+
+  .shell{display:flex;align-items:stretch;min-height:calc(100vh - 57px)}
+  /* Sidebar navigation (Astryx Navigation anatomy: one active item, labelled) */
+  .sidebar{flex:none;width:220px;padding:var(--space-4) var(--space-3);background:var(--color-surface);border-right:1px solid var(--color-border)}
+  .sidebar nav ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+  .sidebar a{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);color:var(--color-ink-secondary);text-decoration:none;font-weight:600}
+  .sidebar a[aria-current="page"]{background:var(--color-accent-soft);color:var(--color-accent-strong)}
+  .sidebar a:hover{background:var(--color-surface-subtle)}
+  .sidebar .section-label{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--color-ink-muted);padding:var(--space-4) var(--space-3) var(--space-2);margin:0}
+
+  main{flex:1;min-width:0;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-5)}
+  .page-head h2{font-size:var(--font-size-xl);line-height:var(--line-tight);margin:0 0 var(--space-1)}
+  .page-head p{margin:0;color:var(--color-ink-muted);font-size:var(--font-size-sm)}
+
+  /* Cards (Astryx Card anatomy: surface, border, radius, shadow, header + body) */
+  .card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:var(--space-4)}
+  .card h3{font-size:var(--font-size-base);line-height:var(--line-tight);margin:0 0 var(--space-2)}
+  .card .hint{font-size:var(--font-size-sm);color:var(--color-ink-muted);margin:0}
+
+  /* Stat cards (Astryx Stat anatomy: label, value, delta, progress) */
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)}
+  .stat .label{font-size:var(--font-size-sm);font-weight:600;color:var(--color-ink-muted);margin:0}
+  .stat .value{font-size:var(--font-size-2xl);font-weight:700;line-height:var(--line-tight);margin:var(--space-1) 0}
+  .stat .delta{font-size:var(--font-size-sm);margin:0 0 var(--space-2)}
+  .stat .delta strong{color:var(--color-success)}
+  .progress{height:8px;border-radius:999px;background:var(--color-border);overflow:hidden}
+  .progress span{display:block;height:100%;background:var(--color-accent)}
+
+  .grid-2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:var(--space-4)}
+  /* Attendance chart: CSS bars, values labelled (no colour-only meaning) */
+  .chart{display:flex;align-items:flex-end;gap:var(--space-4);height:180px;padding-top:var(--space-3)}
+  .bar{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:var(--space-2);height:100%}
+  .bar .val{font-size:var(--font-size-sm);font-weight:700}
+  .bar .fill{width:100%;max-width:56px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--color-accent)}
+  .bar .day{font-size:var(--font-size-sm);color:var(--color-ink-muted)}
+
+  /* Table (Astryx Table anatomy: header row, row separators, scope, Badge for status) */
+  .table-wrap{overflow-x:auto;border:1px solid var(--color-border);border-radius:var(--radius-md)}
+  table{width:100%;min-width:560px;border-collapse:collapse;font-size:var(--font-size-base)}
+  th,td{padding:var(--space-2) var(--space-3);text-align:left;border-bottom:1px solid var(--color-border);white-space:nowrap}
+  thead th{font-size:var(--font-size-sm);color:var(--color-ink-muted);background:var(--color-surface-subtle)}
+  tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}
+  .badge-good{background:var(--color-success-soft);color:#14532d}
+  .badge-warn{background:var(--color-warning-soft);color:#78350f}
+  .badge-low{background:var(--color-danger-soft);color:#7f1d1d}
+
+  .notices{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--space-2)}
+  .notices li{display:flex;gap:var(--space-2);align-items:flex-start;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface-subtle)}
+  .notices .n-dot{flex:none;width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--color-accent)}
+  .btn{display:inline-block;padding:var(--space-2) var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+  .btn:hover{background:var(--color-accent-strong)}
+  .btn-secondary{background:var(--color-surface);color:var(--color-accent-strong);border-color:var(--color-border-strong)}
+  footer{color:var(--color-ink-muted);font-size:var(--font-size-sm);text-align:center;padding:var(--space-3) var(--space-5) var(--space-6)}
+  .bottom-nav{display:none}
+
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-2{grid-template-columns:minmax(0,1fr)}
+  }
+  @media (max-width:640px){
+    .appbar{flex-wrap:wrap;gap:var(--space-2);padding:var(--space-3)}
+    .appbar .sub{display:none}
+    .search{order:3;flex:1 1 100%;max-width:none;margin-left:0}
+    .sidebar{display:none}
+    main{padding:var(--space-3) var(--space-3) 76px}
+    .stats{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
+    .stat .value{font-size:22px}
+    /* Bottom navigation (mobile): Astryx Navigation, same items, same active state */
+    .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--color-surface);border-top:1px solid var(--color-border);box-shadow:0 -2px 8px rgba(0,0,0,.06)}
+    .bottom-nav a{flex:1;min-width:0;padding:var(--space-2) 2px var(--space-2);text-align:center;font-size:12px;font-weight:600;color:var(--color-ink-secondary);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .bottom-nav a[aria-current="page"]{color:var(--color-accent-strong)}
+    .chart{gap:var(--space-2)}
+  }
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <div>
+    <h1>Greenwood High</h1>
+    <span class="sub">Class 8-A · 2025–26</span>
+  </div>
+  <div class="search">
+    <label for="q">Search students</label>
+    <input id="q" type="search" placeholder="Search students…" autocomplete="off">
+  </div>
+  <button class="bell" type="button" aria-label="Notifications, 3 unread" aria-describedby="bell-note">
+    🔔<span class="dot" aria-hidden="true"></span>
+  </button>
+  <span id="bell-note" hidden>3 unread notices</span>
+  <span class="avatar" aria-label="Signed in as Teacher">T</span>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Primary">
+    <nav aria-label="Primary navigation">
+      <p class="section-label">Menu</p>
+      <ul>
+        <li><a href="#" aria-current="page">🏠 Dashboard</a></li>
+        <li><a href="#students">👩‍🎓 Students</a></li>
+        <li><a href="#attendance">📅 Attendance</a></li>
+        <li><a href="#analytics">📊 Analytics</a></li>
+        <li><a href="#notices">🔔 Notices</a></li>
+        <li><a href="#fees">💰 Fees</a></li>
+      </ul>
+      <p class="section-label">Class 8-A</p>
+      <ul>
+        <li><a href="#students">12 students</a></li>
+        <li><a href="#attendance">95.2% today</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <h2>Class 8-A Dashboard</h2>
+      <p>Greenwood High · 2025–26 · 12 students · 72 teachers</p>
+    </div>
+
+    <section class="stats" aria-label="School statistics">
+      <article class="card stat">
+        <p class="label">Students</p>
+        <p class="value">1,248</p>
+        <p class="delta"><strong>▲ 3.1%</strong> vs last term</p>
+        <div class="progress" role="img" aria-label="Students: 1,248 total"><span style="width:100%"></span></div>
+      </article>
+      <article class="card stat">
+        <p class="label">Teachers</p>
+        <p class="value">72</p>
+        <p class="delta"><strong>▲ 2</strong> joined this term</p>
+        <div class="progress" role="img" aria-label="Teachers: 72 total"><span style="width:72%"></span></div>
+      </article>
+      <article class="card stat" id="attendance">
+        <p class="label">Attendance today</p>
+        <p class="value">95.2%</p>
+        <p class="delta"><strong>1,188 present</strong> · 60 absent</p>
+        <div class="progress" role="img" aria-label="Attendance today: 95.2 percent"><span style="width:95.2%"></span></div>
+      </article>
+      <article class="card stat" id="fees">
+        <p class="label">Fees collected</p>
+        <p class="value">84%</p>
+        <p class="delta"><strong>₹25.2L</strong> of ₹30L</p>
+        <div class="progress" role="img" aria-label="Fees collected: 84 percent, 25.2 lakh of 30 lakh rupees"><span style="width:84%"></span></div>
+      </article>
+    </section>
+
+    <div class="grid-2">
+      <section class="card" id="analytics" aria-labelledby="trend-h">
+        <h3 id="trend-h">Attendance trend — this week</h3>
+        <p class="hint">Mon–Fri attendance, %. Average 95.0%.</p>
+        <div class="chart" role="img" aria-label="Attendance trend: Monday 94, Tuesday 96, Wednesday 93, Thursday 97, Friday 95 percent">
+          <div class="bar"><span class="val">94%</span><div class="fill" style="height:94%"></div><span class="day">Mon</span></div>
+          <div class="bar"><span class="val">96%</span><div class="fill" style="height:96%"></div><span class="day">Tue</span></div>
+          <div class="bar"><span class="val">93%</span><div class="fill" style="height:93%"></div><span class="day">Wed</span></div>
+          <div class="bar"><span class="val">97%</span><div class="fill" style="height:97%"></div><span class="day">Thu</span></div>
+          <div class="bar"><span class="val">95%</span><div class="fill" style="height:95%"></div><span class="day">Fri</span></div>
+        </div>
+        <p class="hint" style="margin-top:12px">Best day: Thursday, 97%. Lowest: Wednesday, 93%.</p>
+      </section>
+
+      <section class="card" id="notices" aria-labelledby="notices-h">
+        <h3 id="notices-h">Notices</h3>
+        <ul class="notices">
+          <li><span class="n-dot" aria-hidden="true"></span><span><strong>Science fair on Friday</strong><br><span class="hint">All Class 8-A students to bring their projects.</span></span></li>
+          <li><span class="n-dot" aria-hidden="true"></span><span><strong>Fee deadline 20 Nov</strong><br><span class="hint">₹30L total, ₹25.2L collected so far (84%).</span></span></li>
+          <li><span class="n-dot" aria-hidden="true"></span><span><strong>Parent-teacher meet 25 Nov</strong><br><span class="hint">Slots will be shared with parents this week.</span></span></li>
+        </ul>
+        <p style="margin:12px 0 0"><a class="btn btn-secondary" href="#notices">View all notices</a></p>
+      </section>
+    </div>
+
+    <section class="card" id="students" aria-labelledby="students-h">
+      <h3 id="students-h">Class 8-A students — 12 students</h3>
+      <p class="hint">Attendance and marks are for this term. Status is labelled in text, not colour alone.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody id="student-rows">
+            <tr><th scope="row">Aarav Sharma</th><td>8A-01</td><td>96%</td><td>88%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Diya Patel</th><td>8A-02</td><td>94%</td><td>91%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Kabir Singh</th><td>8A-03</td><td>89%</td><td>76%</td><td><span class="badge badge-warn">Watch</span></td></tr>
+            <tr><th scope="row">Ananya Gupta</th><td>8A-04</td><td>98%</td><td>93%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Rohan Mehta</th><td>8A-05</td><td>92%</td><td>82%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Ishita Verma</th><td>8A-06</td><td>97%</td><td>89%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Arjun Nair</th><td>8A-07</td><td>90%</td><td>79%</td><td><span class="badge badge-warn">Watch</span></td></tr>
+            <tr><th scope="row">Sneha Reddy</th><td>8A-08</td><td>95%</td><td>86%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Vikram Joshi</th><td>8A-09</td><td>88%</td><td>74%</td><td><span class="badge badge-low">Needs support</span></td></tr>
+            <tr><th scope="row">Priya Das</th><td>8A-10</td><td>99%</td><td>95%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Aditya Rao</th><td>8A-11</td><td>93%</td><td>84%</td><td><span class="badge badge-good">Good</span></td></tr>
+            <tr><th scope="row">Kavya Iyer</th><td>8A-12</td><td>96%</td><td>90%</td><td><span class="badge badge-good">Good</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin:12px 0 0"><button class="btn" type="button" id="add-btn">Add student</button></p>
+    </section>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Primary navigation, mobile">
+  <a href="#" aria-current="page">Dashboard</a>
+  <a href="#students">Students</a>
+  <a href="#attendance">Attendance</a>
+  <a href="#notices">Notices</a>
+</nav>
+
+<footer>Fictional demo data — UI Forge Experiment 1</footer>
+
+<script>
+  // Search filters the student table by name or roll (progressive enhancement only).
+  (function () {
+    var q = document.getElementById('q');
+    var rows = document.querySelectorAll('#student-rows tr');
+    if (!q) return;
+    q.addEventListener('input', function () {
+      var term = q.value.trim().toLowerCase();
+      rows.forEach(function (row) {
+        row.style.display = (!term || row.textContent.toLowerCase().indexOf(term) !== -1) ? '' : 'none';
+      });
+    });
+    var btn = document.getElementById('add-btn');
+    if (btn) btn.addEventListener('click', function () {
+      btn.textContent = 'Add student — demo only, no data saved';
+    });
+  })();
+</script>
+</body>
+</html>

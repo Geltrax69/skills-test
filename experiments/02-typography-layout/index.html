@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* Better Typography: one system stack, semantic scale, unitless line-heights.
+     Scale (rem): display 1.75 / heading 1.25 / section 1 / body 1 / small 0.8125.
+     Weights are 400+ below 18px; 650 only at 16px and up. */
+  :root {
+    --ink: #1a1d21;
+    --ink-soft: #4b5158;
+    --ink-faint: #6b7178;
+    --line: #e3e6e8;
+    --surface: #ffffff;
+    --surface-soft: #f5f6f7;
+    --accent: #1d4ed8;
+    --accent-soft: #e8eefc;
+    --good: #15803d;
+    --warn: #b45309;
+    --radius: 12px;
+    --gap-in: 0.5rem;    /* 8px inside a group */
+    --gap-group: 1rem;   /* 16px between groups (2x in-group) */
+    --gap-section: 1.5rem;
+    --pad: 1rem;         /* 16px layout step */
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-padding-block-start: 4.5rem;
+  }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--surface-soft);
+    text-align: start;
+  }
+  h1, h2, h3, p { margin: 0; }
+  /* Typography: headings descend with level, tight tracking on large text only. */
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  h2 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: 1rem;
+    line-height: 1.3;
+    font-weight: 650;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  .eyebrow {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    font-weight: 650;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .muted { color: var(--ink-soft); font-size: 0.875rem; line-height: 1.5; }
+  /* Tabular numbers on every changing value: stats, table columns, chart values. */
+  .num { font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); text-underline-position: from-font; text-decoration-thickness: from-font; }
+
+  /* Layout: logical properties throughout; shared 16px edges; DOM order = visual order. */
+  .app {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 100dvh;
+  }
+  header.topbar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap-group);
+    padding-inline: var(--pad);
+    padding-block: 0.75rem;
+    background: var(--surface);
+    border-block-end: 1px solid var(--line);
+  }
+  .brand { min-width: 0; }
+  .brand .eyebrow { display: block; }
+  .search {
+    flex: 1 1 12rem;
+    min-width: 0;
+    display: flex;
+    gap: var(--gap-in);
+    align-items: center;
+  }
+  .search input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 1rem; /* 16px on mobile: iOS will not zoom */
+    line-height: 1.5;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  /* Controls are distinct from content: bordered shape, not bare text. */
+  .icon-btn {
+    flex: none;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+    position: relative;
+  }
+  .icon-btn .dot {
+    position: absolute;
+    inset-block-start: 0.375rem;
+    inset-inline-end: 0.375rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #dc2626;
+  }
+  nav.sidebar {
+    display: none;
+  }
+  main {
+    min-width: 0;
+    padding-inline: var(--pad);
+    padding-block: var(--gap-section);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-section);
+  }
+  .intro { max-width: 65ch; } /* measure cap, 60–75ch */
+  .intro p { margin-block-start: var(--gap-in); }
+
+  section.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--pad);
+    min-width: 0;
+  }
+  .card > h2, .card > h3 { margin-block-end: var(--gap-in); }
+  .card > .muted { margin-block-end: var(--gap-group); }
+
+  /* Stat cards: group spacing 16px between, 8px inside; minmax(0,1fr) so long
+     values never force a track wider than the viewport. */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap-group);
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--pad);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-in);
+  }
+  .stat .value {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    overflow-wrap: break-word;
+  }
+  .stat .label {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    font-weight: 650;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    overflow-wrap: break-word;
+  }
+  .stat .delta { font-size: 0.875rem; line-height: 1.5; color: var(--ink-soft); overflow-wrap: break-word; }
+  .stat .delta strong { color: var(--good); font-weight: 650; }
+
+  /* Chart: CSS bars, min-height not fixed height; values tabular. */
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--gap-group);
+    min-height: 11rem;
+    padding-block-start: var(--gap-group);
+  }
+  .bar-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-in);
+  }
+  .bar-col .bar-value { font-size: 0.875rem; line-height: 1.4; font-weight: 650; white-space: nowrap; }
+  .bar {
+    width: 100%;
+    max-width: 3rem;
+    min-height: 0.5rem;
+    background: var(--accent);
+    border-radius: 6px 6px 0 0;
+  }
+  .bar-col.today .bar { background: #0f2f7a; }
+  .bar-col .bar-day { font-size: 0.875rem; line-height: 1.4; color: var(--ink-soft); white-space: nowrap; }
+
+  /* Table: scrolls inside its card (hint at hidden content: the wrapper
+     scrolls, the card edge + a visible "scroll for more" cue). */
+  .table-wrap {
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--pad));
+    padding-inline: var(--pad);
+    scrollbar-width: thin;
+  }
+  .scroll-hint { font-size: 0.8125rem; line-height: 1.4; color: var(--ink-faint); }
+  table {
+    width: 100%;
+    min-width: 40rem;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  th, td {
+    text-align: start;
+    padding: 0.625rem 0.75rem;
+    border-block-end: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  th {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    font-weight: 650;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  td.num, th.num { text-align: end; font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-block-end: 0; }
+  .pill {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .pill.good { background: #dcfce7; color: var(--good); }
+  .pill.warn { background: #fef3c7; color: var(--warn); }
+
+  .notices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--gap-group); }
+  .notices li {
+    display: flex;
+    gap: var(--gap-in);
+    align-items: flex-start;
+    padding-block-end: var(--gap-group);
+    border-block-end: 1px solid var(--line);
+  }
+  .notices li:last-child { padding-block-end: 0; border-block-end: 0; }
+  .notices .bullet { flex: none; width: 0.5rem; height: 0.5rem; margin-block-start: 0.5rem; border-radius: 50%; background: var(--accent); }
+  .notices p { max-width: 65ch; }
+
+  footer {
+    padding-inline: var(--pad);
+    padding-block: var(--gap-group);
+    padding-block-end: calc(var(--gap-group) + env(safe-area-inset-bottom, 0px));
+    color: var(--ink-faint);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-align: start;
+  }
+  /* Mobile bottom nav: controls float inside safe-area margins, content bleeds. */
+  nav.bottomnav {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 10;
+    display: flex;
+    gap: var(--gap-in);
+    padding-inline: var(--pad);
+    padding-block: 0.625rem calc(0.625rem + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-block-start: 1px solid var(--line);
+  }
+  nav.bottomnav a {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    font-weight: 650;
+    padding: 0.5rem 0.25rem;
+    border-radius: 8px;
+    overflow-wrap: break-word;
+  }
+  nav.bottomnav a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+
+  /* Hold the expanded layout until it breaks: sidebar + 4-col stats only
+     when the content actually fits. */
+  @media (min-width: 56rem) {
+    .app { grid-template-columns: 15rem minmax(0, 1fr); }
+    header.topbar { grid-column: 1 / -1; }
+    nav.sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-in);
+      padding: var(--pad);
+      border-inline-end: 1px solid var(--line);
+      background: var(--surface);
+    }
+    nav.sidebar a {
+      display: block;
+      padding: 0.625rem 0.75rem;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--ink-soft);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      font-weight: 650;
+    }
+    nav.sidebar a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+    nav.bottomnav { display: none; }
+    .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    main { padding: var(--gap-section); }
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: var(--gap-section);
+      align-items: start;
+    }
+  }
+  @media (min-width: 40rem) and (max-width: 55.99rem) {
+    .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="eyebrow">Greenwood High · 2025–26</span>
+      <h1>Class 8-A Dashboard</h1>
+    </div>
+    <div class="search">
+      <label class="visually-hidden" for="search" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;">Search students</label>
+      <input id="search" type="search" placeholder="Search students…" aria-label="Search students">
+    </div>
+    <button class="icon-btn" type="button" aria-label="Notifications, 3 unread">🔔<span class="dot" aria-hidden="true"></span></button>
+  </header>
+
+  <nav class="sidebar" aria-label="Primary">
+    <a href="#" aria-current="page">Dashboard</a>
+    <a href="#">Students</a>
+    <a href="#">Attendance</a>
+    <a href="#">Fees</a>
+    <a href="#">Notices</a>
+    <a href="#">Settings</a>
+  </nav>
+
+  <main>
+    <div class="intro">
+      <p class="eyebrow">Welcome back</p>
+      <h2>Today at Greenwood High</h2>
+      <p class="muted">Attendance, fees and Class 8-A at a glance. Everything below uses the same fictional demo data for every variant of this experiment.</p>
+    </div>
+
+    <div class="stats" role="group" aria-label="School statistics">
+      <div class="stat">
+        <span class="label">Students</span>
+        <span class="value num">1,248</span>
+        <span class="delta">Class 8-A: <strong class="num">12</strong> students</span>
+      </div>
+      <div class="stat">
+        <span class="label">Teachers</span>
+        <span class="value num">72</span>
+        <span class="delta">Across all classes</span>
+      </div>
+      <div class="stat">
+        <span class="label">Attendance</span>
+        <span class="value num">95.2%</span>
+        <span class="delta"><strong class="num">1,188</strong> present · <span class="num">60</span> absent</span>
+      </div>
+      <div class="stat">
+        <span class="label">Fees collected</span>
+        <span class="value num">84%</span>
+        <span class="delta">₹<span class="num">25.2L</span> of ₹<span class="num">30L</span></span>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <section class="card" aria-labelledby="trend-heading">
+        <h2 id="trend-heading">Attendance trend</h2>
+        <p class="muted">This week, Monday to Friday. Friday is today.</p>
+        <div class="chart" role="img" aria-label="Attendance: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95.">
+          <div class="bar-col"><span class="bar-value num">94%</span><div class="bar" style="height: 94%"></div><span class="bar-day">Mon</span></div>
+          <div class="bar-col"><span class="bar-value num">96%</span><div class="bar" style="height: 96%"></div><span class="bar-day">Tue</span></div>
+          <div class="bar-col"><span class="bar-value num">93%</span><div class="bar" style="height: 93%"></div><span class="bar-day">Wed</span></div>
+          <div class="bar-col"><span class="bar-value num">97%</span><div class="bar" style="height: 97%"></div><span class="bar-day">Thu</span></div>
+          <div class="bar-col today"><span class="bar-value num">95%</span><div class="bar" style="height: 95%"></div><span class="bar-day">Fri</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="notices-heading">
+        <h2 id="notices-heading">Notices</h2>
+        <p class="muted">Three notices for this week.</p>
+        <ul class="notices">
+          <li><span class="bullet" aria-hidden="true"></span><p>Science fair on Friday</p></li>
+          <li><span class="bullet" aria-hidden="true"></span><p>Fee deadline 20 Nov</p></li>
+          <li><span class="bullet" aria-hidden="true"></span><p>Parent-teacher meet 25 Nov</p></li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="students-heading">
+      <h2 id="students-heading">Class 8-A students</h2>
+      <p class="muted">Twelve students. Attendance and marks are percentages.</p>
+      <p class="scroll-hint">Scroll sideways inside this card to see all columns →</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col" class="num">Attendance</th><th scope="col" class="num">Marks</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Aarav Sharma</td><td>8A-01</td><td class="num">96%</td><td class="num">88%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Diya Patel</td><td>8A-02</td><td class="num">94%</td><td class="num">91%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Kabir Singh</td><td>8A-03</td><td class="num">89%</td><td class="num">76%</td><td><span class="pill warn">Watch</span></td></tr>
+            <tr><td>Ananya Gupta</td><td>8A-04</td><td class="num">98%</td><td class="num">93%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Rohan Mehta</td><td>8A-05</td><td class="num">92%</td><td class="num">82%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Ishita Verma</td><td>8A-06</td><td class="num">97%</td><td class="num">89%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Arjun Nair</td><td>8A-07</td><td class="num">90%</td><td class="num">79%</td><td><span class="pill warn">Watch</span></td></tr>
+            <tr><td>Sneha Reddy</td><td>8A-08</td><td class="num">95%</td><td class="num">86%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Vikram Joshi</td><td>8A-09</td><td class="num">88%</td><td class="num">74%</td><td><span class="pill warn">Watch</span></td></tr>
+            <tr><td>Priya Das</td><td>8A-10</td><td class="num">99%</td><td class="num">95%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Aditya Rao</td><td>8A-11</td><td class="num">93%</td><td class="num">84%</td><td><span class="pill good">On track</span></td></tr>
+            <tr><td>Kavya Iyer</td><td>8A-12</td><td class="num">96%</td><td class="num">90%</td><td><span class="pill good">On track</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>Fictional demo data — UI Forge Experiment 1</footer>
+
+  <nav class="bottomnav" aria-label="Primary">
+    <a href="#" aria-current="page">Dashboard</a>
+    <a href="#">Students</a>
+    <a href="#">Attendance</a>
+    <a href="#">Fees</a>
+  </nav>
+</div>
+<script>
+  // Search filters the student table by name or roll. No external code.
+  (function () {
+    var input = document.getElementById('search');
+    var rows = Array.prototype.slice.call(document.querySelectorAll('tbody tr'));
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      rows.forEach(function (row) {
+        row.style.display = !q || row.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+      });
+    });
+  })();
+</script>
+</body>
+</html>

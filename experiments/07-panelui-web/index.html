@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard · PanelUI web</title>
+<style>
+/* PanelUI web, adapted to plain HTML/CSS (no React build step).
+   Adaptation note (see SKILLS_ACTUALLY_READ.md): PanelUI web is React +
+   Tailwind v4 on shadcn/ui semantic tokens. Here each component is
+   re-expressed in HTML/CSS using the same semantic token names and the
+   same part structure (Frame.Header/Panel/Row, Card.Header/Content,
+   Stat.Label/Value/Badge, Kpi.Progress, Table.Header/Body, NavRail,
+   Badge, Button, Input.Group). Colour is a ROLE, never a value:
+   primary / info / success / warning / destructive — the roles below
+   are the only colours a component itself may carry. */
+:root{
+  --background:#ffffff; --foreground:#171717; --muted:#f5f5f4; --muted-foreground:#6b7280;
+  --border:#e5e5e5; --primary:#171717; --primary-foreground:#ffffff;
+  --success:#15803d; --success-bg:#dcfce7; --info:#1d4ed8; --info-bg:#dbeafe;
+  --warning:#b45309; --warning-bg:#fef3c7; --destructive:#b91c1c; --destructive-bg:#fee2e2;
+  --radius:12px; --radius-sm:8px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--background);color:var(--foreground);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input{font:inherit}
+:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+
+/* ---- App shell: NavRail (expanded 15rem, collapsed 3.5rem) + content ---- */
+.shell{display:flex;min-height:100vh}
+/* NavRail: <nav>, tonal variant, active pill + accent bar, aria-label="Main" */
+.nav-rail{width:15rem;flex:0 0 15rem;min-height:100vh;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--background);padding:12px 10px}
+.nav-rail-header{display:flex;align-items:center;justify-content:space-between;padding:2px 6px 12px}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-.01em;min-width:0}
+.nav-brand-mark{flex:0 0 36px;width:36px;height:36px;border-radius:9px;background:var(--primary);color:var(--primary-foreground);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.nav-brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-trigger{flex:0 0 32px;width:32px;height:32px;border-radius:8px;border:1px solid var(--border);color:var(--muted-foreground);font-size:15px}
+.nav-trigger:hover{background:var(--muted)}
+.nav-group-label{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground);padding:10px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 10px;border-radius:9px;
+  color:var(--foreground);font-size:14px;position:relative;white-space:nowrap}
+.nav-item:hover{background:var(--muted)}
+.nav-item .ico{flex:0 0 20px;text-align:center;font-size:16px}
+.nav-item .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.nav-item.active{background:#f0f0ef;font-weight:600}
+.nav-item.active::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--primary)}
+.nav-item .cnt{font-size:11px;font-weight:600;background:var(--muted);border-radius:999px;padding:1px 7px}
+.nav-separator{border:0;border-top:1px solid var(--border);margin:10px 4px}
+.nav-footer{margin-top:auto}
+/* Badge: variant = role; dot for a state still changing */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;line-height:1;
+  padding:4px 8px;border-radius:999px;white-space:nowrap}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge-success{color:var(--success);background:var(--success-bg)}
+.badge-info{color:var(--info);background:var(--info-bg)}
+.badge-warning{color:var(--warning);background:var(--warning-bg)}
+.badge-destructive{color:var(--destructive);background:var(--destructive-bg)}
+.badge-default{color:var(--primary-foreground);background:var(--primary)}
+.badge-outline{color:var(--muted-foreground);background:transparent;border:1px solid var(--border)}
+
+/* ---- Main + Scroll Header ---- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;background:var(--background);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:16px;padding:12px 24px}
+.topbar h1{font-size:18px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.topbar .sub{font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.topbar .spacer{flex:1}
+/* Input.Group: one box round input + addons, focus ring round all of it */
+.input-group{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;
+  background:var(--background);padding:0 10px;height:38px;min-width:0;width:320px;max-width:100%}
+.input-group:focus-within{outline:2px solid var(--info);outline-offset:1px}
+.input-group .addon{color:var(--muted-foreground);font-size:13px;white-space:nowrap;flex:0 0 auto}
+.input-group kbd{font-family:inherit;font-size:11px;color:var(--muted-foreground);background:var(--muted);border-radius:5px;padding:2px 6px}
+.input-group input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:9px;font-weight:600;
+  font-size:14px;padding:0 16px;height:38px;border:1px solid transparent;white-space:nowrap}
+.btn-default{background:var(--primary);color:var(--primary-foreground)} /* one default button per view */
+.btn-outline{border-color:var(--border);background:var(--background)}
+.btn-icon{width:38px;padding:0;position:relative}
+.btn-icon .ping{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--destructive);border:2px solid var(--background)}
+.content{padding:24px;display:flex;flex-direction:column;gap:20px;max-width:1180px;width:100%;margin:0 auto}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.page-head h2{font-size:24px;font-weight:700;letter-spacing:-.02em}
+.page-head p{color:var(--muted-foreground);font-size:13px;margin-top:2px}
+
+/* ---- Card: one thing, Header / Content / Footer(panel) ---- */
+.card{border:1px solid var(--border);border-radius:var(--radius);background:var(--background);min-width:0}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px 0}
+.card-header h3{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.card-header .desc{font-size:12px;color:var(--muted-foreground);margin-top:2px}
+.card-action{font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.card-content{padding:16px 18px}
+.card-footer{border-top:1px solid var(--border);background:var(--muted);border-radius:0 0 var(--radius) var(--radius);
+  padding:12px 18px;font-size:12px;color:var(--muted-foreground)}
+
+/* ---- Stat / Kpi stat cards ---- */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+/* Stat: Label over Value (size lg), Unit, Badge trailing. Kpi.Progress under the two % stats. */
+.stat-card{display:flex;flex-direction:column;gap:10px}
+.stat-row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.stat-label{font-size:12px;color:var(--muted-foreground);font-weight:500}
+.stat-value{font-size:36px;line-height:1;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat-value .unit{font-size:18px;font-weight:600;color:var(--muted-foreground);margin-left:2px}
+.stat-desc{font-size:12px;color:var(--muted-foreground)}
+/* Kpi.Progress: bar towards a target, value = % of 100 */
+.progress{height:6px;border-radius:999px;background:var(--muted);overflow:hidden}
+.progress > span{display:block;height:100%;border-radius:999px}
+.progress-primary > span{background:var(--primary)}
+.progress-success > span{background:var(--success)}
+.progress-warning > span{background:var(--warning)}
+
+/* ---- Two-column grid ---- */
+.grid2{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:16px;align-items:start}
+
+/* ---- Frame: muted band + title strip round an inner bordered card ---- */
+.frame{background:var(--muted);border-radius:var(--radius);padding:10px}
+.frame-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:6px 10px 10px}
+.frame-header h3{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground)}
+.frame-panel{background:var(--background);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.frame-row{display:flex;align-items:center;gap:12px;padding:12px 14px;min-width:0}
+.frame-row + .frame-row{border-top:1px solid var(--border)}
+.frame-media{flex:0 0 32px;width:32px;height:32px;border-radius:8px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:15px}
+.frame-content{flex:1;min-width:0}
+.frame-content p{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frame-content small{display:block;font-size:12px;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frame-actions{flex:0 0 auto}
+
+/* ---- BarChart: value axis includes zero; Grid, Bar (color=role), XAxis, YAxis ---- */
+.chart-wrap{display:flex;gap:10px;align-items:stretch}
+.y-axis{display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--muted-foreground);
+  text-align:right;padding:2px 0 20px;font-variant-numeric:tabular-nums}
+.bars{flex:1;min-width:0;display:flex;align-items:flex-end;gap:14px;height:180px;
+  border-bottom:1px solid var(--border);
+  background:repeating-linear-gradient(to top,transparent 0,transparent 44px,var(--border) 44px,var(--border) 45px)}
+.bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar-col .bar{width:100%;max-width:44px;border-radius:4px 4px 0 0;background:var(--primary);height:0;transition:height .7s ease}
+.bar-col.today .bar{background:var(--success)} /* color="success": good news, today is the highest day */
+.bar-col .val{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.bar-col .day{font-size:12px;color:var(--muted-foreground)}
+.chart-readout{font-size:12px;color:var(--muted-foreground);margin-top:10px}
+.chart-readout b{color:var(--foreground)}
+@media (prefers-reduced-motion:reduce){.bar-col .bar{transition:none}}
+
+/* ---- Table: numbers align="end", header pinned, scrolls inside its card ---- */
+.table-scroll{overflow:auto;max-height:340px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+caption{text-align:left;font-size:12px;color:var(--muted-foreground);padding:10px 12px}
+thead th{position:sticky;top:0;background:var(--background);text-align:left;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted-foreground);padding:10px 12px;border-bottom:1px solid var(--border);z-index:1}
+thead th.num, tbody td.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr:nth-child(even){background:#fafafa}
+tbody tr:last-child td{border-bottom:0}
+.student{display:flex;align-items:center;gap:10px;min-width:0}
+.avatar{flex:0 0 32px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;background:var(--info)} /* Avatar: initials in a colour of their own */
+.student .nm{font-weight:600}
+.student .rl{font-size:12px;color:var(--muted-foreground)}
+.meter{display:inline-block;width:72px;height:6px;border-radius:999px;background:var(--muted);vertical-align:middle;margin-right:8px;overflow:hidden}
+.meter > span{display:block;height:100%}
+.meter-success > span{background:var(--success)}
+.meter-info > span{background:var(--info)}
+.meter-warning > span{background:var(--warning)}
+
+/* ---- Bottom nav (mobile): NavRail folded to icons, app's decision ---- */
+.bottom-nav{display:none}
+footer{padding:8px 24px 24px;color:var(--muted-foreground);font-size:12px;text-align:center}
+
+@media (max-width:1020px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:768px){
+  .nav-rail{display:none}
+  .topbar{padding:10px 14px;gap:10px;flex-wrap:wrap}
+  .topbar h1{font-size:16px}
+  .topbar .sub{display:none}
+  .input-group{order:3;width:100%}
+  .content{padding:14px;gap:14px}
+  .bottom-nav{display:flex;position:sticky;bottom:0;z-index:20;background:var(--background);
+    border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .bottom-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
+    font-size:11px;color:var(--muted-foreground);padding:4px 2px;border-radius:8px}
+  .bottom-nav a .ico{font-size:18px}
+  .bottom-nav a.active{color:var(--foreground);font-weight:700}
+  .main{padding-bottom:0}
+}
+@media (max-width:420px){
+  .stats{grid-template-columns:minmax(0,1fr)}
+  .stat-value{font-size:32px}
+  .page-head h2{font-size:20px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- NavRail: aria-label="Main", variant="tonal", expandedWidth 15rem, active pill on Overview -->
+  <nav class="nav-rail" aria-label="Main" id="navRail">
+    <div class="nav-rail-header">
+      <a class="nav-brand" href="#" aria-label="Greenwood High"><span class="nav-brand-mark">GH</span><span>Greenwood High</span></a>
+      <button class="nav-trigger" id="navTrigger" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">‹</button>
+    </div>
+    <p class="nav-group-label">Workspace</p>
+    <a class="nav-item active" href="#overview" aria-current="page"><span class="ico" aria-hidden="true">▦</span><span class="lbl">Overview</span></a>
+    <a class="nav-item" href="#students"><span class="ico" aria-hidden="true">◉</span><span class="lbl">Students</span><span class="cnt">12</span></a>
+    <a class="nav-item" href="#attendance"><span class="ico" aria-hidden="true">✓</span><span class="lbl">Attendance</span></a>
+    <a class="nav-item" href="#fees"><span class="ico" aria-hidden="true">₹</span><span class="lbl">Fees</span></a>
+    <a class="nav-item" href="#notices"><span class="ico" aria-hidden="true">✉</span><span class="lbl">Notices</span><span class="cnt">3</span></a>
+    <hr class="nav-separator">
+    <div class="nav-footer">
+      <a class="nav-item" href="#settings"><span class="ico" aria-hidden="true">⚙</span><span class="lbl">Settings</span></a>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- Scroll Header: title hands over to the sticky top bar -->
+    <header class="topbar">
+      <div>
+        <h1>Greenwood High</h1>
+        <p class="sub">Class 8-A · 2025–26</p>
+      </div>
+      <div class="spacer"></div>
+      <div class="input-group" role="search">
+        <span class="addon" aria-hidden="true">⌕</span>
+        <input id="search" type="search" placeholder="Search students" aria-label="Search students">
+        <span class="addon"><kbd>⌘K</kbd></span>
+      </div>
+      <button class="btn btn-outline btn-icon" id="bell" aria-label="Notifications, 3 unread" title="Notifications">🔔<span class="ping" aria-hidden="true"></span></button>
+      <button class="btn btn-default" id="addBtn" type="button">Add student</button>
+    </header>
+
+    <main class="content" id="overview">
+      <div class="page-head">
+        <div>
+          <h2>Class 8-A overview</h2>
+          <p>Attendance, students, fees and notices for today.</p>
+        </div>
+        <span class="badge badge-success"><span class="dot"></span>Live · today</span>
+      </div>
+
+      <!-- Stat cards: Stat.Label / Stat.Value / Stat.Badge, Kpi.Progress for the two % stats -->
+      <section class="stats" aria-label="Key figures">
+        <article class="card stat-card">
+          <div class="card-header"><div><p class="stat-label">Students</p></div><span class="badge badge-default">1,248</span></div>
+          <div class="card-content">
+            <div class="stat-row"><p class="stat-value">1,248</p></div>
+            <p class="stat-desc">1,188 present today · Class 8-A has 12 students</p>
+          </div>
+        </article>
+        <article class="card stat-card">
+          <div class="card-header"><div><p class="stat-label">Teachers</p></div><span class="badge badge-info">Staff</span></div>
+          <div class="card-content">
+            <div class="stat-row"><p class="stat-value">72</p></div>
+            <p class="stat-desc">Across Greenwood High, 2025–26</p>
+          </div>
+        </article>
+        <article class="card stat-card" id="attendance">
+          <div class="card-header"><div><p class="stat-label">Attendance today</p></div><span class="badge badge-success">95.2%</span></div>
+          <div class="card-content">
+            <div class="stat-row"><p class="stat-value">95.2<span class="unit">%</span></p></div>
+            <p class="stat-desc">1,188 present · 60 absent</p>
+            <div class="progress progress-success" role="progressbar" aria-label="Attendance today" aria-valuenow="95.2" aria-valuemin="0" aria-valuemax="100"><span style="width:95.2%"></span></div>
+          </div>
+        </article>
+        <article class="card stat-card" id="fees">
+          <div class="card-header"><div><p class="stat-label">Fees collected</p></div><span class="badge badge-warning">84%</span></div>
+          <div class="card-content">
+            <div class="stat-row"><p class="stat-value">84<span class="unit">%</span></p></div>
+            <p class="stat-desc">₹25.2L of ₹30L</p>
+            <div class="progress progress-warning" role="progressbar" aria-label="Fees collected" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100"><span style="width:84%"></span></div>
+          </div>
+        </article>
+      </section>
+
+      <div class="grid2">
+        <!-- BarChart in a Frame (band): Header title/value/caption, Grid, Bar color=primary, XAxis, YAxis, Tooltip readout -->
+        <section class="frame" aria-label="Attendance trend">
+          <div class="frame-header"><h3>Attendance trend</h3><span class="card-action">Mon – Fri · this week</span></div>
+          <div class="frame-panel">
+            <div class="card-content">
+              <p style="font-size:12px;color:var(--muted-foreground)">This week</p>
+              <p style="font-size:28px;font-weight:700;letter-spacing:-.02em" id="chartValue">95%</p>
+              <p style="font-size:12px;color:var(--muted-foreground)">Friday · 95% · weekly range 93–97%</p>
+              <div class="chart-wrap" style="margin-top:14px">
+                <div class="y-axis" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+                <div class="bars" id="bars" role="img" aria-label="Attendance trend, Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95">
+                  <div class="bar-col" data-day="Mon" data-val="94"><span class="val">94%</span><span class="bar" data-h="94"></span><span class="day">Mon</span></div>
+                  <div class="bar-col" data-day="Tue" data-val="96"><span class="val">96%</span><span class="bar" data-h="96"></span><span class="day">Tue</span></div>
+                  <div class="bar-col" data-day="Wed" data-val="93"><span class="val">93%</span><span class="bar" data-h="93"></span><span class="day">Wed</span></div>
+                  <div class="bar-col" data-day="Thu" data-val="97"><span class="val">97%</span><span class="bar" data-h="97"></span><span class="day">Thu</span></div>
+                  <div class="bar-col today" data-day="Fri" data-val="95"><span class="val">95%</span><span class="bar" data-h="95"></span><span class="day">Fri</span></div>
+                </div>
+              </div>
+              <p class="chart-readout" id="chartReadout"><b>Friday: 95%</b> — hover a bar to read its day.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Frame: Notices as rows (Media / Content / Actions) -->
+        <section class="frame" id="notices" aria-label="Notices">
+          <div class="frame-header"><h3>Notices</h3><span class="card-action">3 unread</span></div>
+          <div class="frame-panel">
+            <div class="frame-row">
+              <span class="frame-media" aria-hidden="true">⚗</span>
+              <div class="frame-content"><p>Science fair on Friday</p><small>All Class 8-A students · bring your project</small></div>
+              <span class="frame-actions"><span class="badge badge-info">Fri</span></span>
+            </div>
+            <div class="frame-row">
+              <span class="frame-media" aria-hidden="true">₹</span>
+              <div class="frame-content"><p>Fee deadline 20 Nov</p><small>₹25.2L of ₹30L collected so far</small></div>
+              <span class="frame-actions"><span class="badge badge-warning">20 Nov</span></span>
+            </div>
+            <div class="frame-row">
+              <span class="frame-media" aria-hidden="true">◉</span>
+              <div class="frame-content"><p>Parent-teacher meet 25 Nov</p><small>Class 8-A · book a slot with your teacher</small></div>
+              <span class="frame-actions"><span class="badge badge-default">25 Nov</span></span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Table in a Card: Table.Header pinned, numbers align="end", striped, framed, scrolls inside its card -->
+      <section class="card" id="students" aria-label="Class 8-A students">
+        <div class="card-header">
+          <div><h3>Class 8-A students</h3><p class="desc">12 students · attendance and marks, this term</p></div>
+          <span class="card-action">Sorted by roll</span>
+        </div>
+        <div class="card-content">
+          <div class="table-scroll">
+            <table>
+              <caption>Class 8-A — name, roll, attendance %, marks %</caption>
+              <thead><tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col" class="num">Attendance</th><th scope="col" class="num">Marks</th><th scope="col">Status</th></tr></thead>
+              <tbody id="studentRows">
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">AS</span><span><span class="nm">Aarav Sharma</span><br><span class="rl">8A-01</span></span></span></td><td>8A-01</td><td class="num"><span class="meter meter-success"><span style="width:96%"></span></span>96%</td><td class="num">88%</td><td><span class="badge badge-success">On track</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">DP</span><span><span class="nm">Diya Patel</span><br><span class="rl">8A-02</span></span></span></td><td>8A-02</td><td class="num"><span class="meter meter-info"><span style="width:94%"></span></span>94%</td><td class="num">91%</td><td><span class="badge badge-success">On track</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">KS</span><span><span class="nm">Kabir Singh</span><br><span class="rl">8A-03</span></span></span></td><td>8A-03</td><td class="num"><span class="meter meter-warning"><span style="width:89%"></span></span>89%</td><td class="num">76%</td><td><span class="badge badge-warning">Watch</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">AG</span><span><span class="nm">Ananya Gupta</span><br><span class="rl">8A-04</span></span></span></td><td>8A-04</td><td class="num"><span class="meter meter-success"><span style="width:98%"></span></span>98%</td><td class="num">93%</td><td><span class="badge badge-success">On track</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">RM</span><span><span class="nm">Rohan Mehta</span><br><span class="rl">8A-05</span></span></span></td><td>8A-05</td><td class="num"><span class="meter meter-info"><span style="width:92%"></span></span>92%</td><td class="num">82%</td><td><span class="badge badge-info">Steady</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">IV</span><span><span class="nm">Ishita Verma</span><br><span class="rl">8A-06</span></span></span></td><td>8A-06</td><td class="num"><span class="meter meter-success"><span style="width:97%"></span></span>97%</td><td class="num">89%</td><td><span class="badge badge-success">On track</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">AN</span><span><span class="nm">Arjun Nair</span><br><span class="rl">8A-07</span></span></span></td><td>8A-07</td><td class="num"><span class="meter meter-info"><span style="width:90%"></span></span>90%</td><td class="num">79%</td><td><span class="badge badge-info">Steady</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">SR</span><span><span class="nm">Sneha Reddy</span><br><span class="rl">8A-08</span></span></span></td><td>8A-08</td><td class="num"><span class="meter meter-success"><span style="width:95%"></span></span>95%</td><td class="num">86%</td><td><span class="badge badge-success">On track</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">VJ</span><span><span class="nm">Vikram Joshi</span><br><span class="rl">8A-09</span></span></span></td><td>8A-09</td><td class="num"><span class="meter meter-warning"><span style="width:88%"></span></span>88%</td><td class="num">74%</td><td><span class="badge badge-warning">Watch</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">PD</span><span><span class="nm">Priya Das</span><br><span class="rl">8A-10</span></span></span></td><td>8A-10</td><td class="num"><span class="meter meter-success"><span style="width:99%"></span></span>99%</td><td class="num">95%</td><td><span class="badge badge-success">On track</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">AR</span><span><span class="nm">Aditya Rao</span><br><span class="rl">8A-11</span></span></span></td><td>8A-11</td><td class="num"><span class="meter meter-info"><span style="width:93%"></span></span>93%</td><td class="num">84%</td><td><span class="badge badge-info">Steady</span></td></tr>
+                <tr><td><span class="student"><span class="avatar" aria-hidden="true">KI</span><span><span class="nm">Kavya Iyer</span><br><span class="rl">8A-12</span></span></span></td><td>8A-12</td><td class="num"><span class="meter meter-success"><span style="width:96%"></span></span>96%</td><td class="num">90%</td><td><span class="badge badge-success">On track</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="noResults" hidden style="padding:12px 0 0;font-size:13px;color:var(--muted-foreground)">No students match that search.</p>
+        </div>
+        <div class="card-footer">Attendance badge: ≥95% success · 90–94% info · below 90% warning. Marks shown as given in the task data.</div>
+      </section>
+
+      <footer>Fictional demo data — UI Forge Experiment 1</footer>
+    </main>
+
+    <!-- Mobile bottom nav: NavRail folded, app's decision (media query, not the rail) -->
+    <nav class="bottom-nav" aria-label="Main">
+      <a href="#overview" class="active"><span class="ico" aria-hidden="true">▦</span>Overview</a>
+      <a href="#students"><span class="ico" aria-hidden="true">◉</span>Students</a>
+      <a href="#attendance"><span class="ico" aria-hidden="true">✓</span>Attendance</a>
+      <a href="#notices"><span class="ico" aria-hidden="true">✉</span>Notices</a>
+    </nav>
+  </div>
+</div>
+
+<script>
+// PanelUI web, plain-HTML adaptation.
+// NavRail: folding is the app's decision (skill: rail never picks a width
+// from the viewport). Here the trigger collapses it on desktop; on mobile
+// CSS hides the rail and shows the bottom nav instead.
+(function(){
+  var rail=document.getElementById('navRail'), trig=document.getElementById('navTrigger');
+  var collapsed=false;
+  trig.addEventListener('click',function(){
+    collapsed=!collapsed;
+    rail.style.width=collapsed?'3.5rem':'15rem';
+    rail.style.flexBasis=collapsed?'3.5rem':'15rem';
+    rail.querySelectorAll('.nav-brand span:last-child,.nav-group-label,.nav-item .lbl,.nav-item .cnt').forEach(function(el){el.style.display=collapsed?'none':'';});
+    trig.setAttribute('aria-expanded',String(!collapsed));
+    trig.setAttribute('aria-label',collapsed?'Expand navigation':'Collapse navigation');
+    trig.textContent=collapsed?'›':'‹';
+  });
+  // NavRail.Item active pill: one active row at a time.
+  document.querySelectorAll('.nav-item, .bottom-nav a').forEach(function(a){
+    a.addEventListener('click',function(){
+      document.querySelectorAll('.nav-item').forEach(function(x){x.classList.remove('active');x.removeAttribute('aria-current');});
+      document.querySelectorAll('.bottom-nav a').forEach(function(x){x.classList.remove('active');});
+      a.classList.add('active');
+      if(a.classList.contains('nav-item')) a.setAttribute('aria-current','page');
+    });
+  });
+  // Input.Group search: filters the Table rows live.
+  var search=document.getElementById('search'), rows=document.querySelectorAll('#studentRows tr'),
+      noResults=document.getElementById('noResults');
+  search.addEventListener('input',function(){
+    var q=search.value.trim().toLowerCase(), shown=0;
+    rows.forEach(function(r){var hit=r.textContent.toLowerCase().indexOf(q)>-1;r.style.display=hit?'':'none';if(hit)shown++;});
+    noResults.hidden=shown>0;
+  });
+  // BarChart: bars grow from the zero baseline (value axis includes zero);
+  // hover a band to read it (Tooltip readout), click pins it.
+  var readout=document.getElementById('chartReadout'), value=document.getElementById('chartValue');
+  function read(col){readout.innerHTML='<b>'+col.dataset.day+': '+col.dataset.val+'%</b> — hover a bar to read its day.';value.textContent=col.dataset.val+'%';}
+  document.querySelectorAll('.bar-col').forEach(function(col){
+    var bar=col.querySelector('.bar');
+    col.addEventListener('mouseenter',function(){read(col);});
+    col.addEventListener('click',function(){read(col);});
+    // Bar height in px against the 140px plot area (not % of the column,
+    // which also holds the value and day labels and would overflow).
+    requestAnimationFrame(function(){bar.style.height=(Number(col.dataset.h)*1.4)+'px';});
+  });
+  // Bell + Add student are demo actions only (no data is invented or saved).
+  document.getElementById('bell').addEventListener('click',function(){
+    document.getElementById('notices').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  document.getElementById('addBtn').addEventListener('click',function(){
+    search.focus();
+  });
+})();
+</script>
+</body>
+</html>
