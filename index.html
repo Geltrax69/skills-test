@@ -3,85 +3,450 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>UI Forge — Experiment 1: Compare</title>
+<title>UI Forge — Skill Experimentation Studio</title>
 <style>
-  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#171717;background:#f6f5f0;line-height:1.5}
-  header{padding:24px 20px;background:#171717;color:#fff} header h1{margin:0;font-size:1.5rem} header p{margin:6px 0 0;color:#d4d4d4;max-width:70ch}
-  main{max-width:1200px;margin:0 auto;padding:20px}
-  table{width:100%;border-collapse:collapse;background:#fff} th,td{border:1px solid #ddd;padding:8px 10px;text-align:left;font-size:.9rem;vertical-align:top} th{background:#eee}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:20px 0}
-  .card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:16px} .card h3{margin:0 0 4px} .card p{margin:4px 0;color:#444;font-size:.9rem}
-  .card a{display:inline-block;margin-top:8px;color:#2457e7}
-  .warn{background:#fff8e1;border:1px solid #e6c200;border-radius:10px;padding:14px 16px}
-  iframe{width:100%;height:520px;border:1px solid #ccc;border-radius:10px;background:#fff}
-  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px} @media(max-width:820px){.compare{grid-template-columns:1fr}}
-  select,button{font:inherit;padding:8px 10px}
+  /* Studio design: better-interface (hierarchy, spacing, one accent, accessible
+     contrast, focus-visible rings) + emil-design-eng motion values as resolved
+     in variant 30 (press 0.96 / 150ms; stagger 100ms, stat cards only).
+     No external fonts, images, or scripts — one self-contained file. */
+  :root{
+    --bg:#f6f5f0; --surface:#ffffff; --ink:#171717; --muted:#5d6068;
+    --accent:#2457e7; --accent-ink:#1a49b8; --border:#e3e1d8; --border-strong:#d4d2c6;
+    --good:#15803d; --warn:#b45309; --soft:#eef2ff; --gold:#8a6d00;
+    --r-lg:12px; --r-md:10px; --r-sm:8px;
+    --ease:cubic-bezier(.2,0,0,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;font-size:16px}
+  h1,h2,h3{line-height:1.2;letter-spacing:-.02em;margin:0}
+  h2{font-size:1.5rem;margin-bottom:4px}
+  h3{font-size:1.05rem}
+  p{margin:8px 0}
+  a{color:var(--accent)}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  button,select{font:inherit}
+  button{cursor:pointer}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+  /* ---------- header ---------- */
+  .site-header{background:var(--ink);color:#fff;padding:28px 0 0}
+  .site-header h1{font-size:2rem}
+  .site-header .sub{color:#d4d4d4;max-width:78ch;margin:10px 0 0}
+  .site-header .meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding-bottom:20px}
+  .pill{display:inline-block;background:#262626;border:1px solid #444;border-radius:999px;color:#f0f0f0;font-size:.82rem;padding:4px 12px}
+  .pill b{color:#fff}
+  .topnav{position:sticky;top:0;z-index:20;background:var(--ink);border-top:1px solid #333}
+  .topnav .wrap{display:flex;gap:4px;overflow-x:auto;padding:0 12px}
+  .topnav a{color:#d4d4d4;text-decoration:none;font-size:.9rem;padding:12px 12px;white-space:nowrap;border-bottom:2px solid transparent}
+  .topnav a:hover{color:#fff;border-bottom-color:var(--accent)}
+
+  main section{padding:40px 0 8px}
+  .lede{color:var(--muted);max-width:78ch}
+  .section-note{font-size:.9rem;color:var(--muted);margin-top:4px}
+
+  /* ---------- stat cards (staggered entrance, 100ms apart, per better-ui) ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0 8px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;animation:rise .3s var(--ease) both}
+  .stat:nth-child(2){animation-delay:.1s}.stat:nth-child(3){animation-delay:.2s}.stat:nth-child(4){animation-delay:.3s}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .stat .k{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .stat .v{font-size:2rem;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+  .stat .d{font-size:.88rem;color:var(--muted)}
+
+  .callout{background:#fff8e1;border:1px solid #e6c200;border-radius:var(--r-lg);padding:14px 18px;margin:20px 0}
+  .callout.good{background:#f0fdf4;border-color:#86efac}
+  .callout h3{margin-bottom:4px}
+
+  /* ---------- skill library ---------- */
+  .lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:20px}
+  .lib-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px}
+  .lib-card h3{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .lib-card .count{background:var(--soft);color:var(--accent-ink);border-radius:999px;font-size:.78rem;font-weight:700;padding:2px 10px;white-space:nowrap}
+  .lib-card p{font-size:.92rem;color:#444}
+  .lib-card .src{font-size:.82rem;color:var(--muted);font-family:ui-monospace,Menlo,monospace;word-break:break-all}
+
+  /* ---------- generic cards ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;display:flex;flex-direction:column;transition:transform .15s var(--ease),box-shadow .15s var(--ease),border-color .15s var(--ease)}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(23,23,23,.08)}
+  .card.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(36,87,231,.25)}
+  .card h3{margin-bottom:2px}
+  .card .num{font-size:.78rem;font-weight:700;color:var(--accent-ink);text-transform:uppercase;letter-spacing:.08em}
+  .card p{font-size:.92rem;color:#444;flex:1}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .tag{font-size:.75rem;font-weight:600;border-radius:999px;padding:2px 9px;background:#f0f0ee;color:#444;border:1px solid var(--border)}
+  .tag.exp2{background:var(--soft);color:var(--accent-ink);border-color:#c7d4f5}
+  .tag.repeat{background:#fef3c7;color:#92400e;border-color:#fde68a}
+  .tag.conflict{background:#fdf2f8;color:#9d174d;border-color:#fbcfe8}
+  .tag.rank{background:#fefce8;color:var(--gold);border-color:#fde047}
+  .skills-list{font-size:.88rem;margin:6px 0;padding-left:18px;color:#333}
+  .skills-list li{margin:2px 0}
+  .skills-list li::marker{color:var(--accent)}
+  .card .row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn{display:inline-block;border:1px solid var(--border-strong);background:#fff;color:var(--ink);border-radius:var(--r-md);padding:7px 12px;font-size:.88rem;font-weight:600;text-decoration:none;transition:transform .15s var(--ease),background .15s var(--ease)}
+  .btn:hover{background:#f0f0ee}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-ink)}
+  .btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .chip{border:1px solid var(--border-strong);background:#fff;border-radius:999px;padding:6px 14px;font-size:.88rem;font-weight:600}
+  .chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  /* ---------- compare / preview ---------- */
+  .viewport-toggle{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:16px 0}
+  .viewport-toggle .label{font-weight:700;margin-right:4px}
+  .preview-frame{border:1px solid var(--border-strong);border-radius:var(--r-lg);overflow:hidden;background:#fff;margin:0 auto;transition:max-width .2s var(--ease);max-width:1280px}
+  .preview-frame.narrow{max-width:390px;box-shadow:0 0 0 8px #e8e6de,0 0 0 9px var(--border-strong)}
+  .preview-frame iframe{display:block;width:100%;height:640px;border:0;background:#fff}
+  .preview-caption{text-align:center;color:var(--muted);font-size:.9rem;margin-top:10px}
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .compare-grid.narrow{display:flex;gap:16px;overflow-x:auto;padding-bottom:8px}
+  .compare-grid.narrow .compare-col{flex:0 0 390px;max-width:390px}
+  .compare-col h3{margin-bottom:8px}
+  .compare-col select{width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--r-md);background:#fff;margin-bottom:10px}
+  .compare-col iframe{width:100%;height:560px;border:1px solid var(--border-strong);border-radius:var(--r-lg);background:#fff}
+  @media(max-width:820px){.compare-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+  /* ---------- insights ---------- */
+  table.data{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--r-lg);overflow:hidden;font-size:.9rem}
+  table.data th,table.data td{border-bottom:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  table.data th{background:#f0f0ee;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+  table.data tr.top5 td:first-child{font-weight:700;color:var(--gold)}
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-lg);margin-top:16px}
+  .bars{margin-top:16px;display:grid;gap:6px}
+  .bar-row{display:grid;grid-template-columns:220px 1fr 40px;gap:10px;align-items:center;font-size:.88rem}
+  .bar-row .track{background:#eceae2;border-radius:999px;height:14px;overflow:hidden}
+  .bar-row .fill{background:var(--accent);height:100%;border-radius:999px}
+  .bar-row .fill.top{background:var(--gold)}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  @media(max-width:820px){.twocol{grid-template-columns:1fr}.bar-row{grid-template-columns:140px 1fr 30px}}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px}
+  .panel ul{margin:8px 0;padding-left:20px}
+  .panel li{margin:5px 0;font-size:.94rem}
+
+  footer.site{margin-top:48px;background:var(--ink);color:#d4d4d4;padding:28px 0}
+  footer.site p{font-size:.9rem;max-width:78ch}
+  footer.site a{color:#9db8f5}
+  footer.site strong{color:#fff}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>UI Forge — Experiment 1</h1>
-  <p>Student management dashboard. Same task, same data, same constraints for all 8 variants. Provisional ranking, single run — see RESULTS.md. No variant was rendered in a live browser in this run, so layout at 1280 / 390px is UNVERIFIED by measurement.</p>
+<header class="site-header">
+  <div class="wrap">
+    <h1>UI Forge — Skill Experimentation Studio</h1>
+    <p class="sub">One fixed task. Thirty-one skill combinations. Every variant builds the same student management dashboard from the same data — then we compare what the skills actually did, rank the combinations by fewest defects, and show you the real pages.</p>
+    <div class="meta">
+      <span class="pill"><b>31</b> variants</span>
+      <span class="pill"><b>567</b> skills in the library</span>
+      <span class="pill"><b>2</b> experiments</span>
+      <span class="pill"><b>3</b> repeats</span>
+      <span class="pill"><b>31</b> conflicts resolved</span>
+      <span class="pill">Fixed task: student dashboard · Greenwood High, Class 8-A</span>
+    </div>
+  </div>
+  <nav class="topnav" aria-label="Studio sections">
+    <div class="wrap">
+      <a href="#overview">Overview</a>
+      <a href="#library">Skill Library</a>
+      <a href="#lab">Combination Lab</a>
+      <a href="#experiments">Experiments</a>
+      <a href="#compare">Compare</a>
+      <a href="#insights">Insights</a>
+    </div>
+  </nav>
 </header>
-<main>
-  <h2>Provisional ranking</h2>
-  <table>
-    <tr><th>#</th><th>Variant</th><th>Skills</th><th>Defects found + fixed</th></tr>
-    <tr><td>1</td><td>04-pstack-ecc-custom</td><td>PStack + ECC + emil + better-interface</td><td>7</td></tr>
-    <tr><td>2</td><td>07-panelui-web</td><td>PanelUI web</td><td>4</td></tr>
-    <tr><td>3</td><td>03-pstack-ecc</td><td>PStack + ECC frontend</td><td>0</td></tr>
-    <tr><td>4</td><td>02-typography-layout</td><td>Better Typography + Better Layout</td><td>0</td></tr>
-    <tr><td>5</td><td>05-astryx</td><td>Astryx</td><td>1</td></tr>
-    <tr><td>6</td><td>06-opensourceui</td><td>OpenSourceUI</td><td>2</td></tr>
-    <tr><td>7</td><td>01-typography</td><td>Better Typography</td><td>0</td></tr>
-    <tr><td>8</td><td>00-baseline</td><td>None (control)</td><td>2 (+1 possible left)</td></tr>
-  </table>
-  <p>Full method, defect table and limits: <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> · Fixed task: <a href="TASK.md">TASK.md</a></p>
 
-  <h2>All variants</h2>
-  <div class="grid">
-    <div class="card"><h3>00 — Baseline</h3><p>No UI skills. Control.</p><a href="experiments/00-baseline/index.html">Open →</a></div>
-    <div class="card"><h3>01 — Typography</h3><p>Better Typography only.</p><a href="experiments/01-typography/index.html">Open →</a></div>
-    <div class="card"><h3>02 — Typography + Layout</h3><p>Better Typography + Better Layout.</p><a href="experiments/02-typography-layout/index.html">Open →</a></div>
-    <div class="card"><h3>03 — PStack + ECC</h3><p>PStack feature + ECC frontend.</p><a href="experiments/03-pstack-ecc/index.html">Open →</a></div>
-    <div class="card"><h3>04 — PStack + ECC + Custom</h3><p>+ emil-design-eng + better-interface. Ranked #1 provisionally.</p><a href="experiments/04-pstack-ecc-custom/index.html">Open →</a></div>
-    <div class="card"><h3>05 — Astryx</h3><p>Meta design system, adapted to HTML.</p><a href="experiments/05-astryx/index.html">Open →</a></div>
-    <div class="card"><h3>06 — OpenSourceUI</h3><p>Copy-paste React components, adapted.</p><a href="experiments/06-opensourceui/index.html">Open →</a></div>
-    <div class="card"><h3>07 — PanelUI web</h3><p>PanelUI web, shadcn tokens.</p><a href="experiments/07-panelui-web/index.html">Open →</a></div>
-  </div>
+<main class="wrap">
+  <section id="overview" aria-labelledby="overview-h">
+    <h2 id="overview-h">Overview — how this studio works</h2>
+    <p class="lede">UI Forge is not another autonomous coding harness. It is a studio for testing UI skills: pick a combination, run the same task with it, compare the rendered result side by side, and rank combinations by fewest defects. Skill sources stay read-only, skill instructions are preserved, and only skills actually read in full count as used.</p>
+    <div class="stats">
+      <div class="stat"><div class="k">Variants built</div><div class="v">31</div><div class="d">8 in Experiment 1 · 23 in Experiment 2</div></div>
+      <div class="stat"><div class="k">Uniform check</div><div class="v">31 / 31</div><div class="d">12 students, 12 rolls, 4 stats, 3 notices, 0 external URLs</div></div>
+      <div class="stat"><div class="k">Render check</div><div class="v">31 / 31</div><div class="d">Headless Chromium 156 · no h-scroll, 0 console errors at 1280 &amp; 390px</div></div>
+      <div class="stat"><div class="k">Defects left known</div><div class="v">1</div><div class="d">One deliberate flat-chart note in variant 12; everything else fixed</div></div>
+    </div>
+    <div class="callout">
+      <h3>Fixed baseline — identical for every variant</h3>
+      <p>Task: “Create a modern student management dashboard with attendance, student profiles, analytics and responsive navigation.” Data: Greenwood High, Class 8-A, 2025–26 — 1,248 students, 72 teachers, 95.2% attendance (1,188 / 60), 84% fees (₹25.2L of ₹30L); 12 named students 8A-01 to 8A-12; trend Mon–Fri 94, 96, 93, 97, 95; notices “Science fair on Friday”, “Fee deadline 20 Nov”, “Parent-teacher meet 25 Nov”. Each variant is one self-contained <code>index.html</code> — inline CSS + JS, no build, no npm, no external images — plus a <code>SKILLS_ACTUALLY_READ.md</code> recording every skill read in full, in order. Full method: <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> · task: <a href="TASK.md">TASK.md</a>.</p>
+    </div>
+    <div class="callout good">
+      <h3>What changed in Experiment 2</h3>
+      <p>Experiment 1 claimed no live-browser render was possible in this VM. That was wrong: <code>/opt/meta-chromium/chrome</code> is blocked, but the Playwright Chromium binary runs fine over CDP. The parent re-checked <strong>all 31 variants at 1280px and 390px</strong> — no document horizontal scroll anywhere, 0 console errors, all required text present in the rendered page. Variant 15’s earlier CDP claim, once flagged doubtful, is now confirmed by an independent render. Feel on real hardware is still unverified — headless proves layout, never feel.</p>
+    </div>
+  </section>
 
-  <h2>Side by side</h2>
-  <p>Pick any two variants to compare in iframes. Open them full-screen from the cards above for the real look.</p>
-  <label>Left <select id="left">
-    <option value="experiments/04-pstack-ecc-custom/index.html">04 — PStack+ECC+Custom (#1)</option>
-    <option value="experiments/00-baseline/index.html">00 — Baseline</option>
-    <option value="experiments/01-typography/index.html">01 — Typography</option>
-    <option value="experiments/02-typography-layout/index.html">02 — Typography+Layout</option>
-    <option value="experiments/03-pstack-ecc/index.html">03 — PStack+ECC</option>
-    <option value="experiments/05-astryx/index.html">05 — Astryx</option>
-    <option value="experiments/06-opensourceui/index.html">06 — OpenSourceUI</option>
-    <option value="experiments/07-panelui-web/index.html">07 — PanelUI web</option>
-  </select></label>
-  <label>Right <select id="right">
-    <option value="experiments/07-panelui-web/index.html">07 — PanelUI web (#2)</option>
-    <option value="experiments/00-baseline/index.html">00 — Baseline</option>
-    <option value="experiments/01-typography/index.html">01 — Typography</option>
-    <option value="experiments/02-typography-layout/index.html">02 — Typography+Layout</option>
-    <option value="experiments/03-pstack-ecc/index.html">03 — PStack+ECC</option>
-    <option value="experiments/04-pstack-ecc-custom/index.html">04 — PStack+ECC+Custom</option>
-    <option value="experiments/05-astryx/index.html">05 — Astryx</option>
-    <option value="experiments/06-opensourceui/index.html">06 — OpenSourceUI</option>
-  </select></label>
-  <div class="compare" style="margin-top:12px">
-    <iframe id="frameL" src="experiments/04-pstack-ecc-custom/index.html" title="Left variant"></iframe>
-    <iframe id="frameR" src="experiments/07-panelui-web/index.html" title="Right variant"></iframe>
-  </div>
-  <div class="warn" style="margin-top:16px"><strong>Honest limit:</strong> this ranking is single-run and code-checked only. No live-browser screenshots were taken in this run — no Chromium/Playwright in the VM. Repeat 04 and 07 before treating the win as real, and eyeball them yourself at 1280px and 390px.</div>
+  <section id="library" aria-labelledby="library-h">
+    <h2 id="library-h">Skill Library — 567 skills, grouped by bundle</h2>
+    <p class="lede">Bundles stay together by source, exactly as downloaded — pstack all together, ECC all together, designer-skills all together. Only the standalone singles at the end are segregated by what they do. Full inventory: <a href="skills-inventory.md">skills-inventory.md</a> (567 distinct skills).</p>
+    <div class="lib-grid">
+      <div class="lib-card"><h3>ECC <span class="count">314 skills</span></h3><p>Enhanced Claude Code — structure-first: plan before execute, agent-first, TDD, security-first, immutability. Reference clone only; never installed wholesale. The harness reads ECC first, then pstack.</p><p class="src">~/workspace/build-anything/ECC/</p></div>
+      <div class="lib-card"><h3>designer-skills <span class="count">111 skills</span></h3><p>Design-ops bundle: design QA checklists, critique, systems, and review skills. Home of the design-qa-checklist used alone in variant 28.</p><p class="src">~/workspace/ui-skills/designer-skills/</p></div>
+      <div class="lib-card"><h3>pstack <span class="count">52 skills</span></h3><p>Lauren Tan’s rigorous agent workflows — poteto-mode, feature/bug-fix playbooks, prove-it-works, test-behaviour-not-implementation, subtract-before-you-add. Execution rigour inside ECC’s structure.</p><p class="src">~/workspace/skills/pstack/</p></div>
+      <div class="lib-card"><h3>emilkowalski/skills <span class="count">17 skills</span></h3><p>Emil Kowalski’s design-engineering skills — motion, press, stagger, easing, and interface feel. Used alone in variant 18, inside the winning combos.</p><p class="src">~/workspace/ui-skills/emil-skills/</p></div>
+      <div class="lib-card"><h3>jakubkrehel/skills <span class="count">13 skills</span></h3><p>Standalone skill collection — general-purpose agent skills, kept together by source.</p><p class="src">~/workspace/skills/jakubkrehel/</p></div>
+      <div class="lib-card"><h3>ARTEX <span class="count">10 skills</span></h3><p>Offensive / recon skills. Excluded from the harness and from every experiment — listed here for completeness only.</p><p class="src">~/workspace/skills/artex/</p></div>
+      <div class="lib-card"><h3>Astryx <span class="count">174 components</span></h3><p>Meta’s design system — 7 themes, theme = CSS custom-property overrides. Muse adapter: <code>local-astryx</code>. Adapted to single-file HTML here, not a real React build.</p><p class="src">~/workspace/ui-skills/astryx/</p></div>
+      <div class="lib-card"><h3>OpenSourceUI <span class="count">200+ components</span></h3><p>Copy-paste React components (MIT). Muse adapter: <code>local-opensourceui</code>. Adapted to single-file HTML here.</p><p class="src">~/workspace/ui-skills/opensourceui/</p></div>
+      <div class="lib-card"><h3>PanelUI <span class="count">4 skills · 143 + 79 modules</span></h3><p>React Native + web component system on shadcn tokens. Muse adapter: <code>local-panelui</code> (+ panelui-web). The strongest single-system result in both experiments.</p><p class="src">~/workspace/ui-skills/PanelUI/</p></div>
+      <div class="lib-card"><h3>better-interface family <span class="count">7 skills</span></h3><p>better-interface + six domain skills: accessibility, layout, writing, typography, colors, ui. The atomic UI skills — used alone, in pairs, in order-swaps, and inside the winning combos.</p><p class="src">~/workspace/custom-skills/local-skills/</p></div>
+      <div class="lib-card"><h3>Singles — UI / UX <span class="count">5 skills</span></h3><p>taste-skill, impeccable, ui-ux-pro-max, shadcn, Prototyper UI — each tested alone in Experiment 2 (variants 21–25) so a single skill’s effect is visible on its own.</p><p class="src">~/workspace/ui-skills/ · ~/workspace/skills/shadcn · ~/workspace/custom-skills/local-prototyper-ui/</p></div>
+      <div class="lib-card"><h3>Singles — motion &amp; animation <span class="count">4 skills</span></h3><p>animate + accessible-animation (variant 29), plus the iart-ai/web-animation bundle. Motion is tiered for reduced-motion in every variant that uses it.</p><p class="src">~/workspace/custom-skills/local-animate/ · local-accessible-animation/</p></div>
+    </div>
+  </section>
+
+  <section id="lab" aria-labelledby="lab-h">
+    <h2 id="lab-h">Combination Lab — every combination tested</h2>
+    <p class="lede">Each card is one combination: the skills in the order they were loaded, what the combination was expected to do, and what kind of test it is. “Repeat” means the same skills, same order, fresh builder — testing whether a win reproduces. “Conflict test” means two design systems on one page, on purpose.</p>
+    <div class="grid" id="lab-grid"></div>
+  </section>
+
+  <section id="experiments" aria-labelledby="exp-h">
+    <h2 id="exp-h">Experiments — all 31 variants</h2>
+    <p class="lede">Click <strong>Preview</strong> on any card to load it in the big preview below, or set two variants as Left / Right for a side-by-side compare. Every card links to the variant’s own page and its <code>SKILLS_ACTUALLY_READ.md</code>.</p>
+    <div class="filters" id="filters" role="group" aria-label="Filter variants">
+      <button class="chip" data-filter="all" aria-pressed="true">All 31</button>
+      <button class="chip" data-filter="exp1" aria-pressed="false">Experiment 1</button>
+      <button class="chip" data-filter="exp2" aria-pressed="false">Experiment 2</button>
+      <button class="chip" data-filter="repeat" aria-pressed="false">Repeats</button>
+      <button class="chip" data-filter="conflict" aria-pressed="false">Conflict tests</button>
+      <button class="chip" data-filter="single" aria-pressed="false">Single skills</button>
+      <button class="chip" data-filter="combo" aria-pressed="false">Combinations</button>
+    </div>
+    <div class="grid" id="exp-grid"></div>
+  </section>
+
+  <section id="compare" aria-labelledby="compare-h">
+    <h2 id="compare-h">Compare — look at the real pages</h2>
+    <p class="lede">These are the actual variant pages, loaded live in iframes — not screenshots. Switch viewport to see each one at desktop or phone width.</p>
+    <div class="viewport-toggle" role="group" aria-label="Viewport width">
+      <span class="label">Viewport:</span>
+      <button class="btn" id="vp-1280" aria-pressed="true">1280px — desktop</button>
+      <button class="btn" id="vp-390" aria-pressed="false">390px — phone</button>
+    </div>
+    <h3 id="preview-title">Preview — 04-pstack-ecc-custom (ranked #1)</h3>
+    <div class="preview-frame" id="preview-frame">
+      <iframe id="preview-iframe" src="experiments/04-pstack-ecc-custom/index.html" title="Variant preview"></iframe>
+    </div>
+    <p class="preview-caption"><span id="preview-caption">pstack feature + ECC frontend-patterns + emil-design-eng + better-interface · 7 defects fixed · 15.3 KB</span> · <a id="preview-open" href="experiments/04-pstack-ecc-custom/index.html">Open full page →</a></p>
+
+    <h3 style="margin-top:32px">Side by side</h3>
+    <div class="compare-grid" id="compare-grid">
+      <div class="compare-col">
+        <h3>Left</h3>
+        <select id="sel-left" aria-label="Left variant"></select>
+        <iframe id="frame-left" src="experiments/04-pstack-ecc-custom/index.html" title="Left variant"></iframe>
+      </div>
+      <div class="compare-col">
+        <h3>Right</h3>
+        <select id="sel-right" aria-label="Right variant"></select>
+        <iframe id="frame-right" src="experiments/07-panelui-web/index.html" title="Right variant"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section id="insights" aria-labelledby="insights-h">
+    <h2 id="insights-h">Insights — what the experiments actually showed</h2>
+    <p class="lede">Provisional ranking, single run except the three repeats. Ranked on defects left known (0 for 30 of 31), thoroughness of checking, accessibility work, working interaction, conflict-resolution quality, and repeat consistency — not on rendered visual feel, which was measured only for scroll, console errors, and text presence.</p>
+
+    <h3 style="margin-top:24px">Provisional ranking — all 31</h3>
+    <div class="table-scroll"><table class="data" id="rank-table">
+      <thead><tr><th>#</th><th>Variant</th><th>Skills</th><th>Defects fixed</th><th>Left</th><th>Size</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+
+    <h3 style="margin-top:32px">Defects found + fixed per variant</h3>
+    <p class="section-note">“Found + fixed” measures checking thoroughness as much as combo quality — a builder that checked harder finds more. Gold bars are the top five.</p>
+    <div class="bars" id="defect-bars"></div>
+
+    <div class="twocol">
+      <div class="panel">
+        <h3>Repeat consistency — did the win reproduce?</h3>
+        <ul>
+          <li><strong>Typography → Layout (02 → 12):</strong> run 1 found 0 real defects; run 2 found 4 items (2 fixes + 2 pre-build changes) and 1 deliberate known-left (flat bars). Quality held; the <em>count</em> did not reproduce.</li>
+          <li><strong>pstack+ecc+custom (04 → 13):</strong> run 1 found 7; run 2 found 1 — but resolved the same 2 conflicts identically (press 0.96, stagger 100ms). The repeat draft was cleaner; run 1’s “7” looks like builder thoroughness, not combo quality.</li>
+          <li><strong>PanelUI web (07 → 14):</strong> 4 → 5, same defect classes (chart baseline, table/stat at 390px). Most reproducible repeat.</li>
+          <li><strong>Lesson:</strong> ranking order held for all three repeats, but defect counts are builder-dependent. Future rankings should average 2–3 builders per combo.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Order effect — Typography → Layout vs Layout → Typography</h3>
+        <ul>
+          <li><strong>02</strong> (Typography → Layout): 0 real defects.</li>
+          <li><strong>11</strong> (Layout → Typography): 5 fixed, including 1 HIGH — mobile search never displayed, a base CSS rule overriding a media query by cascade order.</li>
+          <li><strong>Verdict: inconclusive.</strong> 11 found more, but builders differ and the HIGH defect is a plain cascade-order mistake no skill-order rule predicts. Builder variance dominates; a real order test needs the same builder (or several per order).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="twocol">
+      <div class="panel">
+        <h3>Conflict findings — two design systems, one page</h3>
+        <ul>
+          <li><strong>26 Astryx + OpenSourceUI — 12 conflicts.</strong> Radius: Astryx 12/10/6 beat OSUI 16px. Elevation: OSUI flat won — the frosted-glass notification banner was flattened, the most visible casualty.</li>
+          <li><strong>27 PanelUI + Astryx — 9 conflicts.</strong> One merged token layer (<code>--ax-*</code> values, <code>--pui-*</code> roles). Radii: shadcn scale won. Charts: PanelUI BarChart won (Astryx charts are <code>@canary</code>-only).</li>
+          <li><strong>30 full UI stack — 10 conflicts.</strong> Press 0.96, stagger 100ms, easing split by use; Astryx values on PanelUI semantic names. Still shipped with 0 defects left.</li>
+          <li><strong>Lesson:</strong> merges work, but every one costs a named decision and at least one visible casualty. No variant failed to build; no conflict was unresolvable.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>What worked</h3>
+        <ul>
+          <li><strong>Process beats any single skill:</strong> pstack + ECC + custom (04/13) tops the ranking — the rigour (prove-it-works, checklists) caught what design systems alone did not.</li>
+          <li><strong>One strong component system is enough:</strong> PanelUI web alone (07/14) is #3/#4 — NavRail, KPI, BarChart, Table, Frame as a complete kit.</li>
+          <li><strong>Single atomic skills are measurable:</strong> layout alone (08) and colors alone (09) each fixed real, specific defects — 2 and 3 — proving the singles do visible work.</li>
+          <li><strong>Accessibility-only is not a side quest:</strong> variant 20 fixed 3 real a11y defects (outline removal, visual-only chart, pointer-only scroll) that no other single skill caught.</li>
+          <li><strong>“Everything” is viable, not magical:</strong> the full stack (30) ranks #5 — good, but not better than the focused 04 combo, and it cost 10 recorded decisions.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:24px">
+      <h3>Honest limits</h3>
+      <p>Layout, horizontal scroll, console errors and rendered text are <strong>measured</strong> (headless Chromium 156, all 31 variants, 1280px and 390px). Visual feel, taste, touch behaviour, screen readers, and Safari/Firefox are <strong>not</strong> — no variant was eyeballed on real hardware. One run per variant except the three repeats, and defect counts did not reproduce across repeats. Astryx, OpenSourceUI and PanelUI were adapted to single-file HTML, not real React / Expo builds. This ranking is provisional until repeated — see <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> for the full method.</p>
+    </div>
+  </section>
 </main>
+
+<footer class="site">
+  <div class="wrap">
+    <p><strong>UI Forge — Skill Experimentation Studio.</strong> Experiments 1 + 2 · 31 variants · 567 skills. The studio itself was designed with <strong>better-interface</strong> guidance (hierarchy, spacing, one accent, accessible contrast, focus-visible rings) and <strong>emil-design-eng</strong> motion values as resolved in variant 30 (press 0.96 / 150ms, stagger 100ms on stat cards only) — it is a showcase, not a 32nd experiment.</p>
+    <p>Method: <a href="experiments/RESULTS.md">experiments/RESULTS.md</a> · Fixed task: <a href="TASK.md">TASK.md</a> · Skills inventory: <a href="skills-inventory.md">skills-inventory.md</a> (567 skills) · Repo: <a href="https://github.com/Geltrax69/skills-test">Geltrax69/skills-test</a></p>
+    <p>Fictional demo data — UI Forge Experiment 1. All student data is invented for the fixed task.</p>
+  </div>
+</footer>
+
 <script>
-  const l=document.getElementById('left'), r=document.getElementById('right');
-  l.addEventListener('change',()=>document.getElementById('frameL').src=l.value);
-  r.addEventListener('change',()=>document.getElementById('frameR').src=r.value);
+const VARIANTS = [
+ {n:"00",slug:"00-baseline",name:"Baseline",skills:["(no skills — control)"],effect:"Control: what the task produces with no skill guidance.",defects:2,left:"1 possible",rank:31,size:"11.7 KB",exp:1,kind:"single",conflicts:0},
+ {n:"01",slug:"01-typography",name:"Typography",skills:["Better Typography"],effect:"Type scale, line-height and hierarchy only.",defects:0,left:"0",rank:30,size:"14.3 KB",exp:1,kind:"single",conflicts:0},
+ {n:"02",slug:"02-typography-layout",name:"Typography + Layout",skills:["Better Typography","Better Layout"],effect:"Type first, then layout — the reference order for the swap test.",defects:0,left:"0",rank:10,size:"17.0 KB",exp:1,kind:"combo",conflicts:0},
+ {n:"03",slug:"03-pstack-ecc",name:"PStack + ECC",skills:["pstack feature playbook","ECC frontend-patterns"],effect:"Rigour + structure: prove-it-works inside a planned, tested build.",defects:0,left:"0",rank:6,size:"19.8 KB",exp:1,kind:"combo",conflicts:0},
+ {n:"04",slug:"04-pstack-ecc-custom",name:"PStack + ECC + Custom",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface"],effect:"The winning combo in Experiment 1: rigour + structure + feel + interface rules.",defects:7,left:"0",rank:1,size:"15.3 KB",exp:1,kind:"combo",conflicts:2},
+ {n:"05",slug:"05-astryx",name:"Astryx",skills:["local-astryx"],effect:"Meta design system (174 components, 7 themes) adapted to HTML.",defects:1,left:"0",rank:27,size:"18.0 KB",exp:1,kind:"single",conflicts:0},
+ {n:"06",slug:"06-opensourceui",name:"OpenSourceUI",skills:["local-opensourceui"],effect:"Copy-paste React components adapted to HTML.",defects:2,left:"0",rank:28,size:"23.5 KB",exp:1,kind:"single",conflicts:0},
+ {n:"07",slug:"07-panelui-web",name:"PanelUI web",skills:["local-panelui","panelui-web"],effect:"PanelUI web on shadcn tokens — NavRail, KPI, BarChart, Table, Frame.",defects:4,left:"0",rank:4,size:"30.8 KB",exp:1,kind:"combo",conflicts:0},
+ {n:"08",slug:"08-layout-alone",name:"Layout alone",skills:["Better Layout"],effect:"Does one atomic skill do visible work on its own? Yes — 2 real fixes.",defects:2,left:"0",rank:15,size:"16.3 KB",exp:2,kind:"single",conflicts:0},
+ {n:"09",slug:"09-colors-alone",name:"Colors alone",skills:["Better Colors"],effect:"Colour system only — measured contrast, token discipline.",defects:3,left:"0",rank:20,size:"21.2 KB",exp:2,kind:"single",conflicts:0},
+ {n:"10",slug:"10-colors-typography",name:"Colors + Typography",skills:["Better Colors","Better Typography"],effect:"Colour first, then type — the pair in the opposite order to 02.",defects:4,left:"0",rank:14,size:"24.8 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"11",slug:"11-layout-typography",name:"Layout + Typography",skills:["Better Layout","Better Typography"],effect:"Order swap of 02 (Typography → Layout). Tests whether skill order matters.",defects:5,left:"0",rank:7,size:"24.3 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"12",slug:"12-typography-layout-r2",name:"Typography + Layout (repeat)",skills:["Better Typography","Better Layout"],effect:"REPEAT of 02, same skills/order, fresh builder. Does the result reproduce?",defects:4,left:"1 deliberate",rank:11,size:"17.9 KB",exp:2,kind:"repeat",conflicts:0},
+ {n:"13",slug:"13-pstack-ecc-custom-r2",name:"PStack + ECC + Custom (repeat)",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface"],effect:"REPEAT of 04, the Experiment 1 winner. Does the win reproduce?",defects:1,left:"0",rank:2,size:"35.7 KB",exp:2,kind:"repeat",conflicts:2},
+ {n:"14",slug:"14-panelui-web-r2",name:"PanelUI web (repeat)",skills:["local-panelui","panelui-web"],effect:"REPEAT of 07. Does the component-system result reproduce?",defects:5,left:"0",rank:3,size:"32.2 KB",exp:2,kind:"repeat",conflicts:0},
+ {n:"15",slug:"15-astryx-pstack-ecc",name:"Astryx + PStack + ECC",skills:["local-astryx","pstack feature playbook","ECC frontend-patterns"],effect:"Design system inside the rigour/structure harness.",defects:2,left:"0",rank:21,size:"41.2 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"16",slug:"16-opensourceui-pstack-ecc",name:"OpenSourceUI + PStack + ECC",skills:["local-opensourceui","pstack feature playbook","ECC frontend-patterns"],effect:"Copy-paste components inside the rigour/structure harness.",defects:2,left:"0",rank:22,size:"25.9 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"17",slug:"17-panelui-pstack-ecc",name:"PanelUI + PStack + ECC",skills:["local-panelui (web)","pstack feature playbook","ECC frontend-patterns"],effect:"Component system inside the rigour/structure harness.",defects:4,left:"0",rank:12,size:"39.7 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"18",slug:"18-emil-alone",name:"emil alone",skills:["emil-design-eng"],effect:"Motion, press, stagger and feel on their own — 5 real fixes.",defects:5,left:"0",rank:8,size:"28.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"19",slug:"19-better-interface-alone",name:"better-interface alone",skills:["better-interface","better-accessibility","better-layout","better-writing","better-typography","better-colors","better-ui"],effect:"The full better-interface family in its own order — 7 skills, one system.",defects:3,left:"0",rank:16,size:"24.1 KB",exp:2,kind:"combo",conflicts:0},
+ {n:"20",slug:"20-accessibility-alone",name:"Accessibility alone",skills:["Better Accessibility"],effect:"A11y only — skip link, chart text alternative, keyboard-scrollable table.",defects:3,left:"0",rank:17,size:"20.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"21",slug:"21-taste-alone",name:"taste alone",skills:["taste-skill"],effect:"Taste-driven polish on its own, with its own checkers.",defects:2,left:"0",rank:23,size:"21.6 KB",exp:2,kind:"single",conflicts:0},
+ {n:"22",slug:"22-impeccable-alone",name:"impeccable alone",skills:["impeccable"],effect:"Impeccable’s craft rules on their own.",defects:4,left:"0",rank:13,size:"32.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"23",slug:"23-uiuxpromax-alone",name:"ui-ux-pro-max alone",skills:["ui-ux-pro-max"],effect:"UI/UX Pro Max’s rules on their own.",defects:3,left:"0",rank:18,size:"29.1 KB",exp:2,kind:"single",conflicts:0},
+ {n:"24",slug:"24-shadcn-alone",name:"shadcn alone",skills:["shadcn"],effect:"shadcn conventions on their own.",defects:2,left:"0",rank:24,size:"44.4 KB",exp:2,kind:"single",conflicts:0},
+ {n:"25",slug:"25-prototyper-alone",name:"Prototyper UI alone",skills:["local-prototyper-ui"],effect:"Accessible Base UI primitives instead of hand-rolled ones.",defects:3,left:"0",rank:19,size:"42.8 KB",exp:2,kind:"single",conflicts:0},
+ {n:"26",slug:"26-astryx-opensourceui",name:"Astryx + OpenSourceUI",skills:["local-astryx","local-opensourceui"],effect:"CONFLICT TEST — two design systems, one page. 12 conflicts recorded.",defects:5,left:"0",rank:9,size:"28.5 KB",exp:2,kind:"conflict",conflicts:12},
+ {n:"27",slug:"27-panelui-astryx",name:"PanelUI + Astryx",skills:["local-panelui (web)","local-astryx"],effect:"CONFLICT TEST — component system vs design system. 9 conflicts recorded.",defects:2,left:"0",rank:25,size:"37.4 KB",exp:2,kind:"conflict",conflicts:9},
+ {n:"28",slug:"28-design-qa-alone",name:"design-qa alone",skills:["design-qa-checklist (designer-skills)"],effect:"A QA checklist as the only skill — what does checking alone catch?",defects:2,left:"0",rank:26,size:"26.6 KB",exp:2,kind:"single",conflicts:0},
+ {n:"29",slug:"29-motion",name:"Motion",skills:["animate","accessible-animation"],effect:"Motion only — entry stagger, bar-grow, count-up, reduced-motion tiers.",defects:2,left:"0",rank:29,size:"19.7 KB",exp:2,kind:"single",conflicts:0},
+ {n:"30",slug:"30-full-ui-stack",name:"Full UI stack",skills:["pstack feature playbook","ECC frontend-patterns","emil-design-eng","better-interface","local-astryx","local-panelui (web)"],effect:"The “everything” combo. 10 conflicts recorded — decision overhead, not breakage.",defects:1,left:"0",rank:5,size:"34.4 KB",exp:2,kind:"combo",conflicts:10}
+];
+const url = v => "experiments/" + v.slug + "/index.html";
+const mdUrl = v => "experiments/" + v.slug + "/SKILLS_ACTUALLY_READ.md";
+const kindTag = v => v.kind === "repeat" ? "Repeat" : v.kind === "conflict" ? "Conflict test" : v.kind === "single" ? "Single skill" : "Combination";
+
+/* ---- Combination Lab ---- */
+document.getElementById("lab-grid").innerHTML = VARIANTS.map(v =>
+ `<article class="card"><div class="num">${v.n} · Experiment ${v.exp}</div><h3>${v.name}</h3>
+  <p>${v.effect}</p>
+  <ol class="skills-list">${v.skills.map(s => `<li>${s}</li>`).join("")}</ol>
+  <div class="tags"><span class="tag">${kindTag(v)}</span>${v.conflicts ? `<span class="tag conflict">${v.conflicts} conflicts</span>` : ""}<span class="tag">Rank #${v.rank}</span></div>
+  </article>`).join("");
+
+/* ---- Experiments grid ---- */
+const expGrid = document.getElementById("exp-grid");
+function renderExp(filter){
+  const list = VARIANTS.filter(v =>
+    filter === "all" || (filter === "exp1" && v.exp === 1) || (filter === "exp2" && v.exp === 2) ||
+    (filter === "repeat" && v.kind === "repeat") || (filter === "conflict" && v.kind === "conflict") ||
+    (filter === "single" && v.kind === "single") || (filter === "combo" && v.kind === "combo"));
+  expGrid.innerHTML = list.map(v =>
+   `<article class="card" data-slug="${v.slug}"><div class="num">${v.n} · Experiment ${v.exp}</div><h3>${v.name}</h3>
+    <p>${v.skills.join(" + ")}</p>
+    <div class="tags"><span class="tag rank">Rank #${v.rank}</span><span class="tag">${v.defects} defects fixed</span><span class="tag">${v.left === "0" ? "0 left" : v.left + " left"}</span><span class="tag">${v.size}</span>${v.conflicts ? `<span class="tag conflict">${v.conflicts} conflicts</span>` : ""}</div>
+    <div class="row">
+      <button class="btn primary" data-preview="${v.slug}">Preview</button>
+      <button class="btn" data-left="${v.slug}">← Left</button>
+      <button class="btn" data-right="${v.slug}">Right →</button>
+      <a class="btn" href="${url(v)}">Open ↗</a>
+      <a class="btn" href="${mdUrl(v)}">Skills read</a>
+    </div></article>`).join("");
+}
+renderExp("all");
+document.getElementById("filters").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  document.querySelectorAll("#filters .chip").forEach(c => c.setAttribute("aria-pressed", "false"));
+  b.setAttribute("aria-pressed", "true");
+  renderExp(b.dataset.filter);
+});
+
+/* ---- Preview + compare ---- */
+const previewFrame = document.getElementById("preview-frame");
+const previewIframe = document.getElementById("preview-iframe");
+const previewTitle = document.getElementById("preview-title");
+const previewCaption = document.getElementById("preview-caption");
+const previewOpen = document.getElementById("preview-open");
+const selLeft = document.getElementById("sel-left");
+const selRight = document.getElementById("sel-right");
+selLeft.innerHTML = VARIANTS.map(v => `<option value="${v.slug}"${v.slug === "04-pstack-ecc-custom" ? " selected" : ""}>${v.n} — ${v.name} (#${v.rank})</option>`).join("");
+selRight.innerHTML = VARIANTS.map(v => `<option value="${v.slug}"${v.slug === "07-panelui-web" ? " selected" : ""}>${v.n} — ${v.name} (#${v.rank})</option>`).join("");
+function loadPreview(v){
+  previewIframe.src = url(v);
+  previewTitle.textContent = "Preview — " + v.n + "-" + v.slug.slice(3) + " (ranked #" + v.rank + ")";
+  previewCaption.textContent = v.skills.join(" + ") + " · " + v.defects + " defects fixed · " + v.size;
+  previewOpen.href = url(v);
+  document.querySelectorAll("#exp-grid .card").forEach(c => c.classList.toggle("active", c.dataset.slug === v.slug));
+}
+function setSide(side, slug){
+  const v = VARIANTS.find(x => x.slug === slug);
+  document.getElementById(side === "left" ? "frame-left" : "frame-right").src = url(v);
+  (side === "left" ? selLeft : selRight).value = slug;
+}
+expGrid.addEventListener("click", e => {
+  const p = e.target.closest("[data-preview]"), l = e.target.closest("[data-left]"), r = e.target.closest("[data-right]");
+  if(p){ loadPreview(VARIANTS.find(v => v.slug === p.dataset.preview)); document.getElementById("compare").scrollIntoView({behavior:"smooth"}); }
+  if(l){ setSide("left", l.dataset.left); }
+  if(r){ setSide("right", r.dataset.right); }
+});
+selLeft.addEventListener("change", () => setSide("left", selLeft.value));
+selRight.addEventListener("change", () => setSide("right", selRight.value));
+
+/* ---- Viewport toggle (1280 / 390) ---- */
+const vp1280 = document.getElementById("vp-1280"), vp390 = document.getElementById("vp-390");
+const compareGrid = document.getElementById("compare-grid");
+function setViewport(w){
+  const narrow = w === 390;
+  previewFrame.classList.toggle("narrow", narrow);
+  compareGrid.classList.toggle("narrow", narrow);
+  vp1280.setAttribute("aria-pressed", String(!narrow));
+  vp390.setAttribute("aria-pressed", String(narrow));
+}
+vp1280.addEventListener("click", () => setViewport(1280));
+vp390.addEventListener("click", () => setViewport(390));
+
+/* ---- Insights: ranking table + defect bars ---- */
+const byRank = [...VARIANTS].sort((a,b) => a.rank - b.rank);
+document.querySelector("#rank-table tbody").innerHTML = byRank.map(v =>
+ `<tr${v.rank <= 5 ? ' class="top5"' : ""}><td>${v.rank}</td><td><a href="${url(v)}">${v.n} — ${v.name}</a></td><td>${v.skills.join(" + ")}</td><td>${v.defects}</td><td>${v.left}</td><td>${v.size}</td></tr>`).join("");
+const maxDef = Math.max(...VARIANTS.map(v => v.defects));
+document.getElementById("defect-bars").innerHTML = [...VARIANTS].sort((a,b) => b.defects - a.defects || a.rank - b.rank).map(v =>
+ `<div class="bar-row"><span>${v.n} — ${v.name}</span><div class="track"><div class="fill${v.rank <= 5 ? " top" : ""}" style="width:${Math.round(v.defects / maxDef * 100)}%"></div></div><span>${v.defects}</span></div>`).join("");
 </script>
 </body>
 </html>
