@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+/* PanelUI web: shadcn semantic tokens. Colour is a role, never a value. */
+:root{
+  --background:#fafafa; --foreground:#18181b; --card:#ffffff;
+  --primary:#1d4ed8; --primary-foreground:#ffffff;
+  --secondary:#f4f4f5; --secondary-foreground:#18181b;
+  --muted:#f4f4f5; --muted-foreground:#71717a;
+  --accent:#eff6ff; --accent-foreground:#1d4ed8;
+  --border:#e4e4e7; --input:#e4e4e7; --ring:#2563eb;
+  --success:#15803d; --success-bg:#dcfce7;
+  --warning:#b45309; --warning-bg:#fef3c7;
+  --destructive:#b91c1c; --destructive-bg:#fee2e2;
+  --info:#0369a1; --info-bg:#e0f2fe;
+  --chart-1:#2563eb;
+  --radius:.625rem;
+  --rail-w:15rem; --rail-collapsed-w:3.5rem;
+  --shadow:0 1px 2px rgb(0 0 0/.05),0 1px 3px rgb(0 0 0/.06);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --background:#09090b; --foreground:#fafafa; --card:#18181b;
+    --primary:#3b82f6; --primary-foreground:#eff6ff;
+    --secondary:#27272a; --secondary-foreground:#fafafa;
+    --muted:#27272a; --muted-foreground:#a1a1aa;
+    --accent:#172554; --accent-foreground:#93c5fd;
+    --border:#27272a; --input:#3f3f46; --ring:#3b82f6;
+    --success:#4ade80; --success-bg:#14532d;
+    --warning:#fbbf24; --warning-bg:#451a03;
+    --destructive:#f87171; --destructive-bg:#450a0a;
+    --info:#38bdf8; --info-bg:#0c4a6e;
+    --chart-1:#3b82f6;
+    --shadow:0 1px 2px rgb(0 0 0/.4);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--background); color:var(--foreground);
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* App shell: NavRail beside the content. */
+.app{display:flex;min-height:100vh}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* NavRail: tonal variant, expanded 15rem, collapsed 3.5rem. */
+.nav-rail{
+  width:var(--rail-w); flex:none; position:sticky; top:0; height:100vh;
+  display:flex; flex-direction:column; gap:4px;
+  background:var(--card); border-right:1px solid var(--border);
+  padding:12px 10px; transition:width .2s ease;
+}
+.nav-rail.collapsed{width:var(--rail-collapsed-w)}
+.rail-header{display:flex;align-items:center;gap:10px;padding:2px 6px 10px;min-height:44px}
+.rail-brand{display:flex;align-items:center;gap:10px;min-width:0;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.rail-brand .mark{
+  flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;
+  background:var(--primary);color:var(--primary-foreground);font-size:13px;font-weight:800;
+}
+.rail-brand .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail-trigger{
+  margin-left:auto;flex:none;width:28px;height:28px;border-radius:6px;display:grid;place-items:center;
+  color:var(--muted-foreground);
+}
+.rail-trigger:hover{background:var(--muted);color:var(--foreground)}
+.nav-rail.collapsed .rail-brand .name,.nav-rail.collapsed .rail-label{display:none}
+.nav-rail.collapsed .rail-trigger{margin-left:0}
+.nav-rail.collapsed .rail-header{flex-direction:column;gap:8px;padding-bottom:8px}
+.rail-group-label{
+  padding:10px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted-foreground);white-space:nowrap;
+}
+.nav-rail.collapsed .rail-group-label{padding:8px 0 4px;text-align:center}
+.nav-rail.collapsed .rail-group-label span{display:none}
+.nav-rail.collapsed .rail-group-label::after{content:"";display:block;height:1px;background:var(--border);margin:0 6px}
+.rail-item{
+  position:relative;display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;border-radius:8px;color:var(--muted-foreground);
+  font-weight:500;text-align:left;white-space:nowrap;
+}
+.rail-item:hover{background:var(--muted);color:var(--foreground)}
+.rail-item .ic{flex:none;width:20px;height:20px;display:grid;place-items:center}
+.rail-item .lbl{overflow:hidden;text-overflow:ellipsis}
+.rail-item.active{background:var(--accent);color:var(--accent-foreground);font-weight:600}
+.rail-item.active::before{
+  content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--primary);
+}
+.rail-badge{
+  margin-left:auto;flex:none;min-width:20px;height:20px;padding:0 6px;border-radius:999px;
+  background:var(--primary);color:var(--primary-foreground);
+  font-size:11px;font-weight:700;display:grid;place-items:center;
+}
+.nav-rail.collapsed .rail-item{justify-content:center;padding:8px 0}
+.nav-rail.collapsed .rail-item .lbl{display:none}
+.nav-rail.collapsed .rail-badge{
+  position:absolute;top:2px;right:2px;min-width:8px;height:8px;padding:0;border-radius:999px;
+  font-size:0;
+}
+.rail-footer{margin-top:auto;padding-top:8px;border-top:1px solid var(--border)}
+.rail-sep{height:1px;background:var(--border);margin:4px 6px}
+
+/* Top bar: school name, search, bell. */
+.topbar{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;
+  padding:14px 28px;background:var(--background);
+  border-bottom:1px solid var(--border);
+}
+.topbar h1{font-size:18px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.topbar .sub{font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.search{
+  margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 320px;
+  background:var(--card);border:1px solid var(--input);border-radius:8px;padding:7px 10px;
+}
+.search:focus-within{border-color:var(--ring);box-shadow:0 0 0 1px var(--ring)}
+.search svg{flex:none;color:var(--muted-foreground)}
+.search input{border:0;outline:0;background:none;color:inherit;font:inherit;width:100%;min-width:0}
+.search input::placeholder{color:var(--muted-foreground)}
+.bell{
+  position:relative;flex:none;width:36px;height:36px;border-radius:8px;display:grid;place-items:center;
+  background:var(--card);border:1px solid var(--input);color:var(--muted-foreground);
+}
+.bell:hover{color:var(--foreground);border-color:var(--border)}
+.bell .dot{
+  position:absolute;top:6px;right:6px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;
+  background:var(--destructive);color:#fff;font-size:10px;font-weight:700;
+  display:grid;place-items:center;border:2px solid var(--card);
+}
+
+/* Content. */
+.content{padding:24px 28px 32px;display:flex;flex-direction:column;gap:20px;max-width:1180px;width:100%;margin:0 auto}
+.section-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.section-head h2{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.section-head p{font-size:12px;color:var(--muted-foreground)}
+
+/* Frame: muted band, title strip, inner bordered card. */
+.frame{border:1px solid var(--border);border-radius:var(--radius);background:var(--muted);padding:6px}
+.frame-header{display:flex;align-items:center;gap:10px;padding:8px 12px 10px}
+.frame-title{font-size:13px;font-weight:600;color:var(--foreground)}
+.frame-action{margin-left:auto;font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.frame-panel{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 4px);box-shadow:var(--shadow)}
+.frame-panel > * + *{border-top:1px solid var(--border)}
+
+/* KPI: Kpi.Group, horizontal, one card per metric. */
+.kpi-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.kpi{padding:16px 18px;min-width:0}
+.kpi + .kpi{border-left:1px solid var(--border)}
+.kpi-head{display:flex;align-items:center;gap:8px}
+.kpi-icon{
+  flex:none;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
+  background:var(--accent);color:var(--accent-foreground);
+}
+.kpi-icon.tone-success{background:var(--success-bg);color:var(--success)}
+.kpi-icon.tone-info{background:var(--info-bg);color:var(--info)}
+.kpi-icon.tone-warning{background:var(--warning-bg);color:var(--warning)}
+.kpi-title{font-size:12px;font-weight:600;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kpi-value{margin-top:10px;font-size:30px;line-height:1.1;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.kpi-value small{font-size:15px;font-weight:600;color:var(--muted-foreground);letter-spacing:0}
+.kpi-foot{margin-top:8px;font-size:12px;color:var(--muted-foreground)}
+.kpi-spark{margin-top:10px;display:block}
+.kpi-progress{margin-top:12px}
+.kpi-progress .bar{height:6px;border-radius:999px;background:var(--muted);overflow:hidden}
+.kpi-progress .bar i{display:block;height:100%;border-radius:999px;background:var(--primary)}
+.kpi-progress .lbl{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted-foreground)}
+
+/* Badge: role tint, never a raw colour. */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:999px;
+  font-size:11px;font-weight:600;white-space:nowrap;
+}
+.badge .dot{width:6px;height:6px;border-radius:999px;background:currentColor}
+.badge.success{background:var(--success-bg);color:var(--success)}
+.badge.warning{background:var(--warning-bg);color:var(--warning)}
+.badge.destructive{background:var(--destructive-bg);color:var(--destructive)}
+.badge.info{background:var(--info-bg);color:var(--info)}
+.badge.primary{background:var(--accent);color:var(--accent-foreground)}
+
+/* Two-column row: chart + notices. */
+.duo{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:20px;align-items:start}
+
+/* BarChart: value axis includes zero. Bars grow from the baseline. */
+.chart{padding:18px 18px 12px}
+.chart-readout{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.chart-readout .big{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.chart-readout .cap{font-size:12px;color:var(--muted-foreground)}
+.plot{display:flex;gap:0}
+.yaxis{
+  flex:none;width:34px;display:flex;flex-direction:column-reverse;justify-content:space-between;
+  font-size:11px;color:var(--muted-foreground);text-align:right;padding-right:8px;
+  padding-bottom:22px;font-variant-numeric:tabular-nums;
+}
+.yaxis span{line-height:1}
+.bars-wrap{flex:1;min-width:0}
+.bars{
+  position:relative;display:flex;align-items:flex-end;gap:8px;height:180px;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px);
+  background-size:100% 45px;background-position:0 -1px;
+  border-bottom:1px solid var(--border);padding:0 4px;
+}
+.bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;border-radius:6px 6px 0 0}
+.bar-col:focus-visible{outline-offset:0}
+.bar-val{font-size:11px;font-weight:600;color:var(--muted-foreground);margin-bottom:4px;font-variant-numeric:tabular-nums}
+.bar{
+  width:min(44px,72%);border-radius:4px 4px 0 0;background:var(--chart-1);opacity:.55;
+  transition:opacity .15s ease,height .5s ease;
+}
+.bar-col:hover .bar,.bar-col:focus-visible .bar,.bar-col.active .bar{opacity:1}
+.bar-col.today .bar{opacity:1}
+.bar-col.today .bar-val{color:var(--foreground)}
+.xaxis{display:flex;gap:8px;padding:6px 4px 0}
+.xaxis span{flex:1;min-width:0;text-align:center;font-size:11px;color:var(--muted-foreground)}
+.xaxis span.today{color:var(--foreground);font-weight:600}
+.chart-note{padding:10px 18px 14px;font-size:12px;color:var(--muted-foreground)}
+
+/* Notices: Frame rows. */
+.notice-row{display:flex;gap:12px;align-items:flex-start;padding:14px 16px}
+.notice-media{
+  flex:none;width:34px;height:34px;border-radius:8px;display:grid;place-items:center;
+}
+.notice-media.info{background:var(--info-bg);color:var(--info)}
+.notice-media.warning{background:var(--warning-bg);color:var(--warning)}
+.notice-media.primary{background:var(--accent);color:var(--accent-foreground)}
+.notice-body{flex:1;min-width:0}
+.notice-body p{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.notice-body small{display:block;margin-top:2px;font-size:12px;color:var(--muted-foreground)}
+.notice-row .badge{flex:none;margin-top:7px}
+
+/* Students: Table inside a Frame, scrolls inside its own box. */
+.table-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.table-tools .count{font-size:12px;color:var(--muted-foreground)}
+.table-tools .count b{color:var(--foreground)}
+.table-scroll{overflow-x:auto}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:13px}
+caption{text-align:left;padding:0}
+thead th{
+  text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted-foreground);padding:10px 16px;border-bottom:1px solid var(--border);
+  background:var(--card);position:sticky;top:0;white-space:nowrap;
+}
+thead th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+thead th.sortable{cursor:pointer}
+thead th.sortable:hover{color:var(--foreground)}
+thead th.sortable .arrow{font-size:10px;margin-left:4px}
+tbody td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--muted)}
+.student{display:flex;align-items:center;gap:10px;min-width:0}
+.avatar{
+  flex:none;width:32px;height:32px;border-radius:999px;display:grid;place-items:center;
+  background:var(--accent);color:var(--accent-foreground);font-size:11px;font-weight:700;
+}
+.student .nm{font-weight:600;white-space:nowrap}
+.student .rl{font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.meter{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.meter .track{width:64px;height:5px;border-radius:999px;background:var(--muted);overflow:hidden;flex:none}
+.meter .track i{display:block;height:100%;border-radius:999px;background:var(--chart-1)}
+.meter .track i.low{background:var(--warning)}
+.meter b{font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.empty{padding:28px 16px;text-align:center;color:var(--muted-foreground)}
+.empty[hidden]{display:none}
+
+/* Footer. */
+.page-foot{
+  margin-top:auto;padding:16px 28px 20px;border-top:1px solid var(--border);
+  font-size:12px;color:var(--muted-foreground);display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;
+}
+
+/* Bottom nav replaces the rail on mobile. */
+.bottom-nav{display:none}
+
+@media (max-width:1020px){
+  .kpi-group{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(3){border-left:0}
+  .kpi:nth-child(n+3){border-top:1px solid var(--border)}
+  .duo{grid-template-columns:1fr}
+}
+@media (max-width:768px){
+  .nav-rail{display:none}
+  .bottom-nav{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:var(--card);border-top:1px solid var(--border);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav a{
+    flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:6px 2px;border-radius:8px;font-size:10px;font-weight:600;color:var(--muted-foreground);
+    position:relative;
+  }
+  .bottom-nav a.active{color:var(--primary)}
+  .bottom-nav .bdot{
+    position:absolute;top:2px;right:calc(50% - 16px);min-width:15px;height:15px;padding:0 4px;
+    border-radius:999px;background:var(--destructive);color:#fff;font-size:9px;font-weight:700;
+    display:grid;place-items:center;
+  }
+  .content{padding:16px 16px 92px}
+  .topbar{padding:12px 16px;flex-wrap:wrap;gap:10px}
+  .topbar h1{font-size:16px}
+  .search{order:3;flex:1 1 100%}
+  .bell{margin-left:auto}
+  .page-foot{padding-bottom:84px}
+}
+@media (max-width:480px){
+  .kpi-group{grid-template-columns:1fr}
+  .kpi + .kpi{border-left:0;border-top:1px solid var(--border)}
+  .kpi:nth-child(n+3){border-top:1px solid var(--border)}
+  .meter .track{display:none}
+  .topbar .sub{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- NavRail: tonal variant, one active pill, collapse driven by the app. -->
+  <nav class="nav-rail" id="rail" aria-label="Main navigation">
+    <div class="rail-header">
+      <a class="rail-brand" href="#" aria-label="Greenwood High home">
+        <span class="mark" aria-hidden="true">GH</span>
+        <span class="name">Greenwood High</span>
+      </a>
+      <button class="rail-trigger" id="railTrigger" type="button" aria-expanded="true" aria-controls="rail" aria-label="Collapse navigation" title="Collapse navigation">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="rail-group-label" role="presentation"><span>Menu</span></div>
+    <a class="rail-item active" href="#" aria-current="page">
+      <span class="ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span>
+      <span class="lbl">Dashboard</span>
+    </a>
+    <a class="rail-item" href="#students">
+      <span class="ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><path d="M16 8.5a3 3 0 1 1 2.5 4.6M17.5 15.5c2 .6 3.5 2 4 4.5"/></svg></span>
+      <span class="lbl">Students</span>
+    </a>
+    <a class="rail-item" href="#trend">
+      <span class="ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 6-8"/><path d="M18 6h3v3"/></svg></span>
+      <span class="lbl">Attendance</span>
+    </a>
+    <a class="rail-item" href="#students">
+      <span class="ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 1.8 2.6 5 3.2 5 1.4 5 3.3-2.2 3-5 3-5-1.1-5-3"/></svg></span>
+      <span class="lbl">Fees</span>
+    </a>
+    <a class="rail-item" href="#notices">
+      <span class="ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg></span>
+      <span class="lbl">Notices</span>
+      <span class="rail-badge" aria-label="3 unread notices">3</span>
+    </a>
+    <div class="rail-footer">
+      <div class="rail-sep" role="separator"></div>
+      <a class="rail-item" href="#">
+        <span class="ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg></span>
+        <span class="lbl">Settings</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Class 8-A Dashboard</h1>
+        <p class="sub">Greenwood High · 2025–26</p>
+      </div>
+      <label class="search" for="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="sr-only">Search students</span>
+        <input id="search" type="search" placeholder="Search students by name or roll…" autocomplete="off">
+      </label>
+      <button class="bell" id="bell" type="button" aria-label="Notices, 3 unread">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>
+        <span class="dot" aria-hidden="true">3</span>
+      </button>
+    </header>
+
+    <main class="content">
+      <div class="section-head">
+        <h2>Overview</h2>
+        <p>Today · Class 8-A · 12 students</p>
+      </div>
+
+      <!-- Kpi.Group: one number and what it is doing. No trend change is shown:
+           TASK.md supplies no prior-period figure, so none is invented. -->
+      <section class="frame" aria-label="Key figures">
+        <div class="frame-header">
+          <h3 class="frame-title">Key figures</h3>
+          <span class="frame-action">Today · 2025–26</span>
+        </div>
+        <div class="frame-panel">
+          <div class="kpi-group">
+            <div class="kpi">
+              <div class="kpi-head">
+                <span class="kpi-icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/></svg></span>
+                <span class="kpi-title">Students</span>
+              </div>
+              <p class="kpi-value">1,248</p>
+              <p class="kpi-foot">12 in Class 8-A</p>
+            </div>
+            <div class="kpi">
+              <div class="kpi-head">
+                <span class="kpi-icon tone-info" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></span>
+                <span class="kpi-title">Teachers</span>
+              </div>
+              <p class="kpi-value">72</p>
+              <p class="kpi-foot">Across Greenwood High</p>
+            </div>
+            <div class="kpi">
+              <div class="kpi-head">
+                <span class="kpi-icon tone-success" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14l-3-3"/></svg></span>
+                <span class="kpi-title">Attendance today</span>
+              </div>
+              <p class="kpi-value">95.2<small>%</small></p>
+              <svg class="kpi-spark" id="spark" width="100%" height="32" viewBox="0 0 200 32" preserveAspectRatio="none" role="img" aria-label="Attendance this week: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95"></svg>
+              <p class="kpi-foot">1,188 present · 60 absent</p>
+            </div>
+            <div class="kpi">
+              <div class="kpi-head">
+                <span class="kpi-icon tone-warning" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 1.8 2.6 5 3.2 5 1.4 5 3.3-2.2 3-5 3-5-1.1-5-3"/></svg></span>
+                <span class="kpi-title">Fees collected</span>
+              </div>
+              <p class="kpi-value">84<small>%</small></p>
+              <div class="kpi-progress">
+                <div class="bar" role="progressbar" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100" aria-label="Fees collected, 84 percent of target"><i style="width:84%"></i></div>
+                <div class="lbl"><span>₹25.2L collected</span><span>of ₹30L</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="duo">
+        <!-- BarChart: value axis includes zero, one series, today highlighted. -->
+        <section class="frame" id="trend" aria-label="Attendance trend">
+          <div class="frame-header">
+            <h3 class="frame-title">Attendance trend</h3>
+            <span class="frame-action">This week · Mon–Fri</span>
+          </div>
+          <div class="frame-panel">
+            <div class="chart">
+              <div class="chart-readout">
+                <span class="big" id="chartValue">95.2% average</span>
+                <span class="cap" id="chartCaption">Monday to Friday · hover or use arrow keys to read a day</span>
+              </div>
+              <div class="plot">
+                <div class="yaxis" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+                <div class="bars-wrap">
+                  <div class="bars" id="bars" role="group" aria-label="Attendance by day, percent. Monday 94, Tuesday 96, Wednesday 93, Thursday 97, Friday 95."></div>
+                  <div class="xaxis" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span class="today">Fri</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="chart-note">Bars start at zero, so lengths compare honestly. Friday is today.</p>
+          </div>
+        </section>
+
+        <!-- Notices: Frame rows, role-coloured media and badges. -->
+        <section class="frame" id="notices" aria-label="Notices" tabindex="-1">
+          <div class="frame-header">
+            <h3 class="frame-title">Notices</h3>
+            <span class="frame-action">3 unread</span>
+          </div>
+          <div class="frame-panel" id="noticeList"></div>
+        </section>
+      </div>
+
+      <!-- Table: rows rendered from the data model, numbers right-aligned. -->
+      <section class="frame" id="students" aria-label="Class 8-A students">
+        <div class="frame-header">
+          <h3 class="frame-title">Class 8-A students</h3>
+          <div class="frame-action table-tools">
+            <span class="count" id="rowCount"><b>12</b> of 12 shown</span>
+          </div>
+        </div>
+        <div class="frame-panel">
+          <div class="table-scroll">
+            <table>
+              <caption class="sr-only">Class 8-A students with roll number, attendance and marks</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Student</th>
+                  <th scope="col">Roll</th>
+                  <th scope="col" class="num sortable" id="thAtt" aria-sort="none" tabindex="0">Attendance <span class="arrow" aria-hidden="true"></span></th>
+                  <th scope="col" class="num sortable" id="thMarks" aria-sort="none" tabindex="0">Marks <span class="arrow" aria-hidden="true"></span></th>
+                </tr>
+              </thead>
+              <tbody id="studentBody"></tbody>
+            </table>
+            <p class="empty" id="emptyState" hidden>No student matches that search.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-foot">
+      <span>Fictional demo data — UI Forge Experiment 1</span>
+      <span>Greenwood High · Class 8-A · 2025–26</span>
+    </footer>
+  </div>
+</div>
+
+<!-- Bottom nav: the rail's mobile form. -->
+<nav class="bottom-nav" aria-label="Main navigation, mobile">
+  <a href="#" class="active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+  <a href="#students"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/></svg>Students</a>
+  <a href="#trend"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8"/><path d="M18 6h3v3"/></svg>Attendance</a>
+  <a href="#notices"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>Notices<span class="bdot" aria-hidden="true">3</span></a>
+</nav>
+
+<script>
+"use strict";
+/* Data model first: one typed shape, rendered, never hand-written twice. */
+var STUDENTS = [
+  { name: "Aarav Sharma", roll: "8A-01", attendance: 96, marks: 88 },
+  { name: "Diya Patel", roll: "8A-02", attendance: 94, marks: 91 },
+  { name: "Kabir Singh", roll: "8A-03", attendance: 89, marks: 76 },
+  { name: "Ananya Gupta", roll: "8A-04", attendance: 98, marks: 93 },
+  { name: "Rohan Mehta", roll: "8A-05", attendance: 92, marks: 82 },
+  { name: "Ishita Verma", roll: "8A-06", attendance: 97, marks: 89 },
+  { name: "Arjun Nair", roll: "8A-07", attendance: 90, marks: 79 },
+  { name: "Sneha Reddy", roll: "8A-08", attendance: 95, marks: 86 },
+  { name: "Vikram Joshi", roll: "8A-09", attendance: 88, marks: 74 },
+  { name: "Priya Das", roll: "8A-10", attendance: 99, marks: 95 },
+  { name: "Aditya Rao", roll: "8A-11", attendance: 93, marks: 84 },
+  { name: "Kavya Iyer", roll: "8A-12", attendance: 96, marks: 90 }
+];
+var TREND = [
+  { day: "Mon", label: "Monday", value: 94 },
+  { day: "Tue", label: "Tuesday", value: 96 },
+  { day: "Wed", label: "Wednesday", value: 93 },
+  { day: "Thu", label: "Thursday", value: 97 },
+  { day: "Fri", label: "Friday", value: 95, today: true }
+];
+var NOTICES = [
+  { text: "Science fair on Friday", detail: "Class 8-A · this Friday", tag: "Fri", tone: "info" },
+  { text: "Fee deadline 20 Nov", detail: "Fees office · pay by 20 November", tag: "20 Nov", tone: "warning" },
+  { text: "Parent-teacher meet 25 Nov", detail: "Class 8-A · 25 November", tag: "25 Nov", tone: "primary" }
+];
+
+/* Role by meaning: success good, warning attention, info neutral. */
+function roleFor(value) {
+  if (value >= 95) return "success";
+  if (value >= 90) return "info";
+  return "warning";
+}
+function initials(name) {
+  return name.split(" ").map(function (w) { return w[0]; }).join("").slice(0, 2).toUpperCase();
+}
+function el(tag, cls, text) {
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+/* Notices: Frame rows from the data model. */
+(function renderNotices() {
+  var list = document.getElementById("noticeList");
+  var icons = {
+    info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11v5"/></svg>',
+    warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+    primary: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M15.5 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  };
+  NOTICES.forEach(function (n) {
+    var row = el("div", "notice-row");
+    var media = el("span", "notice-media " + n.tone);
+    media.setAttribute("aria-hidden", "true");
+    media.innerHTML = icons[n.tone];
+    var body = el("div", "notice-body");
+    body.appendChild(el("p", null, n.text));
+    body.appendChild(el("small", null, n.detail));
+    var badge = el("span", "badge " + n.tone, n.tag);
+    row.appendChild(media); row.appendChild(body); row.appendChild(badge);
+    list.appendChild(row);
+  });
+})();
+
+/* BarChart: bars from the baseline, keyboard-readable, readout outside the plot. */
+(function renderChart() {
+  var wrap = document.getElementById("bars");
+  var valueEl = document.getElementById("chartValue");
+  var capEl = document.getElementById("chartCaption");
+  var cols = [];
+  TREND.forEach(function (d, i) {
+    var col = el("div", "bar-col" + (d.today ? " today" : ""));
+    col.tabIndex = 0;
+    col.setAttribute("role", "button");
+    col.setAttribute("aria-label", d.label + ": " + d.value + " percent attendance" + (d.today ? ", today" : ""));
+    var val = el("span", "bar-val", d.value + "%");
+    var bar = el("span", "bar");
+    bar.style.height = d.value + "%";
+    col.appendChild(val); col.appendChild(bar);
+    function read() {
+      cols.forEach(function (c) { c.classList.remove("active"); });
+      col.classList.add("active");
+      valueEl.textContent = d.value + "% · " + d.label;
+      capEl.textContent = d.today ? "Today · Friday" : d.label + " this week";
+    }
+    col.addEventListener("mouseenter", read);
+    col.addEventListener("focus", read);
+    col.addEventListener("click", read);
+    col.addEventListener("keydown", function (e) {
+      var next = null;
+      if (e.key === "ArrowRight") next = cols[i + 1];
+      if (e.key === "ArrowLeft") next = cols[i - 1];
+      if (e.key === "Home") next = cols[0];
+      if (e.key === "End") next = cols[cols.length - 1];
+      if (next) { e.preventDefault(); next.focus(); }
+      if (e.key === "Escape") { cols.forEach(function (c) { c.classList.remove("active"); }); valueEl.textContent = "95.2% average"; capEl.textContent = "Monday to Friday · hover or use arrow keys to read a day"; }
+    });
+    cols.push(col);
+    wrap.appendChild(col);
+  });
+})();
+
+/* KPI sparkline: the same Mon-Fri shape, small on purpose, no axis. */
+(function renderSpark() {
+  var svg = document.getElementById("spark");
+  var min = 90, max = 100, w = 200, h = 32, pad = 3;
+  var pts = TREND.map(function (d, i) {
+    var x = pad + (i * (w - pad * 2)) / (TREND.length - 1);
+    var y = pad + (1 - (d.value - min) / (max - min)) * (h - pad * 2);
+    return x.toFixed(1) + "," + y.toFixed(1);
+  }).join(" ");
+  var ns = "http://www.w3.org/2000/svg";
+  var area = document.createElementNS(ns, "polygon");
+  area.setAttribute("points", pad + "," + h + " " + pts + " " + (w - pad) + "," + h);
+  area.setAttribute("fill", "var(--chart-1)");
+  area.setAttribute("opacity", "0.12");
+  var line = document.createElementNS(ns, "polyline");
+  line.setAttribute("points", pts);
+  line.setAttribute("fill", "none");
+  line.setAttribute("stroke", "var(--chart-1)");
+  line.setAttribute("stroke-width", "2");
+  line.setAttribute("stroke-linejoin", "round");
+  line.setAttribute("stroke-linecap", "round");
+  svg.appendChild(area); svg.appendChild(line);
+})();
+
+/* Table: filter returns a new array, sort copies before sorting. No mutation. */
+var sortKey = null, sortDir = 1;
+var body = document.getElementById("studentBody");
+var emptyState = document.getElementById("emptyState");
+var rowCount = document.getElementById("rowCount");
+var searchInput = document.getElementById("search");
+
+function renderTable(rows) {
+  body.innerHTML = "";
+  rows.forEach(function (s) {
+    var tr = document.createElement("tr");
+    var tdName = el("td");
+    var who = el("div", "student");
+    who.appendChild(el("span", "avatar", initials(s.name)));
+    var nm = el("div");
+    nm.appendChild(el("div", "nm", s.name));
+    nm.appendChild(el("div", "rl", s.roll));
+    who.appendChild(nm);
+    tdName.appendChild(who);
+    var tdRoll = el("td", null, s.roll);
+    var tdAtt = el("td", "num");
+    var meter = el("span", "meter");
+    var track = el("span", "track");
+    var fill = el("i");
+    fill.style.width = s.attendance + "%";
+    if (s.attendance < 90) fill.className = "low";
+    track.appendChild(fill);
+    meter.appendChild(track);
+    meter.appendChild(el("b", null, s.attendance + "%"));
+    tdAtt.appendChild(meter);
+    var tdMarks = el("td", "num");
+    tdMarks.appendChild(el("span", "badge " + roleFor(s.marks), s.marks + "%"));
+    tr.appendChild(tdName); tr.appendChild(tdRoll); tr.appendChild(tdAtt); tr.appendChild(tdMarks);
+    body.appendChild(tr);
+  });
+  emptyState.hidden = rows.length !== 0;
+  rowCount.innerHTML = "";
+  var b = el("b", null, String(rows.length));
+  rowCount.appendChild(b);
+  rowCount.appendChild(document.createTextNode(" of 12 shown"));
+}
+
+function applyView() {
+  var q = searchInput.value.trim().toLowerCase();
+  var rows = STUDENTS.filter(function (s) {
+    return !q || s.name.toLowerCase().indexOf(q) !== -1 || s.roll.toLowerCase().indexOf(q) !== -1;
+  });
+  if (sortKey) {
+    rows = rows.slice().sort(function (a, b) { return (a[sortKey] - b[sortKey]) * sortDir; });
+  }
+  renderTable(rows);
+}
+
+var debounceTimer = null;
+searchInput.addEventListener("input", function () {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(applyView, 150);
+});
+
+function bindSort(thId, key) {
+  var th = document.getElementById(thId);
+  var arrow = th.querySelector(".arrow");
+  function toggle() {
+    if (sortKey === key) { sortDir = -sortDir; }
+    else { sortKey = key; sortDir = -1; }
+    document.querySelectorAll("th.sortable").forEach(function (t) {
+      t.setAttribute("aria-sort", "none");
+      t.querySelector(".arrow").textContent = "";
+    });
+    th.setAttribute("aria-sort", sortDir === -1 ? "descending" : "ascending");
+    arrow.textContent = sortDir === -1 ? "↓" : "↑";
+    applyView();
+  }
+  th.addEventListener("click", toggle);
+  th.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+  });
+}
+bindSort("thAtt", "attendance");
+bindSort("thMarks", "marks");
+renderTable(STUDENTS);
+
+/* NavRail: collapse is the app's decision, reported with aria-expanded. */
+(function rail() {
+  var railEl = document.getElementById("rail");
+  var trigger = document.getElementById("railTrigger");
+  trigger.addEventListener("click", function () {
+    var collapsed = railEl.classList.toggle("collapsed");
+    trigger.setAttribute("aria-expanded", String(!collapsed));
+    trigger.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
+    trigger.title = collapsed ? "Expand navigation" : "Collapse navigation";
+  });
+  document.querySelectorAll(".rail-item").forEach(function (item) {
+    item.addEventListener("click", function () {
+      document.querySelectorAll(".rail-item").forEach(function (i) { i.classList.remove("active"); i.removeAttribute("aria-current"); });
+      item.classList.add("active");
+      item.setAttribute("aria-current", "page");
+    });
+    item.addEventListener("keydown", function (e) {
+      var items = Array.prototype.slice.call(document.querySelectorAll(".rail-item"));
+      var i = items.indexOf(item), next = null;
+      if (e.key === "ArrowDown") next = items[(i + 1) % items.length];
+      if (e.key === "ArrowUp") next = items[(i - 1 + items.length) % items.length];
+      if (e.key === "Home") next = items[0];
+      if (e.key === "End") next = items[items.length - 1];
+      if (next) { e.preventDefault(); next.focus(); }
+    });
+  });
+})();
+
+/* Bell: moves focus to the notices panel it counts. */
+document.getElementById("bell").addEventListener("click", function () {
+  var panel = document.getElementById("notices");
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  panel.focus({ preventScroll: true });
+});
+</script>
+</body>
+</html>

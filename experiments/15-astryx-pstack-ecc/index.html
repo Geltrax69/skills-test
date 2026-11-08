@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High - Class 8-A Dashboard</title>
+<style>
+/*
+  Astryx theme-neutral, adapted to single-file HTML (no React build step).
+  Tokens are CSS custom properties on :root, mirroring how an Astryx theme
+  is a set of token overrides. Spacing scale is 4px based. Radius, shadow
+  and type scales follow the Astryx token docs. No external fonts or images.
+  Component anatomy follows Astryx BEM-style naming:
+  .ax-card > .ax-card__header / .ax-card__body, .ax-button, .ax-badge,
+  .ax-avatar, .ax-input, .ax-table, .ax-nav.
+*/
+:root {
+  /* Astryx neutral theme tokens */
+  --ax-color-bg: #f6f6f4;
+  --ax-color-surface: #ffffff;
+  --ax-color-surface-subtle: #f0f0ee;
+  --ax-color-border: #e2e2de;
+  --ax-color-border-strong: #c9c9c4;
+  --ax-color-text: #1c1c1a;
+  --ax-color-text-secondary: #5b5b57;
+  --ax-color-text-inverse: #ffffff;
+  --ax-color-primary: #1c1c1a;
+  --ax-color-primary-hover: #000000;
+  --ax-color-accent: #1d4ed8;
+  --ax-color-accent-soft: #dbeafe;
+  --ax-color-success: #137333;
+  --ax-color-success-soft: #dcf2e3;
+  --ax-color-warning: #8a5a00;
+  --ax-color-warning-soft: #fdf0d3;
+  --ax-color-danger: #b3261e;
+  --ax-color-danger-soft: #fbe9e7;
+  --ax-space-1: 4px;
+  --ax-space-2: 8px;
+  --ax-space-3: 12px;
+  --ax-space-4: 16px;
+  --ax-space-5: 20px;
+  --ax-space-6: 24px;
+  --ax-space-8: 32px;
+  --ax-radius-sm: 8px;
+  --ax-radius-md: 12px;
+  --ax-radius-lg: 16px;
+  --ax-radius-full: 999px;
+  --ax-shadow-sm: 0 1px 2px rgba(28, 28, 26, 0.06);
+  --ax-shadow-md: 0 4px 16px rgba(28, 28, 26, 0.10);
+  --ax-font-size-xs: 12px;
+  --ax-font-size-sm: 13px;
+  --ax-font-size-md: 14px;
+  --ax-font-size-lg: 16px;
+  --ax-font-size-xl: 20px;
+  --ax-font-size-2xl: 24px;
+  --ax-font-size-3xl: 28px;
+  --ax-font-weight-medium: 500;
+  --ax-font-weight-semibold: 600;
+  --ax-font-weight-bold: 700;
+  --ax-line-height-tight: 1.25;
+  --ax-line-height-normal: 1.5;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--ax-font-size-md);
+  line-height: var(--ax-line-height-normal);
+  color: var(--ax-color-text);
+  background: var(--ax-color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--ax-color-accent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ax-color-accent); outline-offset: 2px; border-radius: var(--ax-radius-sm); }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- App shell: sidebar + main (Astryx layout template anatomy) ---------- */
+.app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+/* ---------- Astryx Navigation (sidebar, compound component) ---------- */
+.ax-nav {
+  background: var(--ax-color-surface);
+  border-right: 1px solid var(--ax-color-border);
+  padding: var(--ax-space-5) var(--ax-space-3);
+  display: flex; flex-direction: column; gap: var(--ax-space-1);
+  position: sticky; top: 0; height: 100vh;
+}
+.ax-nav__brand { display: flex; align-items: center; gap: var(--ax-space-3); padding: 0 var(--ax-space-3) var(--ax-space-4); }
+.ax-nav__mark {
+  width: 36px; height: 36px; border-radius: var(--ax-radius-sm);
+  background: var(--ax-color-primary); color: var(--ax-color-text-inverse);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: var(--ax-font-weight-bold); font-size: var(--ax-font-size-lg); flex: none;
+}
+.ax-nav__brand-name { font-weight: var(--ax-font-weight-bold); font-size: var(--ax-font-size-lg); line-height: var(--ax-line-height-tight); }
+.ax-nav__brand-sub { font-size: var(--ax-font-size-xs); color: var(--ax-color-text-secondary); line-height: var(--ax-line-height-tight); }
+.ax-nav__label {
+  font-size: var(--ax-font-size-xs); font-weight: var(--ax-font-weight-semibold);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ax-color-text-secondary); padding: var(--ax-space-3) var(--ax-space-3) var(--ax-space-2);
+}
+.ax-nav__item {
+  display: flex; align-items: center; gap: var(--ax-space-3);
+  width: 100%; text-align: left; border: 0; background: transparent; cursor: pointer;
+  padding: var(--ax-space-3); border-radius: var(--ax-radius-sm);
+  font-size: var(--ax-font-size-md); font-weight: var(--ax-font-weight-medium);
+  color: var(--ax-color-text-secondary); text-decoration: none;
+}
+.ax-nav__item:hover { background: var(--ax-color-surface-subtle); color: var(--ax-color-text); }
+.ax-nav__item[aria-current="page"] { background: var(--ax-color-surface-subtle); color: var(--ax-color-text); font-weight: var(--ax-font-weight-semibold); }
+.ax-nav__icon { width: 20px; text-align: center; flex: none; font-size: var(--ax-font-size-lg); line-height: 1; }
+.ax-nav__count {
+  margin-left: auto; font-size: var(--ax-font-size-xs); font-weight: var(--ax-font-weight-semibold);
+  background: var(--ax-color-danger); color: var(--ax-color-text-inverse);
+  border-radius: var(--ax-radius-full); min-width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0 6px;
+}
+.ax-nav__footer { margin-top: auto; padding: var(--ax-space-3); border-top: 1px solid var(--ax-color-border); display: flex; align-items: center; gap: var(--ax-space-3); }
+.ax-nav__footer-name { font-weight: var(--ax-font-weight-semibold); font-size: var(--ax-font-size-sm); line-height: var(--ax-line-height-tight); }
+.ax-nav__footer-role { font-size: var(--ax-font-size-xs); color: var(--ax-color-text-secondary); line-height: var(--ax-line-height-tight); }
+
+/* ---------- Main column ---------- */
+.main { min-width: 0; display: flex; flex-direction: column; }
+
+/* ---------- Astryx Header ---------- */
+.ax-header {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--ax-color-surface);
+  border-bottom: 1px solid var(--ax-color-border);
+  display: flex; align-items: center; gap: var(--ax-space-4);
+  padding: var(--ax-space-3) var(--ax-space-6);
+}
+.ax-header__title { font-size: var(--ax-font-size-xl); font-weight: var(--ax-font-weight-bold); line-height: var(--ax-line-height-tight); margin: 0; white-space: nowrap; }
+.ax-header__subtitle { font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); margin: 0; white-space: nowrap; }
+.ax-header__titles { min-width: 0; }
+.ax-header__spacer { flex: 1; }
+
+/* Astryx Input (search) */
+.ax-input { position: relative; width: 280px; max-width: 100%; }
+.ax-input__icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ax-color-text-secondary); pointer-events: none; font-size: var(--ax-font-size-md); }
+.ax-input__field {
+  width: 100%; border: 1px solid var(--ax-color-border-strong); border-radius: var(--ax-radius-full);
+  background: var(--ax-color-surface); color: var(--ax-color-text);
+  font: inherit; font-size: var(--ax-font-size-md);
+  padding: 8px 12px 8px 34px;
+}
+.ax-input__field::placeholder { color: var(--ax-color-text-secondary); }
+.ax-input__field:focus { outline: 2px solid var(--ax-color-accent); outline-offset: 1px; border-color: var(--ax-color-accent); }
+
+/* Astryx Button */
+.ax-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--ax-space-2);
+  border: 1px solid transparent; border-radius: var(--ax-radius-full); cursor: pointer;
+  font-size: var(--ax-font-size-md); font-weight: var(--ax-font-weight-semibold);
+  padding: 8px 16px; background: var(--ax-color-primary); color: var(--ax-color-text-inverse);
+  text-decoration: none; white-space: nowrap;
+}
+.ax-button:hover { background: var(--ax-color-primary-hover); }
+.ax-button--ghost { background: transparent; color: var(--ax-color-text); border-color: var(--ax-color-border-strong); }
+.ax-button--ghost:hover { background: var(--ax-color-surface-subtle); }
+.ax-button--subtle { background: var(--ax-color-surface-subtle); color: var(--ax-color-text); }
+.ax-button--subtle:hover { background: var(--ax-color-border); }
+.ax-button--icon { padding: 8px; min-width: 38px; }
+.ax-button[aria-pressed="true"] { background: var(--ax-color-primary); color: var(--ax-color-text-inverse); border-color: var(--ax-color-primary); }
+
+/* Bell with unread dot */
+.ax-bell { position: relative; }
+.ax-bell__dot {
+  position: absolute; top: 6px; right: 6px; width: 9px; height: 9px;
+  border-radius: var(--ax-radius-full); background: var(--ax-color-danger);
+  border: 2px solid var(--ax-color-surface);
+}
+
+/* Notification panel (Astryx overlay anatomy) */
+.ax-panel {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 30;
+  width: 340px; max-width: calc(100vw - 32px);
+  background: var(--ax-color-surface); border: 1px solid var(--ax-color-border);
+  border-radius: var(--ax-radius-md); box-shadow: var(--ax-shadow-md);
+  padding: var(--ax-space-2);
+}
+.ax-panel[hidden] { display: none; }
+.ax-panel__header { display: flex; align-items: center; justify-content: space-between; padding: var(--ax-space-3); }
+.ax-panel__title { font-weight: var(--ax-font-weight-bold); font-size: var(--ax-font-size-md); margin: 0; }
+.ax-panel__item { display: flex; gap: var(--ax-space-3); padding: var(--ax-space-3); border-radius: var(--ax-radius-sm); }
+.ax-panel__item:hover { background: var(--ax-color-surface-subtle); }
+.ax-panel__item-dot { width: 8px; height: 8px; border-radius: var(--ax-radius-full); background: var(--ax-color-accent); margin-top: 7px; flex: none; }
+.ax-panel__item-text { font-size: var(--ax-font-size-md); font-weight: var(--ax-font-weight-medium); margin: 0; }
+.ax-panel__item-meta { font-size: var(--ax-font-size-xs); color: var(--ax-color-text-secondary); margin: 2px 0 0; }
+.ax-header__actions { position: relative; display: flex; align-items: center; gap: var(--ax-space-2); }
+
+/* Astryx Avatar */
+.ax-avatar {
+  width: 36px; height: 36px; border-radius: var(--ax-radius-full); flex: none;
+  background: var(--ax-color-accent-soft); color: var(--ax-color-accent);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: var(--ax-font-weight-bold); font-size: var(--ax-font-size-sm);
+}
+.ax-avatar--sm { width: 28px; height: 28px; font-size: var(--ax-font-size-xs); }
+.ax-avatar--ink { background: var(--ax-color-surface-subtle); color: var(--ax-color-text); }
+
+/* ---------- Content ---------- */
+.content { padding: var(--ax-space-6); display: flex; flex-direction: column; gap: var(--ax-space-6); flex: 1; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--ax-space-4); flex-wrap: wrap; }
+.page-head h2 { font-size: var(--ax-font-size-2xl); font-weight: var(--ax-font-weight-bold); line-height: var(--ax-line-height-tight); margin: 0; }
+.page-head p { margin: 4px 0 0; color: var(--ax-color-text-secondary); font-size: var(--ax-font-size-md); }
+
+/* ---------- Astryx Card (composition: header + body) ---------- */
+.ax-card {
+  background: var(--ax-color-surface);
+  border: 1px solid var(--ax-color-border);
+  border-radius: var(--ax-radius-lg);
+  box-shadow: var(--ax-shadow-sm);
+  min-width: 0;
+}
+.ax-card__header {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--ax-space-3);
+  padding: var(--ax-space-5) var(--ax-space-5) 0; flex-wrap: wrap;
+}
+.ax-card__title { font-size: var(--ax-font-size-lg); font-weight: var(--ax-font-weight-bold); line-height: var(--ax-line-height-tight); margin: 0; }
+.ax-card__subtitle { font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); margin: 2px 0 0; }
+.ax-card__body { padding: var(--ax-space-5); }
+.ax-card__footer { padding: 0 var(--ax-space-5) var(--ax-space-5); }
+
+/* ---------- Stat cards ---------- */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ax-space-4); }
+.stat { padding: var(--ax-space-5); display: flex; flex-direction: column; gap: var(--ax-space-2); }
+.stat__top { display: flex; align-items: center; justify-content: space-between; gap: var(--ax-space-2); }
+.stat__label { font-size: var(--ax-font-size-sm); font-weight: var(--ax-font-weight-semibold); color: var(--ax-color-text-secondary); margin: 0; }
+.stat__icon {
+  width: 36px; height: 36px; border-radius: var(--ax-radius-sm); flex: none;
+  background: var(--ax-color-surface-subtle); display: flex; align-items: center; justify-content: center;
+  font-size: var(--ax-font-size-lg);
+}
+.stat__value { font-size: var(--ax-font-size-3xl); font-weight: var(--ax-font-weight-bold); line-height: var(--ax-line-height-tight); margin: 0; }
+.stat__sub { font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); margin: 0; }
+.stat__sub strong { color: var(--ax-color-success); font-weight: var(--ax-font-weight-semibold); }
+
+/* ---------- Two-column row: chart + notices ---------- */
+.duo { display: grid; grid-template-columns: 2fr 1fr; gap: var(--ax-space-4); align-items: stretch; }
+
+/* ---------- Attendance trend chart (CSS bars, no chart library) ---------- */
+.chart { display: flex; align-items: flex-end; gap: var(--ax-space-4); height: 200px; padding-top: var(--ax-space-4); }
+.chart__col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--ax-space-2); height: 100%; justify-content: flex-end; min-width: 0; }
+.chart__value { font-size: var(--ax-font-size-sm); font-weight: var(--ax-font-weight-semibold); }
+.chart__bar-wrap { width: 100%; max-width: 56px; height: 140px; display: flex; align-items: flex-end; }
+.chart__bar {
+  width: 100%; border-radius: var(--ax-radius-sm) var(--ax-radius-sm) 0 0;
+  background: var(--ax-color-border-strong);
+  transition: height 0.4s ease;
+}
+.chart__col--today .chart__bar { background: var(--ax-color-primary); }
+.chart__col--today .chart__value { color: var(--ax-color-text); }
+.chart__day { font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); }
+.chart__col--today .chart__day { color: var(--ax-color-text); font-weight: var(--ax-font-weight-semibold); }
+.chart__legend { display: flex; gap: var(--ax-space-4); margin-top: var(--ax-space-4); padding-top: var(--ax-space-4); border-top: 1px solid var(--ax-color-border); font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); flex-wrap: wrap; }
+.chart__legend-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--ax-color-primary); vertical-align: middle; margin-right: 6px; }
+.chart__legend-swatch--muted { background: var(--ax-color-border-strong); }
+
+/* ---------- Notices ---------- */
+.notice-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.notice-list li { display: flex; gap: var(--ax-space-3); padding: var(--ax-space-4) 0; border-bottom: 1px solid var(--ax-color-border); }
+.notice-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.notice-list li:first-child { padding-top: 0; }
+.notice__icon {
+  width: 36px; height: 36px; border-radius: var(--ax-radius-sm); flex: none;
+  background: var(--ax-color-accent-soft); display: flex; align-items: center; justify-content: center; font-size: var(--ax-font-size-lg);
+}
+.notice__text { font-weight: var(--ax-font-weight-semibold); font-size: var(--ax-font-size-md); line-height: var(--ax-line-height-tight); margin: 0; }
+.notice__meta { font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); margin: 2px 0 0; }
+
+/* ---------- Astryx Badge ---------- */
+.ax-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--ax-font-size-xs); font-weight: var(--ax-font-weight-semibold);
+  padding: 3px 8px; border-radius: var(--ax-radius-full); white-space: nowrap;
+}
+.ax-badge--success { background: var(--ax-color-success-soft); color: var(--ax-color-success); }
+.ax-badge--warning { background: var(--ax-color-warning-soft); color: var(--ax-color-warning); }
+.ax-badge--danger { background: var(--ax-color-danger-soft); color: var(--ax-color-danger); }
+.ax-badge--neutral { background: var(--ax-color-surface-subtle); color: var(--ax-color-text-secondary); }
+.ax-badge--accent { background: var(--ax-color-accent-soft); color: var(--ax-color-accent); }
+
+/* ---------- Filter chips (Astryx Button subtle, toggle group) ---------- */
+.chip-row { display: flex; gap: var(--ax-space-2); flex-wrap: wrap; }
+.ax-chip {
+  border: 1px solid var(--ax-color-border-strong); background: var(--ax-color-surface);
+  border-radius: var(--ax-radius-full); padding: 6px 12px; cursor: pointer;
+  font-size: var(--ax-font-size-sm); font-weight: var(--ax-font-weight-semibold); color: var(--ax-color-text-secondary);
+}
+.ax-chip:hover { background: var(--ax-color-surface-subtle); color: var(--ax-color-text); }
+.ax-chip[aria-pressed="true"] { background: var(--ax-color-primary); border-color: var(--ax-color-primary); color: var(--ax-color-text-inverse); }
+
+/* ---------- Astryx Table ---------- */
+.table-wrap { overflow-x: auto; }
+.ax-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.ax-table th, .ax-table td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--ax-color-border); white-space: nowrap; }
+.ax-table thead th {
+  font-size: var(--ax-font-size-xs); font-weight: var(--ax-font-weight-semibold);
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-color-text-secondary);
+}
+.ax-table tbody tr:last-child td { border-bottom: 0; }
+.ax-table tbody tr:hover { background: var(--ax-color-surface-subtle); }
+.ax-table th button {
+  all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+}
+.ax-table th button:focus-visible { outline: 2px solid var(--ax-color-accent); outline-offset: 2px; }
+.ax-table__student { display: flex; align-items: center; gap: var(--ax-space-3); }
+.ax-table__name { font-weight: var(--ax-font-weight-semibold); }
+.ax-table__roll { font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); }
+.ax-table__num { font-weight: var(--ax-font-weight-semibold); font-variant-numeric: tabular-nums; }
+/* Mini progress meter for attendance (Astryx progress anatomy) */
+.ax-meter { display: inline-flex; align-items: center; gap: var(--ax-space-2); }
+.ax-meter__track { width: 72px; height: 6px; border-radius: var(--ax-radius-full); background: var(--ax-color-surface-subtle); overflow: hidden; }
+.ax-meter__fill { height: 100%; border-radius: var(--ax-radius-full); background: var(--ax-color-success); }
+.ax-meter__fill--warn { background: var(--ax-color-warning); }
+.ax-meter__fill--low { background: var(--ax-color-danger); }
+.table-empty { padding: var(--ax-space-6); text-align: center; color: var(--ax-color-text-secondary); }
+.table-count { font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary); margin: 0; }
+
+/* ---------- Footer ---------- */
+.ax-footer {
+  border-top: 1px solid var(--ax-color-border);
+  padding: var(--ax-space-4) var(--ax-space-6);
+  display: flex; justify-content: space-between; gap: var(--ax-space-3); flex-wrap: wrap;
+  font-size: var(--ax-font-size-sm); color: var(--ax-color-text-secondary);
+  background: var(--ax-color-surface);
+}
+
+/* ---------- Mobile navigation: drawer + bottom nav ---------- */
+.ax-nav-toggle { display: none; }
+.ax-scrim { display: none; }
+.ax-bottomnav {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
+  background: var(--ax-color-surface); border-top: 1px solid var(--ax-color-border);
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+}
+.ax-bottomnav__item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 0; background: transparent; cursor: pointer; padding: 4px 2px;
+  font-size: 11px; font-weight: var(--ax-font-weight-semibold); color: var(--ax-color-text-secondary);
+  text-decoration: none; border-radius: var(--ax-radius-sm);
+}
+.ax-bottomnav__item[aria-current="page"] { color: var(--ax-color-text); }
+.ax-bottomnav__icon { font-size: 19px; line-height: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chart__bar { transition: none; }
+}
+
+/* ---------- Responsive: 900px and below ---------- */
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .duo { grid-template-columns: 1fr; }
+}
+
+/* ---------- Responsive: 700px and below (mobile) ---------- */
+@media (max-width: 700px) {
+  .app { grid-template-columns: 1fr; }
+  .ax-nav {
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 40;
+    width: 280px; max-width: 84vw; height: 100dvh;
+    transform: translateX(-105%); transition: transform 0.25s ease;
+    box-shadow: var(--ax-shadow-md);
+  }
+  .ax-nav[data-open="true"] { transform: translateX(0); }
+  .ax-nav-toggle { display: inline-flex; }
+  .ax-scrim {
+    display: block; position: fixed; inset: 0; z-index: 35;
+    background: rgba(28, 28, 26, 0.45); border: 0; padding: 0; cursor: pointer;
+  }
+  .ax-scrim[hidden] { display: none; }
+  .ax-header { padding: var(--ax-space-3) var(--ax-space-4); gap: var(--ax-space-3); flex-wrap: wrap; }
+  .ax-header__subtitle { display: none; }
+  .ax-header__title { font-size: var(--ax-font-size-lg); }
+  .ax-input { order: 3; flex-basis: 100%; width: 100%; }
+  .content { padding: var(--ax-space-4); gap: var(--ax-space-4); padding-bottom: calc(var(--ax-space-8) + 64px); }
+  .stats { gap: var(--ax-space-3); }
+  .stat { padding: var(--ax-space-4); }
+  .stat__value { font-size: var(--ax-font-size-xl); }
+  .stat__icon { display: none; }
+  .ax-card__header, .ax-card__body { padding-left: var(--ax-space-4); padding-right: var(--ax-space-4); }
+  .ax-card__header { padding-top: var(--ax-space-4); }
+  .ax-card__body { padding-top: var(--ax-space-4); padding-bottom: var(--ax-space-4); }
+  .ax-bottomnav { display: flex; }
+  .ax-footer { padding-bottom: calc(var(--ax-space-4) + 64px); }
+  .chart { height: 180px; gap: var(--ax-space-2); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Astryx Navigation: sidebar on desktop, drawer on mobile -->
+  <nav class="ax-nav" id="sidebar" aria-label="Primary" data-open="false">
+    <div class="ax-nav__brand">
+      <span class="ax-nav__mark" aria-hidden="true">G</span>
+      <span>
+        <span class="ax-nav__brand-name">Greenwood High</span><br>
+        <span class="ax-nav__brand-sub">Class 8-A &middot; 2025&ndash;26</span>
+      </span>
+    </div>
+    <div class="ax-nav__label">Menu</div>
+    <a class="ax-nav__item" href="#overview" aria-current="page"><span class="ax-nav__icon" aria-hidden="true">&#8962;</span>Dashboard</a>
+    <a class="ax-nav__item" href="#students"><span class="ax-nav__icon" aria-hidden="true">&#128101;</span>Students</a>
+    <a class="ax-nav__item" href="#attendance"><span class="ax-nav__icon" aria-hidden="true">&#128197;</span>Attendance</a>
+    <a class="ax-nav__item" href="#notices"><span class="ax-nav__icon" aria-hidden="true">&#128276;</span>Notices<span class="ax-nav__count">3</span></a>
+    <div class="ax-nav__label">Manage</div>
+    <a class="ax-nav__item" href="#students"><span class="ax-nav__icon" aria-hidden="true">&#9998;</span>Marks</a>
+    <a class="ax-nav__item" href="#overview"><span class="ax-nav__icon" aria-hidden="true">&#8377;</span>Fees</a>
+    <a class="ax-nav__item" href="#overview"><span class="ax-nav__icon" aria-hidden="true">&#9881;</span>Settings</a>
+    <div class="ax-nav__footer">
+      <span class="ax-avatar ax-avatar--ink" aria-hidden="true">AR</span>
+      <span>
+        <span class="ax-nav__footer-name">Anita Rao</span><br>
+        <span class="ax-nav__footer-role">Class Teacher, 8-A</span>
+      </span>
+    </div>
+  </nav>
+  <button class="ax-scrim" id="navScrim" hidden aria-label="Close navigation"></button>
+
+  <div class="main">
+    <!-- Header: school name, search, notification bell -->
+    <header class="ax-header">
+      <button class="ax-button ax-button--ghost ax-button--icon ax-nav-toggle" id="navToggle" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation">&#9776;</button>
+      <div class="ax-header__titles">
+        <h1 class="ax-header__title">Greenwood High</h1>
+        <p class="ax-header__subtitle">Class 8-A &middot; Academic year 2025&ndash;26</p>
+      </div>
+      <div class="ax-header__spacer"></div>
+      <div class="ax-input">
+        <span class="ax-input__icon" aria-hidden="true">&#128269;</span>
+        <input class="ax-input__field" id="search" type="search" placeholder="Search students by name or roll" aria-label="Search students by name or roll" autocomplete="off">
+      </div>
+      <div class="ax-header__actions">
+        <button class="ax-button ax-button--ghost ax-button--icon ax-bell" id="bellBtn" aria-expanded="false" aria-controls="bellPanel" aria-label="Notifications, 3 unread">
+          <span aria-hidden="true">&#128276;</span>
+          <span class="ax-bell__dot" id="bellDot" aria-hidden="true"></span>
+        </button>
+        <div class="ax-panel" id="bellPanel" role="dialog" aria-label="Notifications" hidden>
+          <div class="ax-panel__header">
+            <h2 class="ax-panel__title">Notifications</h2>
+            <button class="ax-button ax-button--subtle" id="markReadBtn" type="button">Mark all read</button>
+          </div>
+          <div id="bellList"></div>
+        </div>
+        <span class="ax-avatar" aria-label="Signed in as Anita Rao">AR</span>
+      </div>
+    </header>
+
+    <main class="content" id="overview">
+      <div class="page-head">
+        <div>
+          <h2>Class 8-A Dashboard</h2>
+          <p>Attendance, profiles and analytics for today.</p>
+        </div>
+        <span class="ax-badge ax-badge--success">&#9679; School open &middot; Day 4 of 5</span>
+      </div>
+
+      <!-- Four stat cards -->
+      <section class="stats" aria-label="School statistics">
+        <article class="ax-card stat">
+          <div class="stat__top"><p class="stat__label">Students</p><span class="stat__icon" aria-hidden="true">&#127891;</span></div>
+          <p class="stat__value">1,248</p>
+          <p class="stat__sub">12 in Class 8-A</p>
+        </article>
+        <article class="ax-card stat">
+          <div class="stat__top"><p class="stat__label">Teachers</p><span class="stat__icon" aria-hidden="true">&#128100;</span></div>
+          <p class="stat__value">72</p>
+          <p class="stat__sub">Across all grades</p>
+        </article>
+        <article class="ax-card stat">
+          <div class="stat__top"><p class="stat__label">Attendance today</p><span class="stat__icon" aria-hidden="true">&#10003;</span></div>
+          <p class="stat__value">95.2%</p>
+          <p class="stat__sub"><strong>1,188 present</strong> &middot; 60 absent</p>
+        </article>
+        <article class="ax-card stat">
+          <div class="stat__top"><p class="stat__label">Fees collected</p><span class="stat__icon" aria-hidden="true">&#8377;</span></div>
+          <p class="stat__value">84%</p>
+          <p class="stat__sub">&#8377;25.2L of &#8377;30L</p>
+        </article>
+      </section>
+
+      <!-- Attendance trend + notices -->
+      <div class="duo">
+        <section class="ax-card" id="attendance" aria-labelledby="trendTitle">
+          <div class="ax-card__header">
+            <div>
+              <h2 class="ax-card__title" id="trendTitle">Attendance trend</h2>
+              <p class="ax-card__subtitle">Class 8-A, this week (Mon&ndash;Fri)</p>
+            </div>
+            <span class="ax-badge ax-badge--accent">Week avg 95.0%</span>
+          </div>
+          <div class="ax-card__body">
+            <div class="chart" id="chart" role="img" aria-label="Attendance trend: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95."></div>
+            <div class="chart__legend">
+              <span><span class="chart__legend-swatch" aria-hidden="true"></span>Today (Fri)</span>
+              <span><span class="chart__legend-swatch chart__legend-swatch--muted" aria-hidden="true"></span>Earlier this week</span>
+              <span>Highest: Thu 97%</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="ax-card" id="notices" aria-labelledby="noticesTitle">
+          <div class="ax-card__header">
+            <div>
+              <h2 class="ax-card__title" id="noticesTitle">Notices</h2>
+              <p class="ax-card__subtitle">3 active notices</p>
+            </div>
+            <span class="ax-badge ax-badge--danger">3 new</span>
+          </div>
+          <div class="ax-card__body">
+            <ul class="notice-list" id="noticeList"></ul>
+          </div>
+        </section>
+      </div>
+
+      <!-- Student table -->
+      <section class="ax-card" id="students" aria-labelledby="studentsTitle">
+        <div class="ax-card__header">
+          <div>
+            <h2 class="ax-card__title" id="studentsTitle">Class 8-A students</h2>
+            <p class="ax-card__subtitle">12 students &middot; sorted by name</p>
+          </div>
+          <div class="chip-row" role="group" aria-label="Filter students by attendance">
+            <button class="ax-chip" type="button" data-filter="all" aria-pressed="true">All 12</button>
+            <button class="ax-chip" type="button" data-filter="excellent" aria-pressed="false">Excellent &ge;95%</button>
+            <button class="ax-chip" type="button" data-filter="watch" aria-pressed="false">Watch &lt;90%</button>
+          </div>
+        </div>
+        <div class="ax-card__body">
+          <div class="table-wrap">
+            <table class="ax-table">
+              <thead>
+                <tr>
+                  <th scope="col" aria-sort="ascending"><button type="button" data-sort="name">Student <span aria-hidden="true">&#8593;</span></button></th>
+                  <th scope="col">Roll</th>
+                  <th scope="col" aria-sort="none"><button type="button" data-sort="attendance">Attendance</button></th>
+                  <th scope="col" aria-sort="none"><button type="button" data-sort="marks">Marks</button></th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody id="studentRows"></tbody>
+            </table>
+            <p class="table-empty" id="tableEmpty" hidden>No students match this search or filter.</p>
+          </div>
+        </div>
+        <div class="ax-card__footer">
+          <p class="table-count" id="tableCount" role="status" aria-live="polite">Showing 12 of 12 students.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="ax-footer">
+      <span>Fictional demo data &mdash; UI Forge Experiment 1</span>
+      <span>Greenwood High &middot; Class 8-A &middot; 2025&ndash;26</span>
+    </footer>
+  </div>
+</div>
+
+<!-- Bottom navigation on mobile -->
+<nav class="ax-bottomnav" aria-label="Mobile">
+  <a class="ax-bottomnav__item" href="#overview" aria-current="page"><span class="ax-bottomnav__icon" aria-hidden="true">&#8962;</span>Dashboard</a>
+  <a class="ax-bottomnav__item" href="#students"><span class="ax-bottomnav__icon" aria-hidden="true">&#128101;</span>Students</a>
+  <a class="ax-bottomnav__item" href="#attendance"><span class="ax-bottomnav__icon" aria-hidden="true">&#128197;</span>Attendance</a>
+  <a class="ax-bottomnav__item" href="#notices"><span class="ax-bottomnav__icon" aria-hidden="true">&#128276;</span>Notices</a>
+</nav>
+
+<script>
+"use strict";
+/*
+  Data shape first (pstack: model the domain). One immutable source of truth,
+  one state object, one render path. State changes go through dispatch(), which
+  always replaces state with a new object (ECC immutability) and re-renders.
+  Derived data (filtered + sorted students) is computed once per render, the
+  vanilla equivalent of ECC memoization. No mutation of STUDENTS / TREND /
+  NOTICES anywhere.
+*/
+var SCHOOL = { name: "Greenwood High", klass: "Class 8-A", year: "2025\u201326" };
+
+var STUDENTS = [
+  { name: "Aarav Sharma",  roll: "8A-01", attendance: 96, marks: 88 },
+  { name: "Diya Patel",    roll: "8A-02", attendance: 94, marks: 91 },
+  { name: "Kabir Singh",   roll: "8A-03", attendance: 89, marks: 76 },
+  { name: "Ananya Gupta",  roll: "8A-04", attendance: 98, marks: 93 },
+  { name: "Rohan Mehta",   roll: "8A-05", attendance: 92, marks: 82 },
+  { name: "Ishita Verma",  roll: "8A-06", attendance: 97, marks: 89 },
+  { name: "Arjun Nair",    roll: "8A-07", attendance: 90, marks: 79 },
+  { name: "Sneha Reddy",   roll: "8A-08", attendance: 95, marks: 86 },
+  { name: "Vikram Joshi",  roll: "8A-09", attendance: 88, marks: 74 },
+  { name: "Priya Das",     roll: "8A-10", attendance: 99, marks: 95 },
+  { name: "Aditya Rao",    roll: "8A-11", attendance: 93, marks: 84 },
+  { name: "Kavya Iyer",    roll: "8A-12", attendance: 96, marks: 90 }
+];
+
+var TREND = [
+  { day: "Mon", pct: 94 },
+  { day: "Tue", pct: 96 },
+  { day: "Wed", pct: 93 },
+  { day: "Thu", pct: 97 },
+  { day: "Fri", pct: 95 }
+];
+
+var NOTICES = [
+  { text: "Science fair on Friday", meta: "All classes \u00b7 Science dept" },
+  { text: "Fee deadline 20 Nov", meta: "Accounts office \u00b7 Term 2 fees" },
+  { text: "Parent-teacher meet 25 Nov", meta: "Class 8-A \u00b7 10:00 AM onwards" }
+];
+
+var initialState = {
+  query: "",
+  sortKey: "name",
+  sortDir: 1,
+  filter: "all",
+  navOpen: false,
+  panelOpen: false,
+  unread: 3
+};
+var state = Object.assign({}, initialState);
+
+function dispatch(patch) {
+  state = Object.assign({}, state, patch);
+  render();
+}
+
+function initials(name) {
+  return name.split(" ").map(function (w) { return w[0]; }).join("");
+}
+
+function statusFor(attendance) {
+  if (attendance >= 95) return { label: "Excellent", cls: "ax-badge--success" };
+  if (attendance >= 90) return { label: "Good", cls: "ax-badge--neutral" };
+  return { label: "Needs attention", cls: "ax-badge--warning" };
+}
+
+function marksBadge(marks) {
+  if (marks >= 90) return { label: marks + "% \u00b7 Distinction", cls: "ax-badge--success" };
+  if (marks >= 80) return { label: marks + "% \u00b7 First class", cls: "ax-badge--accent" };
+  return { label: marks + "%", cls: "ax-badge--warning" };
+}
+
+function meterClass(attendance) {
+  if (attendance >= 95) return "ax-meter__fill";
+  if (attendance >= 90) return "ax-meter__fill ax-meter__fill--warn";
+  return "ax-meter__fill ax-meter__fill--low";
+}
+
+/* Derived data: filter then sort, computed once per render. */
+function visibleStudents() {
+  var q = state.query.trim().toLowerCase();
+  var filtered = STUDENTS.filter(function (s) {
+    var matchesQuery = !q || s.name.toLowerCase().indexOf(q) !== -1 ||
+      s.roll.toLowerCase().indexOf(q) !== -1;
+    var matchesFilter = state.filter === "all" ||
+      (state.filter === "excellent" && s.attendance >= 95) ||
+      (state.filter === "watch" && s.attendance < 90);
+    return matchesQuery && matchesFilter;
+  });
+  var key = state.sortKey, dir = state.sortDir;
+  return filtered.slice().sort(function (a, b) {
+    var av = a[key], bv = b[key];
+    if (typeof av === "string") return dir * av.localeCompare(bv);
+    return dir * (av - bv);
+  });
+}
+
+function renderChart() {
+  var chart = document.getElementById("chart");
+  chart.innerHTML = TREND.map(function (d, i) {
+    var isToday = i === TREND.length - 1;
+    return '<div class="chart__col' + (isToday ? " chart__col--today" : "") + '">' +
+      '<span class="chart__value">' + d.pct + "%</span>" +
+      '<div class="chart__bar-wrap"><div class="chart__bar" style="height:' + d.pct + '%"></div></div>' +
+      '<span class="chart__day">' + d.day + "</span></div>";
+  }).join("");
+}
+
+function renderNotices() {
+  var icons = ["\uD83D\uDD2C", "\uD83D\uDCB0", "\uD83D\uDC65"];
+  document.getElementById("noticeList").innerHTML = NOTICES.map(function (n, i) {
+    return '<li><span class="notice__icon" aria-hidden="true">' + icons[i] + "</span>" +
+      '<span><p class="notice__text">' + n.text + '</p><p class="notice__meta">' + n.meta + "</p></span></li>";
+  }).join("");
+  document.getElementById("bellList").innerHTML = NOTICES.map(function (n) {
+    return '<div class="ax-panel__item"><span class="ax-panel__item-dot" aria-hidden="true"></span>' +
+      '<span><p class="ax-panel__item-text">' + n.text + '</p><p class="ax-panel__item-meta">' + n.meta + "</p></span></div>";
+  }).join("");
+}
+
+function renderTable() {
+  var rows = visibleStudents();
+  var tbody = document.getElementById("studentRows");
+  tbody.innerHTML = rows.map(function (s) {
+    var st = statusFor(s.attendance);
+    var mb = marksBadge(s.marks);
+    return "<tr>" +
+      '<td><span class="ax-table__student"><span class="ax-avatar ax-avatar--sm ax-avatar--ink" aria-hidden="true">' + initials(s.name) + "</span>" +
+      '<span><span class="ax-table__name">' + s.name + '</span><br><span class="ax-table__roll">' + s.roll + "</span></span></span></td>" +
+      '<td class="ax-table__num">' + s.roll + "</td>" +
+      '<td><span class="ax-meter"><span class="ax-meter__track"><span class="' + meterClass(s.attendance) + '" style="width:' + s.attendance + '%"></span></span>' +
+      '<span class="ax-table__num">' + s.attendance + "%</span></span></td>" +
+      '<td><span class="ax-badge ' + mb.cls + '">' + mb.label + "</span></td>" +
+      '<td><span class="ax-badge ' + st.cls + '">' + st.label + "</span></td>" +
+      "</tr>";
+  }).join("");
+  document.getElementById("tableEmpty").hidden = rows.length !== 0;
+  document.getElementById("tableCount").textContent =
+    "Showing " + rows.length + " of " + STUDENTS.length + " students.";
+  document.querySelectorAll(".ax-table th button").forEach(function (btn) {
+    var th = btn.closest("th");
+    var active = btn.dataset.sort === state.sortKey;
+    th.setAttribute("aria-sort", active ? (state.sortDir === 1 ? "ascending" : "descending") : "none");
+    var arrow = btn.querySelector("span");
+    if (arrow) arrow.textContent = active ? (state.sortDir === 1 ? "\u2191" : "\u2193") : "";
+  });
+  document.querySelectorAll(".ax-chip").forEach(function (chip) {
+    chip.setAttribute("aria-pressed", String(chip.dataset.filter === state.filter));
+  });
+}
+
+function renderOverlays() {
+  var nav = document.getElementById("sidebar");
+  var toggle = document.getElementById("navToggle");
+  var scrim = document.getElementById("navScrim");
+  nav.dataset.open = String(state.navOpen);
+  toggle.setAttribute("aria-expanded", String(state.navOpen));
+  toggle.setAttribute("aria-label", state.navOpen ? "Close navigation" : "Open navigation");
+  scrim.hidden = !state.navOpen;
+
+  var panel = document.getElementById("bellPanel");
+  var bell = document.getElementById("bellBtn");
+  panel.hidden = !state.panelOpen;
+  bell.setAttribute("aria-expanded", String(state.panelOpen));
+  bell.setAttribute("aria-label", state.unread > 0 ?
+    "Notifications, " + state.unread + " unread" : "Notifications");
+  document.getElementById("bellDot").style.display = state.unread > 0 ? "" : "none";
+  var navCount = document.querySelector(".ax-nav__count");
+  if (navCount) navCount.style.display = state.unread > 0 ? "" : "none";
+}
+
+function render() {
+  renderTable();
+  renderOverlays();
+}
+
+/* Debounce hook, adapted from ECC useDebounce: 150 ms of quiet before filtering. */
+var searchTimer = null;
+document.getElementById("search").addEventListener("input", function (e) {
+  clearTimeout(searchTimer);
+  var value = e.target.value;
+  searchTimer = setTimeout(function () { dispatch({ query: value }); }, 150);
+});
+
+document.querySelectorAll(".ax-table th button").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var key = btn.dataset.sort;
+    if (state.sortKey === key) {
+      dispatch({ sortDir: -state.sortDir });
+    } else {
+      dispatch({ sortKey: key, sortDir: 1 });
+    }
+  });
+});
+
+document.querySelectorAll(".ax-chip").forEach(function (chip) {
+  chip.addEventListener("click", function () {
+    dispatch({ filter: chip.dataset.filter });
+  });
+});
+
+var lastFocused = null;
+document.getElementById("navToggle").addEventListener("click", function () {
+  if (!state.navOpen) lastFocused = document.activeElement;
+  dispatch({ navOpen: !state.navOpen, panelOpen: false });
+  if (state.navOpen) {
+    document.querySelector(".ax-nav__item").focus();
+  } else if (lastFocused) {
+    lastFocused.focus();
+  }
+});
+document.getElementById("navScrim").addEventListener("click", function () {
+  dispatch({ navOpen: false });
+  if (lastFocused) lastFocused.focus();
+});
+document.querySelectorAll(".ax-nav__item").forEach(function (item) {
+  item.addEventListener("click", function () { dispatch({ navOpen: false }); });
+});
+
+document.getElementById("bellBtn").addEventListener("click", function () {
+  if (!state.panelOpen) lastFocused = document.activeElement;
+  dispatch({ panelOpen: !state.panelOpen, navOpen: false });
+  if (state.panelOpen) document.getElementById("markReadBtn").focus();
+  else if (lastFocused) lastFocused.focus();
+});
+document.getElementById("markReadBtn").addEventListener("click", function () {
+  dispatch({ unread: 0 });
+  document.getElementById("bellBtn").focus();
+});
+
+/* Escape closes any open overlay and returns focus (ECC focus management). */
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && (state.navOpen || state.panelOpen)) {
+    dispatch({ navOpen: false, panelOpen: false });
+    if (lastFocused) lastFocused.focus();
+  }
+});
+/* Click outside the bell panel closes it. */
+document.addEventListener("click", function (e) {
+  if (state.panelOpen && !e.target.closest(".ax-header__actions")) {
+    dispatch({ panelOpen: false });
+  }
+});
+
+/* Bottom nav marks the section in view. */
+document.querySelectorAll(".ax-bottomnav__item").forEach(function (item) {
+  item.addEventListener("click", function () {
+    document.querySelectorAll(".ax-bottomnav__item").forEach(function (i) { i.removeAttribute("aria-current"); });
+    item.setAttribute("aria-current", "page");
+  });
+});
+
+/* Error boundary analogue: a render failure shows a plain message, never a blank page. */
+window.addEventListener("error", function () {
+  var el = document.getElementById("tableCount");
+  if (el) el.textContent = "Something went wrong loading the student list. Reload the page to try again.";
+});
+
+renderChart();
+renderNotices();
+render();
+</script>
+</body>
+</html>

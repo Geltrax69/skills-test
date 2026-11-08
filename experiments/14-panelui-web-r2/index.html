@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+/* PanelUI web (panelui-web 0.15.0) adapted to single-file HTML.
+   shadcn tokens + the three tokens a stock theme lacks (theming.md):
+   --success / --warning / --info. Colour is a role, never a value. */
+:root{
+  --background:#fafafa; --foreground:#18181b; --card:#ffffff;
+  --muted:#f4f4f5; --muted-foreground:#71717a; --accent:#f4f4f5;
+  --border:#e4e4e7; --ring:#18181b;
+  --primary:oklch(0.21 0.006 285.885); --primary-foreground:#fafafa;
+  --success:oklch(0.696 0.17 162.48); --warning:oklch(0.769 0.188 70.08);
+  --info:oklch(0.623 0.214 259.815); --destructive:oklch(0.577 0.245 27.325);
+  --radius:0.625rem;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--background);color:var(--foreground);font-size:14px;line-height:1.5}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---- App shell: NavRail (expandedWidth 15rem / collapsedWidth 3.5rem) ---- */
+.shell{display:flex;min-height:100vh}
+.nav-rail{width:15rem;flex:0 0 auto;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;transition:width .2s ease}
+.nav-rail.collapsed{width:3.5rem}
+.nav-rail .rail-header{display:flex;align-items:center;gap:.5rem;padding:.75rem}
+.brand{display:flex;align-items:center;gap:.6rem;min-width:0;font-weight:650;font-size:15px;letter-spacing:-.01em;white-space:nowrap}
+.brand-mark{flex:0 0 auto;width:2rem;height:2rem;border-radius:.5rem;background:var(--primary);color:var(--primary-foreground);display:grid;place-items:center;font-size:13px;font-weight:700}
+.brand-name{overflow:hidden;text-overflow:ellipsis}
+.rail-trigger{margin-left:auto;flex:0 0 auto;width:2rem;height:2rem;border-radius:.5rem;display:grid;place-items:center;color:var(--muted-foreground)}
+.rail-trigger:hover{background:var(--muted);color:var(--foreground)}
+.nav-rail.collapsed .brand-name,.nav-rail.collapsed .group-label,.nav-rail.collapsed .item-label,.nav-rail.collapsed .item-badge{display:none}
+.nav-rail.collapsed .rail-trigger{margin-left:0}
+.nav-group{padding:.25rem .5rem}
+.group-label{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground);padding:.5rem .5rem .25rem;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:.6rem;width:100%;padding:.5rem;border-radius:.5rem;color:var(--muted-foreground);font-weight:500;text-align:left;position:relative;white-space:nowrap}
+.nav-item:hover{background:var(--muted);color:var(--foreground)}
+.nav-item.active{background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--foreground);font-weight:600}
+.nav-item.active::before{content:"";position:absolute;left:-.5rem;top:.45rem;bottom:.45rem;width:3px;border-radius:3px;background:var(--primary)}
+.nav-item .ico{flex:0 0 auto;width:1.1rem;text-align:center;font-size:15px}
+.item-badge{margin-left:auto;background:var(--primary);color:var(--primary-foreground);font-size:10px;font-weight:600;border-radius:999px;padding:.05rem .4rem}
+.rail-footer{margin-top:auto;padding:.5rem;border-top:1px solid var(--border)}
+.rail-user{display:flex;align-items:center;gap:.6rem;padding:.5rem;border-radius:.5rem;min-width:0}
+.rail-user:hover{background:var(--muted)}
+.rail-user .who{min-width:0}
+.rail-user .who b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail-user .who span{font-size:11px;color:var(--muted-foreground);white-space:nowrap}
+
+/* ---- Main column ---- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--background) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem}
+.hamburger{display:none;width:2.25rem;height:2.25rem;border:1px solid var(--border);border-radius:.5rem;background:var(--card);font-size:16px}
+.page-title{font-size:17px;font-weight:650;letter-spacing:-.01em;white-space:nowrap}
+.page-title small{display:block;font-size:11px;font-weight:500;color:var(--muted-foreground);letter-spacing:0}
+.search{margin-left:auto;display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--border);border-radius:.5rem;padding:0 .6rem;height:2.25rem;width:min(320px,38vw)}
+.search:focus-within{outline:2px solid var(--ring);outline-offset:1px}
+.search input{border:0;outline:0;background:none;width:100%;min-width:0;font-size:13px}
+.search kbd{font-size:10px;color:var(--muted-foreground);border:1px solid var(--border);border-radius:.25rem;padding:0 .3rem;background:var(--muted)}
+.bell{position:relative;width:2.25rem;height:2.25rem;border-radius:999px;display:grid;place-items:center;background:var(--card);border:1px solid var(--border);font-size:16px;flex:0 0 auto}
+.bell .dot{position:absolute;top:.35rem;right:.4rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--destructive);border:2px solid var(--card)}
+.content{padding:1.25rem;display:flex;flex-direction:column;gap:1.25rem;max-width:1200px;width:100%;margin:0 auto}
+.page-head h1{font-size:22px;letter-spacing:-.02em}
+.page-head p{color:var(--muted-foreground);font-size:13px}
+
+/* ---- Frame: muted band + title strip + bordered panel (frame.md, variant="band") ---- */
+.frame{background:var(--muted);border:1px solid var(--border);border-radius:calc(var(--radius) + 4px);padding:.5rem}
+.frame-head{display:flex;align-items:baseline;gap:.75rem;padding:.35rem .5rem .55rem}
+.frame-title{font-size:13px;font-weight:650;letter-spacing:-.01em}
+.frame-action{margin-left:auto;font-size:12px;color:var(--muted-foreground);white-space:nowrap}
+.frame-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.frame-panel.flush{padding:0;overflow:hidden}
+.frame-panel.flush>*+*{border-top:1px solid var(--border)}
+
+/* ---- KPI (kpi.md): Title / Value / Trend / Progress / Chart ---- */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;flex-direction:column;gap:.35rem;min-width:0}
+.kpi-head{display:flex;align-items:center;gap:.5rem}
+.kpi-icon{width:2rem;height:2rem;border-radius:.5rem;display:grid;place-items:center;font-size:14px;flex:0 0 auto}
+.kpi-icon.tone-primary{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
+.kpi-icon.tone-info{background:color-mix(in srgb,var(--info) 14%,transparent);color:var(--info)}
+.kpi-icon.tone-success{background:color-mix(in srgb,var(--success) 16%,transparent);color:var(--success)}
+.kpi-icon.tone-warning{background:color-mix(in srgb,var(--warning) 18%,transparent);color:var(--warning)}
+.kpi-title{font-size:12px;font-weight:600;color:var(--muted-foreground)}
+.kpi-value{font-size:2rem;line-height:1.1;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi-value .unit{font-size:1rem;font-weight:600;color:var(--muted-foreground);margin-left:.15rem}
+.kpi-trend{font-size:12px;font-weight:600}
+.kpi-trend.good{color:var(--success)} .kpi-trend.warn{color:var(--warning)}
+.kpi-trend span{color:var(--muted-foreground);font-weight:400}
+.kpi-foot{font-size:12px;color:var(--muted-foreground)}
+.kpi-progress{height:.45rem;border-radius:999px;background:var(--muted);overflow:hidden;margin-top:.25rem}
+.kpi-progress i{display:block;height:100%;border-radius:999px}
+.kpi-progress .bar-success{background:var(--success)} .kpi-progress .bar-warning{background:var(--warning)}
+.spark{display:flex;align-items:flex-end;gap:3px;height:36px;margin-top:.3rem}
+.spark i{flex:1;border-radius:2px 2px 0 0;background:color-mix(in srgb,var(--success) 55%,transparent)}
+.spark i:last-child{background:var(--success)}
+
+/* ---- BarChart (bar-chart.md): Grid + Bar + XAxis + YAxis, domain includes zero ---- */
+.chart-head{display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap}
+.chart-head .big{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.chart-head .cap{font-size:12px;color:var(--muted-foreground)}
+.legend{margin-left:auto;display:flex;gap:.4rem;align-items:center;font-size:12px;color:var(--muted-foreground)}
+.legend i{width:.6rem;height:.6rem;border-radius:2px;background:var(--primary);display:inline-block}
+.chart{position:relative;height:220px;margin-top:.75rem;padding-left:2.25rem}
+.y-axis{position:absolute;left:0;top:0;bottom:1.6rem;display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--muted-foreground);text-align:right;width:1.9rem;font-variant-numeric:tabular-nums}
+.grid-lines{position:absolute;left:2.25rem;right:0;top:0;bottom:1.6rem;display:flex;flex-direction:column;justify-content:space-between}
+.grid-lines i{border-top:1px dashed var(--border);display:block}
+.bars{position:absolute;left:2.25rem;right:0;top:0;bottom:1.6rem;display:flex;align-items:flex-end;gap:1rem}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;position:relative}
+.bar-col .val{font-size:12px;font-weight:600;margin-bottom:.3rem;font-variant-numeric:tabular-nums}
+.bar{width:min(52px,72%);border-radius:4px 4px 0 0;background:var(--primary);transition:opacity .15s}
+.bar-col:hover .bar,.bar-col:focus-within .bar{opacity:.75}
+.bar-col.today .bar{background:var(--success)}
+.bar-col.today .val{color:var(--success)}
+.x-axis{position:absolute;left:2.25rem;right:0;bottom:0;display:flex;gap:1rem}
+.x-axis span{flex:1;text-align:center;font-size:12px;color:var(--muted-foreground)}
+.chart-readout{margin-top:.6rem;font-size:12px;color:var(--muted-foreground)}
+.chart-readout b{color:var(--foreground)}
+
+/* ---- Table (table.md): comfortable density, striped, numbers align=end ---- */
+.table-wrap{overflow-x:auto}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:13px}
+caption{text-align:left;padding:.9rem 1rem .4rem;font-size:13px;font-weight:650}
+thead th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted-foreground);text-align:left;padding:.6rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:.6rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap;font-variant-numeric:tabular-nums}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--muted) 55%,transparent)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--accent)}
+td.num,th.num{text-align:right}
+.student{display:flex;align-items:center;gap:.65rem;min-width:0}
+.avatar{width:2rem;height:2rem;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;flex:0 0 auto;background:var(--info)}
+.avatar.c2{background:var(--success)} .avatar.c3{background:var(--warning)} .avatar.c4{background:var(--destructive)} .avatar.c5{background:var(--primary)}
+.student b{display:block;font-weight:600}
+.student span{font-size:11px;color:var(--muted-foreground)}
+.meter{display:inline-block;width:64px;height:6px;border-radius:999px;background:var(--muted);vertical-align:middle;margin-right:.45rem;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px}
+/* Badge (badge.md): variant by meaning — success ≥95, info 90–94, warning <90 */
+.badge{display:inline-flex;align-items:center;gap:.3rem;font-size:11px;font-weight:600;border-radius:999px;padding:.15rem .55rem;white-space:nowrap}
+.badge::before{content:"";width:.4rem;height:.4rem;border-radius:50%;background:currentColor}
+.badge.success{background:color-mix(in srgb,var(--success) 16%,transparent);color:color-mix(in srgb,var(--success) 70%,#000)}
+.badge.info{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,#000)}
+.badge.warning{background:color-mix(in srgb,var(--warning) 20%,transparent);color:color-mix(in srgb,var(--warning) 60%,#000)}
+.table-foot{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;padding:.75rem 1rem;font-size:12px;color:var(--muted-foreground)}
+
+/* ---- Notices: Frame rows (frame.md) + Alert tones (alert.md) ---- */
+.notice-row{display:flex;gap:.75rem;padding:.85rem 1rem;align-items:flex-start}
+.notice-ico{flex:0 0 auto;width:2rem;height:2rem;border-radius:.5rem;display:grid;place-items:center;font-size:14px}
+.notice-ico.info{background:color-mix(in srgb,var(--info) 14%,transparent);color:var(--info)}
+.notice-ico.warning{background:color-mix(in srgb,var(--warning) 20%,transparent);color:var(--warning)}
+.notice-body{min-width:0;flex:1}
+.notice-body b{display:block;font-size:13px}
+.notice-body p{font-size:12px;color:var(--muted-foreground)}
+.notice-row .badge{flex:0 0 auto}
+.grid-2{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:1.25rem;align-items:start}
+.btn{display:inline-flex;align-items:center;gap:.4rem;border-radius:.5rem;padding:.5rem .9rem;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--card)}
+.btn.primary{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.btn:hover{opacity:.9}
+footer.site{border-top:1px solid var(--border);padding:1rem 1.25rem;text-align:center;font-size:12px;color:var(--muted-foreground)}
+.bottom-nav{display:none}
+.empty-row td{color:var(--muted-foreground);text-align:center;padding:1.25rem 1rem}
+
+/* ---- Responsive: NavRail folds, then drawer + bottom nav (nav-rail.md: folding is the app's decision) ---- */
+@media (max-width:1024px){
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-2{grid-template-columns:1fr}
+  .nav-rail{width:3.5rem}
+  .nav-rail .brand-name,.nav-rail .group-label,.nav-rail .item-label,.nav-rail .item-badge{display:none}
+  .nav-rail .rail-trigger{margin-left:0}
+  .nav-rail .rail-user .who{display:none}
+}
+@media (max-width:640px){
+  .nav-rail{display:none;position:fixed;z-index:40;left:0;top:0;bottom:0;width:15rem;box-shadow:0 0 40px rgba(0,0,0,.2)}
+  .nav-rail.open{display:flex}
+  .nav-rail.open .brand-name,.nav-rail.open .group-label,.nav-rail.open .item-label,.nav-rail.open .item-badge{display:block}
+  .nav-rail.open .item-badge{display:inline-flex}
+  .nav-rail.open .rail-user .who{display:block}
+  .hamburger{display:block}
+  .page-title small{display:none}
+  .search kbd{display:none}
+  .search{width:auto;flex:1}
+  .content{padding:1rem .75rem 5.5rem}
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:.75rem}
+  .kpi-value{font-size:1.55rem}
+  .kpi{padding:.8rem}
+  .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--border);padding:.35rem .25rem calc(.35rem + env(safe-area-inset-bottom))}
+  .bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:.1rem;font-size:10px;font-weight:600;color:var(--muted-foreground);padding:.3rem 0;border-radius:.5rem}
+  .bottom-nav a.active{color:var(--foreground)}
+  .bottom-nav a .ico{font-size:17px}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:35}
+  .scrim.show{display:block}
+}
+@media (max-width:390px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .kpi-value{font-size:1.45rem}
+  .page-title{font-size:15px}
+  .chart{height:190px}
+  .bars{gap:.5rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- NavRail: aria-label="Main", variant tonal (default), active pill on Overview -->
+  <nav class="nav-rail" id="navRail" aria-label="Main">
+    <div class="rail-header">
+      <a class="brand" href="#" aria-label="Greenwood High home"><span class="brand-mark" aria-hidden="true">GH</span><span class="brand-name">Greenwood High</span></a>
+      <button class="rail-trigger" id="railTrigger" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">‹</button>
+    </div>
+    <div class="nav-group">
+      <div class="group-label" id="grp-main">Workspace</div>
+      <a class="nav-item active" href="#" aria-current="page" data-nav="Overview"><span class="ico" aria-hidden="true">▦</span><span class="item-label">Overview</span></a>
+      <a class="nav-item" href="#" data-nav="Students"><span class="ico" aria-hidden="true">👥</span><span class="item-label">Students</span><span class="item-badge">12</span></a>
+      <a class="nav-item" href="#" data-nav="Attendance"><span class="ico" aria-hidden="true">✓</span><span class="item-label">Attendance</span></a>
+      <a class="nav-item" href="#" data-nav="Analytics"><span class="ico" aria-hidden="true">▮</span><span class="item-label">Analytics</span></a>
+      <a class="nav-item" href="#" data-nav="Notices"><span class="ico" aria-hidden="true">✉</span><span class="item-label">Notices</span><span class="item-badge">3</span></a>
+    </div>
+    <div class="rail-footer">
+      <a class="nav-item" href="#" data-nav="Settings"><span class="ico" aria-hidden="true">⚙</span><span class="item-label">Settings</span></a>
+      <div class="rail-user"><span class="avatar c5" aria-hidden="true">AT</span><div class="who"><b>Anita Thomas</b><span>Class Teacher · 8-A</span></div></div>
+    </div>
+  </nav>
+  <div class="scrim" id="scrim"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Open navigation" aria-expanded="false">☰</button>
+      <div class="page-title">Class 8-A Dashboard<small>Greenwood High · 2025–26</small></div>
+      <!-- Input.Group: Addon + Input + Addon (input.md) -->
+      <label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Search students…" aria-label="Search students"><kbd>⌘K</kbd></label>
+      <!-- Button variant="ghost" size="icon" (button.md) -->
+      <button class="bell" id="bellBtn" aria-label="Notifications, 3 unread">🔔<span class="dot" aria-hidden="true"></span></button>
+    </header>
+
+    <main class="content">
+      <div class="page-head">
+        <h1>Good morning, Anita</h1>
+        <p>Here is Class 8-A today — attendance, marks and notices at a glance.</p>
+      </div>
+
+      <!-- KPI group (kpi.md): Kpi.Title / Kpi.Value / Kpi.Trend / Kpi.Progress / Kpi.Chart -->
+      <section class="kpi-grid" aria-label="Key figures">
+        <article class="kpi">
+          <div class="kpi-head"><span class="kpi-icon tone-primary" aria-hidden="true">👥</span><span class="kpi-title">Students</span></div>
+          <div class="kpi-value">1,248</div>
+          <div class="kpi-foot">12 students in Class 8-A</div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-head"><span class="kpi-icon tone-info" aria-hidden="true">🎓</span><span class="kpi-title">Teachers</span></div>
+          <div class="kpi-value">72</div>
+          <div class="kpi-foot">Across all classes</div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-head"><span class="kpi-icon tone-success" aria-hidden="true">✓</span><span class="kpi-title">Attendance today</span></div>
+          <div class="kpi-value">95.2<span class="unit">%</span></div>
+          <div class="kpi-trend good">▲ 1,188 present <span>· 60 absent</span></div>
+          <div class="kpi-progress" role="progressbar" aria-valuenow="95.2" aria-valuemin="0" aria-valuemax="100" aria-label="Attendance 95.2 percent"><i class="bar-success" style="width:95.2%"></i></div>
+          <div class="spark" aria-hidden="true"><i style="height:94%"></i><i style="height:96%"></i><i style="height:93%"></i><i style="height:97%"></i><i style="height:95%"></i></div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-head"><span class="kpi-icon tone-warning" aria-hidden="true">₹</span><span class="kpi-title">Fees collected</span></div>
+          <div class="kpi-value">84<span class="unit">%</span></div>
+          <div class="kpi-trend warn">₹25.2L of ₹30L</div>
+          <div class="kpi-progress" role="progressbar" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100" aria-label="Fees collected 84 percent"><i class="bar-warning" style="width:84%"></i></div>
+          <div class="kpi-foot">₹4.8L outstanding</div>
+        </article>
+      </section>
+
+      <!-- BarChart in a Frame band (bar-chart.md + frame.md): Grid, Bar color=primary, XAxis, YAxis, domain 0–100 -->
+      <section class="frame" aria-label="Attendance trend">
+        <div class="frame-head"><span class="frame-title">Attendance trend</span><span class="frame-action">This week · Mon–Fri</span></div>
+        <div class="frame-panel">
+          <div class="chart-head">
+            <span class="big">95.2%</span>
+            <span class="cap">average this week · 95.0% across Mon–Fri</span>
+            <span class="legend"><i aria-hidden="true"></i>Attendance %</span>
+          </div>
+          <div class="chart" role="img" aria-label="Bar chart of attendance: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95">
+            <div class="y-axis" aria-hidden="true"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+            <div class="grid-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="bars" id="bars">
+              <div class="bar-col" tabindex="0" data-day="Monday" data-val="94"><span class="val">94%</span><div class="bar" style="height:94%"></div></div>
+              <div class="bar-col" tabindex="0" data-day="Tuesday" data-val="96"><span class="val">96%</span><div class="bar" style="height:96%"></div></div>
+              <div class="bar-col" tabindex="0" data-day="Wednesday" data-val="93"><span class="val">93%</span><div class="bar" style="height:93%"></div></div>
+              <div class="bar-col" tabindex="0" data-day="Thursday" data-val="97"><span class="val">97%</span><div class="bar" style="height:97%"></div></div>
+              <div class="bar-col today" tabindex="0" data-day="Friday" data-val="95"><span class="val">95%</span><div class="bar" style="height:95%"></div></div>
+            </div>
+            <div class="x-axis" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+          </div>
+          <p class="chart-readout" id="chartReadout">Hover or tap a bar to read it. <b>Thursday was highest at 97%.</b></p>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- Table in a Frame band (table.md): striped, comfortable, numbers align=end -->
+        <section class="frame" aria-label="Class 8-A students">
+          <div class="frame-head"><span class="frame-title">Class 8-A · Students</span><span class="frame-action">12 students</span></div>
+          <div class="frame-panel flush">
+            <div class="table-wrap">
+              <table>
+                <caption>Student — Roll — Attendance — Marks</caption>
+                <thead><tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col" class="num">Attendance</th><th scope="col" class="num">Marks</th></tr></thead>
+                <tbody id="studentBody">
+                  <tr><td><div class="student"><span class="avatar" aria-hidden="true">AS</span><div><b>Aarav Sharma</b><span>Class 8-A</span></div></div></td><td>8A-01</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:96%;background:var(--success)"></i></span>96%</td><td class="num">88%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c2" aria-hidden="true">DP</span><div><b>Diya Patel</b><span>Class 8-A</span></div></div></td><td>8A-02</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:94%;background:var(--info)"></i></span>94%</td><td class="num">91%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c3" aria-hidden="true">KS</span><div><b>Kabir Singh</b><span>Class 8-A</span></div></div></td><td>8A-03</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:89%;background:var(--warning)"></i></span>89%</td><td class="num">76%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c4" aria-hidden="true">AG</span><div><b>Ananya Gupta</b><span>Class 8-A</span></div></div></td><td>8A-04</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:98%;background:var(--success)"></i></span>98%</td><td class="num">93%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c5" aria-hidden="true">RM</span><div><b>Rohan Mehta</b><span>Class 8-A</span></div></div></td><td>8A-05</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:92%;background:var(--info)"></i></span>92%</td><td class="num">82%</td></tr>
+                  <tr><td><div class="student"><span class="avatar" aria-hidden="true">IV</span><div><b>Ishita Verma</b><span>Class 8-A</span></div></div></td><td>8A-06</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:97%;background:var(--success)"></i></span>97%</td><td class="num">89%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c2" aria-hidden="true">AN</span><div><b>Arjun Nair</b><span>Class 8-A</span></div></div></td><td>8A-07</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:90%;background:var(--info)"></i></span>90%</td><td class="num">79%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c3" aria-hidden="true">SR</span><div><b>Sneha Reddy</b><span>Class 8-A</span></div></div></td><td>8A-08</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:95%;background:var(--success)"></i></span>95%</td><td class="num">86%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c4" aria-hidden="true">VJ</span><div><b>Vikram Joshi</b><span>Class 8-A</span></div></div></td><td>8A-09</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:88%;background:var(--warning)"></i></span>88%</td><td class="num">74%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c5" aria-hidden="true">PD</span><div><b>Priya Das</b><span>Class 8-A</span></div></div></td><td>8A-10</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:99%;background:var(--success)"></i></span>99%</td><td class="num">95%</td></tr>
+                  <tr><td><div class="student"><span class="avatar" aria-hidden="true">AR</span><div><b>Aditya Rao</b><span>Class 8-A</span></div></div></td><td>8A-11</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:93%;background:var(--info)"></i></span>93%</td><td class="num">84%</td></tr>
+                  <tr><td><div class="student"><span class="avatar c2" aria-hidden="true">KI</span><div><b>Kavya Iyer</b><span>Class 8-A</span></div></div></td><td>8A-12</td><td class="num"><span class="meter" aria-hidden="true"><i style="width:96%;background:var(--success)"></i></span>96%</td><td class="num">90%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-foot"><span id="tableCount">Showing 12 of 12 students</span><span>Sorted by roll · 8A-01 – 8A-12</span></div>
+          </div>
+        </section>
+
+        <!-- Notices: Frame rows with Alert tones (alert.md) + Badge states (badge.md) -->
+        <section class="frame" aria-label="Notices" id="notices">
+          <div class="frame-head"><span class="frame-title">Notices</span><span class="frame-action">3 new</span></div>
+          <div class="frame-panel flush">
+            <div class="notice-row" role="status">
+              <span class="notice-ico info" aria-hidden="true">🔬</span>
+              <div class="notice-body"><b>Science fair on Friday</b><p>Class 8-A presents its projects in the main hall.</p></div>
+              <span class="badge info">Event</span>
+            </div>
+            <div class="notice-row" role="alert">
+              <span class="notice-ico warning" aria-hidden="true">₹</span>
+              <div class="notice-body"><b>Fee deadline 20 Nov</b><p>₹4.8L outstanding across the school — please remind parents.</p></div>
+              <span class="badge warning">Due soon</span>
+            </div>
+            <div class="notice-row" role="status">
+              <span class="notice-ico info" aria-hidden="true">👥</span>
+              <div class="notice-body"><b>Parent-teacher meet 25 Nov</b><p>Slots open from 9 am; Priya Das and Ananya Gupta are top of the list.</p></div>
+              <span class="badge info">Meeting</span>
+            </div>
+          </div>
+          <div style="padding:.75rem .5rem .25rem"><button class="btn primary" id="viewAllBtn" type="button">View all notices</button></div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site">Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- Bottom nav for mobile (NavRail folded to icons, per nav-rail.md) -->
+<nav class="bottom-nav" aria-label="Main mobile">
+  <a href="#" class="active" data-nav="Overview"><span class="ico" aria-hidden="true">▦</span>Home</a>
+  <a href="#" data-nav="Students"><span class="ico" aria-hidden="true">👥</span>Students</a>
+  <a href="#" data-nav="Attendance"><span class="ico" aria-hidden="true">✓</span>Attend.</a>
+  <a href="#" data-nav="Analytics"><span class="ico" aria-hidden="true">▮</span>Analytics</a>
+  <a href="#" data-nav="Notices"><span class="ico" aria-hidden="true">✉</span>Notices</a>
+</nav>
+
+<script>
+// NavRail: folding is the app's decision (nav-rail.md) — trigger toggles collapsed,
+// hamburger opens the rail as a drawer on mobile.
+const rail=document.getElementById('navRail'), trigger=document.getElementById('railTrigger'),
+  burger=document.getElementById('hamburger'), scrim=document.getElementById('scrim');
+function setCollapsed(c){ rail.classList.toggle('collapsed',c); trigger.setAttribute('aria-expanded',String(!c));
+  trigger.setAttribute('aria-label',c?'Expand navigation':'Collapse navigation'); trigger.textContent=c?'›':'‹'; }
+trigger.addEventListener('click',()=>setCollapsed(!rail.classList.contains('collapsed')));
+function setDrawer(open){ rail.classList.toggle('open',open); scrim.classList.toggle('show',open);
+  burger.setAttribute('aria-expanded',String(open)); }
+burger.addEventListener('click',()=>setDrawer(!rail.classList.contains('open')));
+scrim.addEventListener('click',()=>setDrawer(false));
+// Single active pill across rail + bottom nav
+document.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click',e=>{ e.preventDefault();
+  document.querySelectorAll('[data-nav]').forEach(n=>{ n.classList.toggle('active',n.dataset.nav===el.dataset.nav);
+    if(n.classList.contains('nav-item')) n.toggleAttribute('aria-current',n.dataset.nav===el.dataset.nav); });
+  setDrawer(false); }));
+// BarChart tooltip readout (bar-chart.md: hover reads a band, tap pins it)
+const readout=document.getElementById('chartReadout');
+document.querySelectorAll('.bar-col').forEach(col=>{ const show=()=>{ readout.innerHTML='<b>'+col.dataset.day+': '+col.dataset.val+'%</b> attendance.'; };
+  col.addEventListener('mouseenter',show); col.addEventListener('focus',show); col.addEventListener('click',show); });
+// Search filters the student table (Input, input.md)
+const input=document.getElementById('searchInput'), body=document.getElementById('studentBody'),
+  count=document.getElementById('tableCount'), rows=[...body.rows];
+input.addEventListener('input',()=>{ const q=input.value.trim().toLowerCase(); let n=0;
+  rows.forEach(r=>{ const hit=r.textContent.toLowerCase().includes(q); r.style.display=hit?'':'none'; if(hit)n++; });
+  let empty=body.querySelector('.empty-row'); if(n===0&&!empty){ const tr=document.createElement('tr');
+    tr.className='empty-row'; tr.innerHTML='<td colspan="4">No students match “'+input.value+'”.</td>'; body.appendChild(tr); }
+  else if(n>0&&empty) empty.remove();
+  count.textContent='Showing '+n+' of 12 students'; });
+document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); input.focus(); }});
+document.getElementById('bellBtn').addEventListener('click',()=>document.getElementById('notices').scrollIntoView({behavior:'smooth'}));
+document.getElementById('viewAllBtn').addEventListener('click',()=>{ readout.textContent='All 3 notices are shown above.'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* ── Emil design-eng: custom easing curves (built-ins are too weak) ── */
+  :root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ink: #171a21;
+    --ink-soft: #4b5563;
+    --ink-faint: #8a94a6;
+    --line: #e6e9ee;
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --accent: #2457e7;
+    --accent-soft: #e8eefc;
+    --good: #15803d;
+    --good-soft: #e3f4e9;
+    --warn: #b45309;
+    --warn-soft: #fdf0dd;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+    --shadow-pop: 0 8px 24px rgba(16, 24, 40, 0.14), 0 2px 6px rgba(16, 24, 40, 0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input { font: inherit; }
+  a { color: inherit; text-decoration: none; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar (desktop) ── */
+  .sidebar {
+    width: 232px;
+    flex: 0 0 232px;
+    background: var(--card);
+    border-right: 1px solid var(--line);
+    padding: 20px 14px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 2px 10px 18px; }
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent); color: #fff;
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 15px; letter-spacing: 0.02em;
+    flex: 0 0 36px;
+  }
+  .brand-name { font-weight: 700; font-size: 15.5px; line-height: 1.25; }
+  .brand-sub { font-size: 12px; color: var(--ink-faint); line-height: 1.3; }
+  .nav-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); padding: 14px 10px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 10px; border-radius: 9px;
+    color: var(--ink-soft); font-weight: 500; font-size: 14.5px;
+    text-align: left; width: 100%;
+    /* Exact properties only — never `transition: all` */
+    transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out), transform 160ms var(--ease-out);
+  }
+  .nav-item .ico { font-size: 16px; width: 20px; text-align: center; flex: 0 0 20px; }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .nav-item:active { transform: scale(0.97); }
+  .sidebar-foot { margin-top: auto; padding: 12px 10px 0; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); line-height: 1.45; }
+
+  /* ── Main column ── */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* ── Header ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(246, 247, 249, 0.88);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 28px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .page-title { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+  .page-title span { color: var(--ink-faint); font-weight: 500; font-size: 14px; }
+  .search {
+    flex: 1; max-width: 420px; margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 12px;
+    transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  }
+  .search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .search input { border: 0; outline: 0; background: none; width: 100%; font-size: 14px; color: var(--ink); }
+  .search input::placeholder { color: var(--ink-faint); }
+  .search .ico { color: var(--ink-faint); font-size: 14px; flex: 0 0 auto; }
+  .bell-wrap { position: relative; flex: 0 0 auto; }
+  .bell {
+    position: relative; width: 38px; height: 38px; border-radius: 10px;
+    background: var(--card); border: 1px solid var(--line);
+    display: grid; place-items: center; font-size: 17px;
+    transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  }
+  .bell:active { transform: scale(0.97); }
+  .bell .dot {
+    position: absolute; top: 8px; right: 9px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #dc2626; border: 1.5px solid var(--card);
+  }
+  /* Popover: origin-aware — scales from its trigger (top right), never from center */
+  .popover {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    width: 300px; max-width: calc(100vw - 32px);
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-pop);
+    transform-origin: top right;
+    opacity: 0; transform: scale(0.95) translateY(-4px);
+    pointer-events: none;
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+    overflow: hidden;
+  }
+  .popover.open { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
+  .popover h3 { font-size: 13.5px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .popover ul { list-style: none; }
+  .popover li { padding: 10px 14px; font-size: 13.5px; border-bottom: 1px solid var(--line); line-height: 1.45; }
+  .popover li:last-child { border-bottom: 0; }
+  .popover li b { font-weight: 600; }
+  .popover li small { display: block; color: var(--ink-faint); font-size: 12px; margin-top: 1px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex: 0 0 38px;
+    background: var(--accent); color: #fff;
+    display: grid; place-items: center; font-weight: 600; font-size: 13.5px;
+    transition: transform 160ms var(--ease-out);
+  }
+  .avatar:active { transform: scale(0.97); }
+
+  /* ── Content ── */
+  .content { padding: 24px 28px 32px; display: flex; flex-direction: column; gap: 20px; max-width: 1080px; width: 100%; margin: 0 auto; }
+  .section-head { display: flex; align-items: baseline; gap: 10px; }
+  .section-head h2 { font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em; }
+  .section-head p { font-size: 13px; color: var(--ink-faint); }
+
+  /* ── Stat cards: staggered entrance, 40ms apart, transform+opacity only ── */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 18px 16px; box-shadow: var(--shadow);
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms var(--ease-out);
+    animation: rise 320ms var(--ease-out) both;
+  }
+  .stat:nth-child(1) { animation-delay: 0ms; }
+  .stat:nth-child(2) { animation-delay: 40ms; }
+  .stat:nth-child(3) { animation-delay: 80ms; }
+  .stat:nth-child(4) { animation-delay: 120ms; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .stat-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); display: flex; align-items: center; gap: 7px; }
+  .stat-label .ico { font-size: 14px; }
+  .stat-value { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat-sub { font-size: 12.5px; color: var(--ink-faint); margin-top: 4px; }
+  .stat-sub b { font-weight: 600; }
+  .stat-sub .up { color: var(--good); font-weight: 600; }
+  .stat-bar { height: 5px; border-radius: 99px; background: #edf0f4; margin-top: 12px; overflow: hidden; }
+  .stat-bar i { display: block; height: 100%; border-radius: 99px; background: var(--accent); transform-origin: left center; transform: scaleX(0); transition: transform 500ms var(--ease-out) 200ms; }
+  .stat-bar i.green { background: var(--good); }
+  .stat-bar i.amber { background: #d97706; }
+  .loaded .stat-bar i { transform: scaleX(1); }
+
+  /* ── Two-column row: chart + notices ── */
+  .row { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 16px 18px 4px; }
+  .card-head h2 { font-size: 15.5px; font-weight: 700; }
+  .card-head span { font-size: 12.5px; color: var(--ink-faint); white-space: nowrap; }
+
+  /* Chart: bars grow via transform scaleY (GPU only), origin bottom */
+  .chart { display: flex; align-items: flex-end; gap: 18px; height: 188px; padding: 18px 22px 0; }
+  .bar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+  .bar-val { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .bar-track { width: 100%; max-width: 44px; height: 118px; display: flex; align-items: flex-end; }
+  .bar {
+    width: 100%; border-radius: 7px 7px 3px 3px;
+    background: #c3d2f7;
+    transform-origin: bottom center;
+    transform: scaleY(0);
+    transition: transform 480ms var(--ease-out), background-color 180ms var(--ease-out);
+  }
+  .loaded .bar { transform: scaleY(1); }
+  .bar-col.today .bar { background: var(--accent); }
+  .bar-day { font-size: 12.5px; font-weight: 600; color: var(--ink-faint); }
+  .bar-col.today .bar-day { color: var(--accent); }
+  .chart-foot { padding: 12px 18px 16px; font-size: 12.5px; color: var(--ink-faint); border-top: 1px solid var(--line); margin-top: 14px; }
+  .chart-foot b { color: var(--good); font-weight: 600; }
+
+  /* Notices: stagger 40ms, press feedback, no animation on the frequent path */
+  .notices { list-style: none; padding: 8px 10px 12px; }
+  .notice {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 10px; border-radius: 10px;
+    transition: background-color 160ms var(--ease-out), transform 160ms var(--ease-out);
+    animation: rise 320ms var(--ease-out) both;
+  }
+  .notice:nth-child(1) { animation-delay: 40ms; }
+  .notice:nth-child(2) { animation-delay: 80ms; }
+  .notice:nth-child(3) { animation-delay: 120ms; }
+  .notice:active { transform: scale(0.98); }
+  .notice-ico {
+    width: 34px; height: 34px; border-radius: 9px; flex: 0 0 34px;
+    display: grid; place-items: center; font-size: 15px;
+  }
+  .notice-ico.blue { background: var(--accent-soft); }
+  .notice-ico.amber { background: var(--warn-soft); }
+  .notice-ico.green { background: var(--good-soft); }
+  .notice b { display: block; font-size: 14px; font-weight: 600; line-height: 1.4; }
+  .notice small { display: block; font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; line-height: 1.4; }
+  .notice .tag {
+    margin-left: auto; flex: 0 0 auto;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 99px;
+  }
+  .tag.blue { background: var(--accent-soft); color: var(--accent); }
+  .tag.amber { background: var(--warn-soft); color: var(--warn); }
+  .tag.green { background: var(--good-soft); color: var(--good); }
+
+  /* ── Students table ── */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  thead th {
+    text-align: left; font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-faint);
+    padding: 12px 18px 10px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  tbody td { padding: 12px 18px; border-bottom: 1px solid #f0f2f5; font-size: 14px; vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr { transition: background-color 140ms var(--ease-out); }
+  .student { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .student .avatar { width: 34px; height: 34px; flex-basis: 34px; font-size: 12.5px; background: #eef1f6; color: var(--ink-soft); }
+  .student b { display: block; font-size: 14px; font-weight: 600; }
+  .student small { display: block; font-size: 12px; color: var(--ink-faint); }
+  .num { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .pill {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    padding: 3px 9px; border-radius: 99px; font-variant-numeric: tabular-nums;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .marks-track { display: inline-block; width: 72px; height: 5px; border-radius: 99px; background: #edf0f4; vertical-align: middle; margin-right: 8px; overflow: hidden; }
+  .marks-track i { display: block; height: 100%; border-radius: 99px; background: var(--accent); transform-origin: left center; transform: scaleX(0); transition: transform 500ms var(--ease-out) 240ms; }
+  .loaded .marks-track i { transform: scaleX(1); }
+
+  .footer {
+    margin-top: auto; padding: 18px 28px 24px;
+    font-size: 12.5px; color: var(--ink-faint); text-align: center;
+  }
+
+  /* ── Bottom nav (mobile only) ── */
+  .bottomnav {
+    display: none;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--card); border-top: 1px solid var(--line);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottomnav-inner { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .bottomnav a {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 2px; font-size: 10.5px; font-weight: 600; color: var(--ink-faint);
+    border-radius: 9px;
+    transition: color 160ms var(--ease-out), transform 160ms var(--ease-out);
+  }
+  .bottomnav a .ico { font-size: 18px; line-height: 1.2; }
+  .bottomnav a.active { color: var(--accent); }
+  .bottomnav a:active { transform: scale(0.94); }
+
+  /* ── Hover only on devices that really hover (touch taps must not stick) ── */
+  @media (hover: hover) and (pointer: fine) {
+    .nav-item:hover { background: #f1f3f6; color: var(--ink); }
+    .nav-item.active:hover { background: var(--accent-soft); color: var(--accent); }
+    .bell:hover { border-color: #cdd5e1; background: #f8fafc; }
+    .stat:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 24, 40, 0.10); border-color: #d8dee8; }
+    .notice:hover { background: #f6f8fb; }
+    tbody tr:hover { background: #f8fafc; }
+    .bar-col:hover .bar { background: #9db6f2; }
+    .bar-col.today:hover .bar { background: #1d4fd7; }
+  }
+
+  /* ── 1280px and below: tighten, keep 4-col stats until 900px ── */
+  @media (max-width: 1020px) {
+    .row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  /* ── Mobile: 390px ── */
+  @media (max-width: 720px) {
+    .sidebar { display: none; }
+    .bottomnav { display: block; }
+    .topbar { padding: 12px 16px; gap: 10px; }
+    .page-title { font-size: 16.5px; }
+    .page-title span { display: none; }
+    .search { padding: 7px 10px; }
+    .search input { font-size: 13.5px; }
+    .avatar { display: none; }
+    .content { padding: 18px 16px 96px; gap: 16px; }
+    .stats { gap: 12px; }
+    .stat { padding: 14px 14px 12px; }
+    .stat-value { font-size: 24px; }
+    .stat-sub { font-size: 12px; }
+    .chart { gap: 10px; padding: 14px 16px 0; height: 172px; }
+    .bar-track { height: 104px; }
+    .notice .tag { display: none; }
+    .footer { padding-bottom: 96px; }
+  }
+
+  /* ── Reduced motion: keep opacity/color, remove movement ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+    .stat, .notice { animation: none; opacity: 1; transform: none; }
+    .bar, .stat-bar i, .marks-track i { transform: none; transition: none; }
+    .popover { transition: opacity 120ms ease; transform: none; }
+    .popover:not(.open) { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar navigation (desktop) -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">GH</div>
+      <div>
+        <div class="brand-name">Greenwood High</div>
+        <div class="brand-sub">Class 8-A · 2025–26</div>
+      </div>
+    </div>
+    <div class="nav-label">Menu</div>
+    <button class="nav-item active" type="button"><span class="ico" aria-hidden="true">▦</span>Dashboard</button>
+    <button class="nav-item" type="button"><span class="ico" aria-hidden="true">◷</span>Attendance</button>
+    <button class="nav-item" type="button"><span class="ico" aria-hidden="true">⚑</span>Students</button>
+    <button class="nav-item" type="button"><span class="ico" aria-hidden="true">✎</span>Marks</button>
+    <button class="nav-item" type="button"><span class="ico" aria-hidden="true">▤</span>Fees</button>
+    <div class="nav-label">School</div>
+    <button class="nav-item" type="button"><span class="ico" aria-hidden="true">✉</span>Notices</button>
+    <button class="nav-item" type="button"><span class="ico" aria-hidden="true">⚙</span>Settings</button>
+    <div class="sidebar-foot">1,248 students · 72 teachers<br>Academic year 2025–26</div>
+  </nav>
+
+  <div class="main">
+    <!-- Header -->
+    <header class="topbar">
+      <h1 class="page-title">Dashboard <span>· Class 8-A</span></h1>
+      <label class="search">
+        <span class="ico" aria-hidden="true">⌕</span>
+        <input type="search" placeholder="Search students, rolls…" aria-label="Search students">
+      </label>
+      <div class="bell-wrap">
+        <button class="bell" id="bellBtn" type="button" aria-label="Notifications" aria-expanded="false" aria-haspopup="true">
+          <span aria-hidden="true">♪</span><span class="dot" aria-hidden="true"></span>
+        </button>
+        <div class="popover" id="bellPop" role="dialog" aria-label="Notifications">
+          <h3>Notifications</h3>
+          <ul>
+            <li><b>Science fair on Friday</b><small>All Class 8-A projects due Thursday</small></li>
+            <li><b>Fee deadline 20 Nov</b><small>₹4.8L outstanding across the school</small></li>
+            <li><b>Parent-teacher meet 25 Nov</b><small>Slots open from 9:00 AM</small></li>
+          </ul>
+        </div>
+      </div>
+      <div class="avatar" title="Class teacher" aria-hidden="true">KT</div>
+    </header>
+
+    <main class="content">
+      <!-- Four stat cards -->
+      <section aria-label="School statistics">
+        <div class="stats">
+          <article class="stat">
+            <div class="stat-label"><span class="ico" aria-hidden="true">⚑</span>Students</div>
+            <div class="stat-value">1,248</div>
+            <div class="stat-sub"><span class="up">▲ 2.1%</span> vs last term</div>
+            <div class="stat-bar"><i style="width:100%"></i></div>
+          </article>
+          <article class="stat">
+            <div class="stat-label"><span class="ico" aria-hidden="true">✎</span>Teachers</div>
+            <div class="stat-value">72</div>
+            <div class="stat-sub">Across <b>12 classes</b> · 1 : 17 ratio</div>
+            <div class="stat-bar"><i style="width:60%"></i></div>
+          </article>
+          <article class="stat">
+            <div class="stat-label"><span class="ico" aria-hidden="true">◷</span>Attendance today</div>
+            <div class="stat-value">95.2%</div>
+            <div class="stat-sub"><b>1,188 present</b> · 60 absent</div>
+            <div class="stat-bar"><i class="green" style="width:95.2%"></i></div>
+          </article>
+          <article class="stat">
+            <div class="stat-label"><span class="ico" aria-hidden="true">▤</span>Fees collected</div>
+            <div class="stat-value">84%</div>
+            <div class="stat-sub"><b>₹25.2L</b> of ₹30L target</div>
+            <div class="stat-bar"><i class="amber" style="width:84%"></i></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Chart + notices -->
+      <div class="row">
+        <section class="card" aria-label="Attendance trend">
+          <div class="card-head"><h2>Attendance trend</h2><span>This week · Mon–Fri</span></div>
+          <div class="chart" role="img" aria-label="Attendance: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95">
+            <div class="bar-col"><span class="bar-val">94%</span><div class="bar-track"><div class="bar" style="height:94%"></div></div><span class="bar-day">Mon</span></div>
+            <div class="bar-col"><span class="bar-val">96%</span><div class="bar-track"><div class="bar" style="height:96%"></div></div><span class="bar-day">Tue</span></div>
+            <div class="bar-col"><span class="bar-val">93%</span><div class="bar-track"><div class="bar" style="height:93%"></div></div><span class="bar-day">Wed</span></div>
+            <div class="bar-col"><span class="bar-val">97%</span><div class="bar-track"><div class="bar" style="height:97%"></div></div><span class="bar-day">Thu</span></div>
+            <div class="bar-col today"><span class="bar-val">95%</span><div class="bar-track"><div class="bar" style="height:95%"></div></div><span class="bar-day">Fri</span></div>
+          </div>
+          <div class="chart-foot">Weekly average <b>95.0%</b> — peak Thursday at 97%.</div>
+        </section>
+
+        <section class="card" aria-label="Notices">
+          <div class="card-head"><h2>Notices</h2><span>3 new</span></div>
+          <ul class="notices">
+            <li class="notice"><span class="notice-ico blue" aria-hidden="true">⚗</span><div><b>Science fair on Friday</b><small>All Class 8-A projects due Thursday.</small></div><span class="tag blue">Event</span></li>
+            <li class="notice"><span class="notice-ico amber" aria-hidden="true">▤</span><div><b>Fee deadline 20 Nov</b><small>Please clear pending fees before the deadline.</small></div><span class="tag amber">Fees</span></li>
+            <li class="notice"><span class="notice-ico green" aria-hidden="true">⚑</span><div><b>Parent-teacher meet 25 Nov</b><small>Slots open from 9:00 AM in the main hall.</small></div><span class="tag green">Meet</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Student table -->
+      <section class="card" aria-label="Class 8-A students">
+        <div class="card-head"><h2>Class 8-A · Students</h2><span>12 students</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">AS</span><div><b>Aarav Sharma</b><small>Class 8-A</small></div></div></td><td class="num">8A-01</td><td><span class="pill good">96%</span></td><td><span class="marks-track"><i style="width:88%"></i></span><span class="num">88%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">DP</span><div><b>Diya Patel</b><small>Class 8-A</small></div></div></td><td class="num">8A-02</td><td><span class="pill good">94%</span></td><td><span class="marks-track"><i style="width:91%"></i></span><span class="num">91%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">KS</span><div><b>Kabir Singh</b><small>Class 8-A</small></div></div></td><td class="num">8A-03</td><td><span class="pill warn">89%</span></td><td><span class="marks-track"><i style="width:76%"></i></span><span class="num">76%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">AG</span><div><b>Ananya Gupta</b><small>Class 8-A</small></div></div></td><td class="num">8A-04</td><td><span class="pill good">98%</span></td><td><span class="marks-track"><i style="width:93%"></i></span><span class="num">93%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">RM</span><div><b>Rohan Mehta</b><small>Class 8-A</small></div></div></td><td class="num">8A-05</td><td><span class="pill good">92%</span></td><td><span class="marks-track"><i style="width:82%"></i></span><span class="num">82%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">IV</span><div><b>Ishita Verma</b><small>Class 8-A</small></div></div></td><td class="num">8A-06</td><td><span class="pill good">97%</span></td><td><span class="marks-track"><i style="width:89%"></i></span><span class="num">89%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">AN</span><div><b>Arjun Nair</b><small>Class 8-A</small></div></div></td><td class="num">8A-07</td><td><span class="pill good">90%</span></td><td><span class="marks-track"><i style="width:79%"></i></span><span class="num">79%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">SR</span><div><b>Sneha Reddy</b><small>Class 8-A</small></div></div></td><td class="num">8A-08</td><td><span class="pill good">95%</span></td><td><span class="marks-track"><i style="width:86%"></i></span><span class="num">86%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">VJ</span><div><b>Vikram Joshi</b><small>Class 8-A</small></div></div></td><td class="num">8A-09</td><td><span class="pill warn">88%</span></td><td><span class="marks-track"><i style="width:74%"></i></span><span class="num">74%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">PD</span><div><b>Priya Das</b><small>Class 8-A</small></div></div></td><td class="num">8A-10</td><td><span class="pill good">99%</span></td><td><span class="marks-track"><i style="width:95%"></i></span><span class="num">95%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">AR</span><div><b>Aditya Rao</b><small>Class 8-A</small></div></div></td><td class="num">8A-11</td><td><span class="pill good">93%</span></td><td><span class="marks-track"><i style="width:84%"></i></span><span class="num">84%</span></td></tr>
+              <tr><td><div class="student"><span class="avatar" aria-hidden="true">KI</span><div><b>Kavya Iyer</b><small>Class 8-A</small></div></div></td><td class="num">8A-12</td><td><span class="pill good">96%</span></td><td><span class="marks-track"><i style="width:90%"></i></span><span class="num">90%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- Bottom navigation (mobile) -->
+<nav class="bottomnav" aria-label="Mobile navigation">
+  <div class="bottomnav-inner">
+    <a href="#" class="active"><span class="ico" aria-hidden="true">▦</span>Home</a>
+    <a href="#"><span class="ico" aria-hidden="true">◷</span>Attend.</a>
+    <a href="#"><span class="ico" aria-hidden="true">⚑</span>Students</a>
+    <a href="#"><span class="ico" aria-hidden="true">✎</span>Marks</a>
+    <a href="#"><span class="ico" aria-hidden="true">✉</span>Notices</a>
+  </div>
+</nav>
+
+<script>
+  // Bar / meter entrance: add .loaded once so transform-only transitions run.
+  // (Transitions, not keyframes, for interruptible UI — per Emil.)
+  requestAnimationFrame(function () {
+    document.body.classList.add('loaded');
+  });
+
+  // Bell popover: origin-aware (top right = trigger), scale from 0.95 never 0.
+  var bellBtn = document.getElementById('bellBtn');
+  var bellPop = document.getElementById('bellPop');
+  function closePop() {
+    bellPop.classList.remove('open');
+    bellBtn.setAttribute('aria-expanded', 'false');
+  }
+  bellBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = bellPop.classList.toggle('open');
+    bellBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function (e) {
+    if (!bellPop.contains(e.target)) closePop();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closePop();
+  });
+
+  // Sidebar nav: single active state, no animation on this frequent action.
+  document.querySelectorAll('.sidebar .nav-item').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.sidebar .nav-item').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
