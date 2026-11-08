@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* Better Accessibility alone: semantics, keyboard, focus, names,
+     reduced motion, zoom/reflow. Colours chosen to meet WCAG 1.4.3
+     (4.5:1 text) and 1.4.11 (3:1 UI) without relying on colour alone. */
+  :root{
+    --ink:#0f172a;          /* near-black, ~15:1 on white */
+    --muted:#334155;        /* slate-700, ~9:1 on white */
+    --line:#64748b;         /* slate-500, 3:1+ for borders/UI */
+    --brand:#1e40af;        /* blue-800, ~8:1 on white */
+    --brand-dark:#1e3a8a;
+    --focus:#1d4ed8;        /* focus ring, ~6:1 on white */
+    --bg:#f1f5f9;
+    --card:#ffffff;
+    --good:#14532d;         /* dark green text, ~9:1 on white */
+    --good-bg:#dcfce7;
+    --warn:#713f12;         /* dark amber text, ~7:1 on white */
+    --warn-bg:#fef3c7;
+    --header-bg:#172554;    /* blue-950 */
+    --header-ink:#ffffff;
+    --radius:10px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-padding-top:76px}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:16px;line-height:1.55;
+  }
+  /* Visible focus ring (2.4.11 / 2.4.13): :focus-visible only, never
+     outline:none without a replacement. 3px solid, 3:1+ on every bg. */
+  :focus-visible{
+    outline:3px solid var(--focus);
+    outline-offset:2px;
+    border-radius:4px;
+  }
+  header :focus-visible, .site-nav :focus-visible{outline-color:#facc15;outline-offset:2px}
+  a{color:var(--brand)}
+  a:hover{color:var(--brand-dark);text-decoration-thickness:2px}
+
+  /* Skip link: first focusable element (2.4.1). */
+  .skip-link{
+    position:absolute;left:12px;top:-60px;z-index:100;
+    background:var(--header-bg);color:#fff;padding:12px 16px;
+    border-radius:0 0 8px 8px;font-weight:700;text-decoration:none;
+    min-height:44px;display:flex;align-items:center;
+  }
+  .skip-link:focus{top:0;color:#fff}
+
+  .visually-hidden{
+    position:absolute!important;width:1px;height:1px;margin:-1px;
+    padding:0;border:0;clip:rect(0 0 0 0);clip-path:inset(50%);
+    overflow:hidden;white-space:nowrap;
+  }
+
+  /* ---- Header ---- */
+  .site-header{
+    position:sticky;top:0;z-index:50;
+    background:var(--header-bg);color:var(--header-ink);
+  }
+  .header-inner{
+    max-width:1200px;margin:0 auto;padding:10px 16px;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .brand{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+  .brand strong{font-size:1.15rem}
+  .brand span{font-size:.9rem;color:#e2e8f0}
+  .header-spacer{flex:1}
+  .search-form{display:flex;gap:8px;align-items:center;flex:1 1 260px;max-width:420px}
+  .search-form label{font-weight:700}
+  .search-form input{
+    flex:1;min-width:0;min-height:44px;padding:8px 12px;font:inherit;
+    color:var(--ink);background:#fff;border:2px solid #94a3b8;border-radius:8px;
+  }
+  .search-form input::placeholder{color:#475569;opacity:1}
+  .btn{
+    font:inherit;font-weight:700;min-height:44px;min-width:44px;
+    padding:10px 16px;border-radius:8px;cursor:pointer;
+    border:2px solid transparent;
+  }
+  .btn-primary{background:#fff;color:var(--brand-dark);border-color:#fff}
+  .btn-primary:hover{background:#dbeafe}
+  .btn-dark{background:var(--brand);color:#fff}
+  .btn-dark:hover{background:var(--brand-dark)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .icon-btn{
+    position:relative;display:inline-flex;align-items:center;justify-content:center;
+    min-width:44px;min-height:44px;border-radius:8px;
+    background:transparent;color:#fff;border:2px solid #94a3b8;cursor:pointer;font:inherit;
+  }
+  .icon-btn:hover{background:#1e3a8a}
+  .icon-btn .badge{
+    position:absolute;top:-8px;right:-8px;min-width:24px;height:24px;
+    display:flex;align-items:center;justify-content:center;
+    background:#facc15;color:#0f172a;font-size:.8rem;font-weight:800;
+    border:2px solid var(--header-bg);border-radius:999px;padding:0 5px;
+  }
+  /* Notifications popover: button-controlled, Escape closes, focus returns. */
+  .bell-wrap{position:relative}
+  .notif-panel{
+    position:absolute;right:0;top:52px;width:min(320px,calc(100vw - 32px));
+    background:#fff;color:var(--ink);border:2px solid var(--line);
+    border-radius:var(--radius);box-shadow:0 8px 24px rgba(15,23,42,.3);
+    padding:12px 16px;z-index:60;
+  }
+  .notif-panel[hidden]{display:none}
+  .notif-panel h2{font-size:1rem;margin:0 0 8px}
+  .notif-panel ul{margin:0;padding-left:20px}
+  .notif-panel li{margin:6px 0}
+
+  /* ---- Layout / nav ---- */
+  .layout{max-width:1200px;margin:0 auto;padding:16px;display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start}
+  .nav-toggle{display:none}
+  .site-nav{
+    background:var(--header-bg);color:#fff;border-radius:var(--radius);
+    padding:12px;position:sticky;top:76px;
+  }
+  .site-nav h2{font-size:.95rem;margin:4px 8px 10px;color:#e2e8f0}
+  .site-nav ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+  .site-nav a{
+    display:flex;align-items:center;min-height:44px;padding:10px 12px;
+    color:#fff;text-decoration:none;border-radius:8px;font-weight:600;
+  }
+  .site-nav a:hover{background:#1e3a8a;text-decoration:underline}
+  .site-nav a[aria-current="page"]{background:#fff;color:var(--brand-dark);text-decoration:underline;text-underline-offset:3px}
+  .site-nav a .nav-icon{margin-right:10px;font-style:normal}
+
+  main{min-width:0;display:flex;flex-direction:column;gap:16px}
+  h1{font-size:1.6rem;line-height:1.25;margin:4px 0 0}
+  .lede{color:var(--muted);margin:0}
+  section h2{font-size:1.25rem;margin:0 0 4px}
+  .section-note{color:var(--muted);margin:0 0 12px}
+  .card{
+    background:var(--card);border:2px solid #cbd5e1;border-radius:var(--radius);
+    padding:16px;
+  }
+  /* Text containers use min-height, never fixed height (1.4.4). */
+
+  /* ---- Stats ---- */
+  .stats{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stats li{
+    background:var(--card);border:2px solid #cbd5e1;border-radius:var(--radius);
+    padding:14px 16px;min-height:110px;
+  }
+  .stats .stat-label{font-weight:700;color:var(--muted);display:block}
+  .stats .stat-value{font-size:1.9rem;font-weight:800;line-height:1.2;display:block;margin-top:2px}
+  .stats .stat-sub{color:var(--muted);font-size:.92rem;display:block}
+
+  /* ---- Chart: bars aria-hidden, data in a real table for AT ---- */
+  .chart{display:flex;align-items:flex-end;gap:14px;min-height:220px;padding:12px 4px 0;border-bottom:2px solid var(--line)}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;min-width:0;height:220px}
+  .bar{width:min(56px,80%);background:var(--brand);border:2px solid var(--brand-dark);border-radius:6px 6px 0 0}
+  .bar-col .bar-value{font-weight:800}
+  .bar-col .bar-day{font-weight:700;color:var(--muted)}
+  .chart-note{margin:10px 0 0;color:var(--muted)}
+
+  /* ---- Table: scrollable region is keyboard-focusable (2.1.1) ---- */
+  .table-wrap{overflow-x:auto;border:2px solid #cbd5e1;border-radius:8px}
+  table{border-collapse:collapse;width:100%;min-width:560px;background:#fff}
+  caption{text-align:left;font-weight:700;padding:10px 12px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #cbd5e1}
+  th{background:#e2e8f0;color:var(--ink)}
+  tbody tr:hover{background:#f8fafc}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;font-weight:700;
+    border-radius:999px;padding:4px 10px;border:2px solid transparent;white-space:nowrap;
+  }
+  /* Status never by colour alone (1.4.1): text + symbol + colour. */
+  .pill-good{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+  .pill-watch{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+
+  /* ---- Notices ---- */
+  .notices{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .notices li{border-left:6px solid var(--brand);background:#eff6ff;padding:12px 14px;border-radius:0 8px 8px 0}
+  .notices strong{display:block}
+  .notices p{margin:2px 0 0;color:var(--muted)}
+
+  footer{max-width:1200px;margin:0 auto;padding:16px;color:var(--muted);font-size:.95rem}
+  footer p{margin:0}
+
+  /* Motion is opt-in (prefers-reduced-motion): no animation by default
+     beyond a short hover fade, and none at all under reduced motion. */
+  @media (prefers-reduced-motion: no-preference){
+    .btn,.site-nav a,.icon-btn{transition:background-color .15s ease}
+    .bar{transition:height .3s ease}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+  }
+
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:720px){
+    .layout{grid-template-columns:1fr}
+    .nav-toggle{
+      display:inline-flex;align-items:center;gap:8px;
+      background:var(--header-bg);color:#fff;border:2px solid #94a3b8;
+      border-radius:8px;font:inherit;font-weight:700;min-height:44px;padding:10px 14px;cursor:pointer;
+    }
+    .site-nav{position:static}
+    .site-nav[hidden]{display:none}
+    .site-nav ul{flex-direction:column}
+    .search-form{flex-basis:100%;max-width:none;order:3}
+    .header-inner{gap:10px}
+  }
+  @media (max-width:420px){
+    .stats{grid-template-columns:1fr 1fr}
+    .stats .stat-value{font-size:1.5rem}
+    h1{font-size:1.35rem}
+    .layout{padding:12px}
+    .card{padding:12px}
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <strong>Greenwood High</strong>
+      <span>Class 8-A &middot; 2025&ndash;26</span>
+    </div>
+    <div class="header-spacer"></div>
+    <form class="search-form" role="search" id="searchForm" action="#" method="get">
+      <label for="search">Search students</label>
+      <input type="search" id="search" name="q" placeholder="Search by name or roll, e.g. Priya" autocomplete="off" aria-describedby="searchHint searchStatus">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+    <p class="visually-hidden" id="searchHint">Filters the Class 8-A student table below.</p>
+    <div class="bell-wrap">
+      <button type="button" class="icon-btn" id="bellBtn" aria-label="Notifications, 3 unread" aria-expanded="false" aria-controls="notifPanel">
+        <span aria-hidden="true">&#128276;</span>
+        <span class="badge" aria-hidden="true">3</span>
+      </button>
+      <div class="notif-panel" id="notifPanel" hidden>
+        <h2 id="notifHeading">Notifications</h2>
+        <ul aria-labelledby="notifHeading">
+          <li>Science fair on Friday</li>
+          <li>Fee deadline 20 Nov</li>
+          <li>Parent-teacher meet 25 Nov</li>
+        </ul>
+        <p><button type="button" class="btn btn-dark" id="notifClose">Close notifications</button></p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">&#9776; Menu</button>
+  <nav class="site-nav" id="siteNav" aria-label="Primary">
+    <h2>Dashboard menu</h2>
+    <ul>
+      <li><a href="#main" aria-current="page"><span class="nav-icon" aria-hidden="true">&#127968;</span>Dashboard</a></li>
+      <li><a href="#stats"><span class="nav-icon" aria-hidden="true">&#128202;</span>Overview</a></li>
+      <li><a href="#trend"><span class="nav-icon" aria-hidden="true">&#128200;</span>Attendance trend</a></li>
+      <li><a href="#students"><span class="nav-icon" aria-hidden="true">&#128101;</span>Students</a></li>
+      <li><a href="#notices"><span class="nav-icon" aria-hidden="true">&#128236;</span>Notices</a></li>
+    </ul>
+  </nav>
+
+  <main id="main" tabindex="-1">
+    <h1>Class 8-A Dashboard</h1>
+    <p class="lede">Attendance, student profiles and analytics for Greenwood High, Class 8-A.</p>
+
+    <!-- Stable live region, rendered empty before any update (screen-readers). -->
+    <p role="status" id="searchStatus" class="visually-hidden"></p>
+
+    <section class="card" id="stats" aria-labelledby="statsHeading" tabindex="-1">
+      <h2 id="statsHeading">Overview</h2>
+      <p class="section-note">Whole school and Class 8-A at a glance.</p>
+      <ul class="stats">
+        <li><span class="stat-label">Students</span><span class="stat-value">1,248</span><span class="stat-sub">12 in Class 8-A</span></li>
+        <li><span class="stat-label">Teachers</span><span class="stat-value">72</span><span class="stat-sub">Whole school</span></li>
+        <li><span class="stat-label">Attendance today</span><span class="stat-value">95.2%</span><span class="stat-sub">1,188 present, 60 absent</span></li>
+        <li><span class="stat-label">Fees collected</span><span class="stat-value">84%</span><span class="stat-sub">&rupee;25.2L of &rupee;30L</span></li>
+      </ul>
+    </section>
+
+    <section class="card" id="trend" aria-labelledby="trendHeading" tabindex="-1">
+      <h2 id="trendHeading">Attendance trend</h2>
+      <p class="section-note">Monday to Friday this week, in percent present.</p>
+      <figure style="margin:0">
+        <div class="chart" role="img" aria-label="Attendance trend: Monday 94 percent, Tuesday 96 percent, Wednesday 93 percent, Thursday 97 percent, Friday 95 percent. Highest on Thursday at 97 percent.">
+          <div class="bar-col" aria-hidden="true"><span class="bar-value">94%</span><div class="bar" style="height:94%"></div><span class="bar-day">Mon</span></div>
+          <div class="bar-col" aria-hidden="true"><span class="bar-value">96%</span><div class="bar" style="height:96%"></div><span class="bar-day">Tue</span></div>
+          <div class="bar-col" aria-hidden="true"><span class="bar-value">93%</span><div class="bar" style="height:93%"></div><span class="bar-day">Wed</span></div>
+          <div class="bar-col" aria-hidden="true"><span class="bar-value">97%</span><div class="bar" style="height:97%"></div><span class="bar-day">Thu</span></div>
+          <div class="bar-col" aria-hidden="true"><span class="bar-value">95%</span><div class="bar" style="height:95%"></div><span class="bar-day">Fri</span></div>
+        </div>
+        <figcaption class="chart-note">Highest attendance on Thursday (97%). Lowest on Wednesday (93%).</figcaption>
+      </figure>
+      <!-- Real data table for assistive technology: bars are decorative. -->
+      <table class="visually-hidden">
+        <caption>Attendance trend, Monday to Friday</caption>
+        <thead><tr><th scope="col">Day</th><th scope="col">Attendance</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Monday</th><td>94%</td></tr>
+          <tr><th scope="row">Tuesday</th><td>96%</td></tr>
+          <tr><th scope="row">Wednesday</th><td>93%</td></tr>
+          <tr><th scope="row">Thursday</th><td>97%</td></tr>
+          <tr><th scope="row">Friday</th><td>95%</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" id="students" aria-labelledby="studentsHeading" tabindex="-1">
+      <h2 id="studentsHeading">Class 8-A students</h2>
+      <p class="section-note">Use the search in the header to filter this table by name or roll number.</p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Class 8-A student table, scrollable">
+        <table id="studentTable">
+          <caption>12 students in Class 8-A, with attendance and marks</caption>
+          <thead>
+            <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Aarav Sharma</th><td>8A-01</td><td>96% <span class="pill pill-good">&#10003; Excellent</span></td><td>88%</td></tr>
+            <tr><th scope="row">Diya Patel</th><td>8A-02</td><td>94% <span class="pill pill-good">&#10003; Good</span></td><td>91%</td></tr>
+            <tr><th scope="row">Kabir Singh</th><td>8A-03</td><td>89% <span class="pill pill-watch">&#33; Watch</span></td><td>76%</td></tr>
+            <tr><th scope="row">Ananya Gupta</th><td>8A-04</td><td>98% <span class="pill pill-good">&#10003; Excellent</span></td><td>93%</td></tr>
+            <tr><th scope="row">Rohan Mehta</th><td>8A-05</td><td>92% <span class="pill pill-good">&#10003; Good</span></td><td>82%</td></tr>
+            <tr><th scope="row">Ishita Verma</th><td>8A-06</td><td>97% <span class="pill pill-good">&#10003; Excellent</span></td><td>89%</td></tr>
+            <tr><th scope="row">Arjun Nair</th><td>8A-07</td><td>90% <span class="pill pill-watch">&#33; Watch</span></td><td>79%</td></tr>
+            <tr><th scope="row">Sneha Reddy</th><td>8A-08</td><td>95% <span class="pill pill-good">&#10003; Excellent</span></td><td>86%</td></tr>
+            <tr><th scope="row">Vikram Joshi</th><td>8A-09</td><td>88% <span class="pill pill-watch">&#33; Watch</span></td><td>74%</td></tr>
+            <tr><th scope="row">Priya Das</th><td>8A-10</td><td>99% <span class="pill pill-good">&#10003; Excellent</span></td><td>95%</td></tr>
+            <tr><th scope="row">Aditya Rao</th><td>8A-11</td><td>93% <span class="pill pill-good">&#10003; Good</span></td><td>84%</td></tr>
+            <tr><th scope="row">Kavya Iyer</th><td>8A-12</td><td>96% <span class="pill pill-good">&#10003; Excellent</span></td><td>90%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="noResults" hidden>No students match that search. Try a different name or roll number.</p>
+    </section>
+
+    <section class="card" id="notices" aria-labelledby="noticesHeading" tabindex="-1">
+      <h2 id="noticesHeading">Notices</h2>
+      <ul class="notices">
+        <li><strong>Science fair on Friday</strong><p>Class 8-A presents its projects in the main hall.</p></li>
+        <li><strong>Fee deadline 20 Nov</strong><p>Please clear pending fees before 20 November.</p></li>
+        <li><strong>Parent-teacher meet 25 Nov</strong><p>Meet your child&rsquo;s teachers on 25 November.</p></li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <p>Fictional demo data &mdash; UI Forge Experiment 1</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var isMobile = function(){ return window.matchMedia("(max-width: 720px)").matches; };
+
+  /* Mobile nav: native button, aria-expanded, Escape closes, focus stays on toggle. */
+  var navToggle = document.getElementById("navToggle");
+  var siteNav = document.getElementById("siteNav");
+  function setNav(open){
+    navToggle.setAttribute("aria-expanded", String(open));
+    if (isMobile()) { siteNav.hidden = !open; }
+    else { siteNav.hidden = false; }
+  }
+  function syncNav(){ setNav(navToggle.getAttribute("aria-expanded") === "true"); }
+  navToggle.addEventListener("click", function(){
+    setNav(navToggle.getAttribute("aria-expanded") !== "true");
+  });
+  window.addEventListener("resize", syncNav);
+  syncNav();
+
+  /* Notifications popover: Escape closes and returns focus to the trigger. */
+  var bellBtn = document.getElementById("bellBtn");
+  var panel = document.getElementById("notifPanel");
+  var closeBtn = document.getElementById("notifClose");
+  function setPanel(open){
+    panel.hidden = !open;
+    bellBtn.setAttribute("aria-expanded", String(open));
+    if (open) { closeBtn.focus(); }
+  }
+  bellBtn.addEventListener("click", function(){ setPanel(panel.hidden); });
+  closeBtn.addEventListener("click", function(){ setPanel(false); bellBtn.focus(); });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") {
+      if (!panel.hidden) { setPanel(false); bellBtn.focus(); }
+      else if (isMobile() && navToggle.getAttribute("aria-expanded") === "true") {
+        setNav(false); navToggle.focus();
+      }
+    }
+  });
+  /* Close popover on outside pointer activation, without stealing focus. */
+  document.addEventListener("click", function(e){
+    if (!panel.hidden && !panel.contains(e.target) && e.target !== bellBtn && !bellBtn.contains(e.target)) {
+      setPanel(false);
+    }
+  });
+
+  /* Search filter: validates on submit, announces via the stable
+     role="status" region rendered empty above; no results message shown. */
+  var form = document.getElementById("searchForm");
+  var input = document.getElementById("search");
+  var status = document.getElementById("searchStatus");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#studentTable tbody tr"));
+  var noResults = document.getElementById("noResults");
+  function filter(){
+    var q = input.value.trim().toLowerCase();
+    var shown = 0;
+    rows.forEach(function(row){
+      var match = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+      row.hidden = !match;
+      if (match) { shown++; }
+    });
+    noResults.hidden = shown !== 0;
+    status.textContent = q
+      ? shown + " of 12 students shown for \u201C" + input.value.trim() + "\u201D."
+      : "Showing all 12 students.";
+  }
+  form.addEventListener("submit", function(e){ e.preventDefault(); filter(); });
+  input.addEventListener("input", filter);
+})();
+</script>
+</body>
+</html>

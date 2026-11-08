@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* ui-ux-pro-max design system: "Data-Dense Dashboard" — semantic tokens, no raw hex in components */
+  :root{
+    --color-primary:#1E40AF; --color-on-primary:#FFFFFF;
+    --color-secondary:#3B82F6; --color-accent:#D97706; --color-on-accent:#FFFFFF;
+    --color-background:#F8FAFC; --color-foreground:#1E3A8A;
+    --color-card:#FFFFFF; --color-card-foreground:#1E3A8A;
+    --color-muted:#E9EEF6; --color-muted-foreground:#475569;
+    --color-border:#DBEAFE; --color-destructive:#DC2626;
+    --color-success:#166534; --color-success-bg:#DCFCE7;
+    --color-warn:#92400E; --color-warn-bg:#FEF3C7;
+    --color-ring:#1E40AF;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+    --radius:12px; --radius-sm:8px;
+    --shadow:0 1px 2px rgba(30,58,138,.08),0 2px 8px rgba(30,58,138,.06);
+    --font-body:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --font-data:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --duration:200ms; --ease:cubic-bezier(.2,0,0,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:var(--font-body);font-size:16px;line-height:1.5;color:var(--color-card-foreground);background:var(--color-background)}
+  h1,h2,h3{line-height:1.25;margin:0}
+  p{margin:0}
+  a{color:var(--color-primary)}
+  :focus-visible{outline:3px solid var(--color-ring);outline-offset:2px;border-radius:4px}
+  .skip-link{position:absolute;left:var(--space-4);top:-48px;background:var(--color-primary);color:var(--color-on-primary);padding:var(--space-2) var(--space-4);border-radius:0 0 var(--space-2) var(--space-2);z-index:1000;text-decoration:none;font-weight:600;transition:top var(--duration) var(--ease)}
+  .skip-link:focus{top:0}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* ---------- App shell: sidebar >=1024px, bottom nav below ---------- */
+  .shell{display:flex;min-height:100dvh}
+  .sidebar{width:232px;flex:0 0 232px;background:var(--color-primary);color:var(--color-on-primary);padding:var(--space-5) var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);position:sticky;top:0;height:100dvh}
+  .brand{display:flex;align-items:center;gap:var(--space-3);padding-bottom:var(--space-4);border-bottom:1px solid rgba(255,255,255,.25)}
+  .brand-mark{width:44px;height:44px;flex:0 0 44px;border-radius:var(--radius-sm);background:var(--color-accent);color:var(--color-on-accent);display:grid;place-items:center;font-weight:700;font-size:20px}
+  .brand-name{font-size:18px;font-weight:700;line-height:1.25}
+  .brand-sub{font-size:13px;color:#DBEAFE;line-height:1.4}
+  .nav-label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#BFDBFE;margin:var(--space-4) var(--space-2) var(--space-1)}
+  .nav-link{display:flex;align-items:center;gap:var(--space-3);min-height:44px;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);color:var(--color-on-primary);text-decoration:none;font-weight:500;transition:background-color var(--duration) var(--ease),transform var(--duration) var(--ease)}
+  .nav-link:hover{background:rgba(255,255,255,.14)}
+  .nav-link:active{transform:scale(.98)}
+  .nav-link[aria-current="page"]{background:var(--color-on-primary);color:var(--color-primary);font-weight:700}
+  .nav-link svg{flex:0 0 20px}
+  .sidebar-foot{margin-top:auto;font-size:13px;color:#BFDBFE;line-height:1.5}
+  .bottom-nav{display:none}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .content{flex:1;width:100%;max-width:1120px;margin:0 auto;padding:var(--space-5) var(--space-4) var(--space-6)}
+
+  /* ---------- Header ---------- */
+  header.topbar{position:sticky;top:0;z-index:40;background:var(--color-card);border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:var(--space-4);padding:var(--space-3) var(--space-4)}
+  .topbar h1{font-size:20px}
+  .topbar .crumb{font-size:13px;color:var(--color-muted-foreground)}
+  .search{flex:1;max-width:420px;margin-left:auto;display:flex;align-items:center;gap:var(--space-2);background:var(--color-muted);border:1px solid var(--color-border);border-radius:999px;padding:0 var(--space-3);min-height:44px}
+  .search svg{flex:0 0 18px;color:var(--color-muted-foreground)}
+  .search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:16px;color:inherit;padding:var(--space-2) 0}
+  .search input:focus{outline:none}
+  .search:focus-within{outline:3px solid var(--color-ring);outline-offset:1px}
+  .icon-btn{position:relative;flex:0 0 44px;width:44px;height:44px;border-radius:50%;border:1px solid var(--color-border);background:var(--color-card);color:var(--color-primary);cursor:pointer;display:grid;place-items:center;transition:background-color var(--duration) var(--ease)}
+  .icon-btn:hover{background:var(--color-muted)}
+  .badge{position:absolute;top:2px;right:2px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--color-destructive);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;border:2px solid var(--color-card)}
+  .avatar{flex:0 0 44px;width:44px;height:44px;border-radius:50%;background:var(--color-accent);color:var(--color-on-accent);display:grid;place-items:center;font-weight:700;border:0;cursor:pointer}
+
+  /* ---------- Sections / cards ---------- */
+  section{margin-bottom:var(--space-5)}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-3)}
+  .section-head h2{font-size:20px}
+  .section-head p{font-size:14px;color:var(--color-muted-foreground)}
+  .card{background:var(--color-card);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--space-4)}
+  .page-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap}
+  .page-intro h2{font-size:24px}
+  .page-intro p{color:var(--color-muted-foreground);margin-top:var(--space-1)}
+  .term{font-size:13px;font-weight:600;color:var(--color-primary);background:var(--color-muted);border:1px solid var(--color-border);border-radius:999px;padding:6px 12px;white-space:nowrap}
+
+  /* ---------- Stat cards (dense dashboard: 4 across, 2 across, 1 across) ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)}
+  .stat{display:flex;flex-direction:column;gap:var(--space-1);min-width:0}
+  .stat-top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+  .stat-label{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--color-muted-foreground)}
+  .stat-icon{flex:0 0 36px;width:36px;height:36px;border-radius:var(--radius-sm);display:grid;place-items:center;background:var(--color-muted);color:var(--color-primary)}
+  .stat-value{font-family:var(--font-data);font-size:32px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+  .stat-sub{font-size:13px;color:var(--color-muted-foreground)}
+  .stat-sub strong{color:var(--color-success);font-weight:700}
+  .progress{height:8px;border-radius:999px;background:var(--color-muted);overflow:hidden;margin-top:var(--space-2)}
+  .progress>span{display:block;height:100%;background:var(--color-secondary);border-radius:999px;transform-origin:left;transition:transform var(--duration) var(--ease)}
+
+  /* ---------- Chart ---------- */
+  .chart-wrap{display:flex;align-items:flex-end;gap:var(--space-4);height:220px;padding:var(--space-4) var(--space-2) 0;border-bottom:2px solid var(--color-border)}
+  .bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;height:100%;gap:var(--space-2)}
+  .bar-val{font-family:var(--font-data);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+  .bar-track{flex:1;min-height:0;width:100%;display:flex;align-items:flex-end;justify-content:center}
+  .bar{width:min(56px,80%);border-radius:6px 6px 0 0;background:var(--color-secondary);transform-origin:bottom;transition:transform var(--duration) var(--ease),background-color var(--duration) var(--ease);cursor:pointer}
+  .bar:hover,.bar:focus-visible{background:var(--color-primary)}
+  .bar.today{background:var(--color-accent)}
+  .bar-label{font-size:13px;font-weight:600;color:var(--color-muted-foreground);padding-bottom:var(--space-2)}
+  .chart-note{margin-top:var(--space-3);font-size:14px;color:var(--color-muted-foreground)}
+  .chart-note strong{color:var(--color-card-foreground)}
+  .legend{display:flex;gap:var(--space-4);flex-wrap:wrap;font-size:13px;color:var(--color-muted-foreground);margin-top:var(--space-2)}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .sw-day{background:var(--color-secondary)} .sw-today{background:var(--color-accent)}
+
+  /* ---------- Two-column: students + notices ---------- */
+  .grid-2{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:var(--space-4);align-items:start}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;min-width:560px;border-collapse:collapse;font-size:15px}
+  caption{text-align:left;font-size:13px;color:var(--color-muted-foreground);padding-bottom:var(--space-2)}
+  th,td{text-align:left;padding:var(--space-3) var(--space-2);border-bottom:1px solid var(--color-border);white-space:nowrap}
+  th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted-foreground)}
+  th button{all:unset;cursor:pointer;font:inherit;color:inherit;display:inline-flex;align-items:center;gap:4px;min-height:24px}
+  th button:hover{color:var(--color-primary);text-decoration:underline}
+  td.num,th.num{font-family:var(--font-data);font-variant-numeric:tabular-nums;text-align:right}
+  .student-cell{display:flex;align-items:center;gap:var(--space-3);min-width:0}
+  .initials{flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:var(--color-on-primary);display:grid;place-items:center;font-size:13px;font-weight:700}
+  .student-cell .name{font-weight:600;white-space:normal}
+  tbody tr{transition:background-color var(--duration) var(--ease)}
+  tbody tr:hover{background:var(--color-background)}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+  .pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+  .pill-good{background:var(--color-success-bg);color:var(--color-success)}
+  .pill-watch{background:var(--color-warn-bg);color:var(--color-warn)}
+  .empty{padding:var(--space-5);text-align:center;color:var(--color-muted-foreground)}
+
+  .notices{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--space-3)}
+  .notices li{display:flex;gap:var(--space-3);padding:var(--space-3);border:1px solid var(--color-border);border-left:4px solid var(--color-accent);border-radius:var(--radius-sm);background:var(--color-background)}
+  .notices li:nth-child(2){border-left-color:var(--color-secondary)}
+  .notices li:nth-child(3){border-left-color:var(--color-primary)}
+  .notice-icon{flex:0 0 36px;width:36px;height:36px;border-radius:var(--radius-sm);background:var(--color-card);border:1px solid var(--color-border);display:grid;place-items:center;color:var(--color-primary)}
+  .notices strong{display:block;font-size:15px}
+  .notices span{font-size:13px;color:var(--color-muted-foreground)}
+
+  footer{border-top:1px solid var(--color-border);padding:var(--space-4);text-align:center;font-size:13px;color:var(--color-muted-foreground);background:var(--color-card)}
+
+  /* ---------- Responsive (mobile-first breakpoints per skill: 390 / 768 / 1024) ---------- */
+  @media (max-width:1023px){
+    .sidebar{display:none}
+    .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--color-card);border-top:1px solid var(--color-border);padding-bottom:env(safe-area-inset-bottom)}
+    .bottom-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px;justify-content:center;padding:6px 2px;color:var(--color-muted-foreground);text-decoration:none;font-size:11px;font-weight:600}
+    .bottom-nav a[aria-current="page"]{color:var(--color-primary)}
+    .bottom-nav a .nav-badge{position:absolute;top:4px;margin-left:18px;min-width:16px;height:16px;font-size:10px}
+    .content{padding-bottom:calc(var(--space-6) + 64px)}
+    .grid-2{grid-template-columns:minmax(0,1fr)}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:640px){
+    .topbar{flex-wrap:wrap;gap:var(--space-2)}
+    .topbar h1{font-size:18px}
+    .search{order:3;flex-basis:100%;max-width:none}
+    .page-intro h2{font-size:20px}
+    .stat-value{font-size:26px}
+    .chart-wrap{gap:var(--space-2)}
+    .bar-val{font-size:12px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="shell">
+  <nav class="sidebar" aria-label="Primary">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span><span class="brand-name">Greenwood High</span><br><span class="brand-sub">Student Management · 2025–26</span></span>
+    </div>
+    <span class="nav-label" id="nav-label">Menu</span>
+    <a class="nav-link" href="#overview" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Dashboard</a>
+    <a class="nav-link" href="#students"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15.2c2.6.3 4.7 1.9 5.5 4.8"/></svg>Students</a>
+    <a class="nav-link" href="#attendance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Attendance</a>
+    <a class="nav-link" href="#notices"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>Notices <span class="badge" style="position:static;margin-left:auto" aria-hidden="true">3</span></a>
+    <a class="nav-link" href="#students"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Timetable</a>
+    <p class="sidebar-foot">Class 8-A · 12 students<br>Academic year 2025–26</p>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Greenwood High</h1>
+        <p class="crumb">Class 8-A · Dashboard</p>
+      </div>
+      <label class="search" for="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="visually-hidden">Search students</span>
+        <input id="search" type="search" placeholder="Search students by name or roll…" autocomplete="off">
+      </label>
+      <button class="icon-btn" type="button" id="bell" aria-label="Notifications, 3 unread" aria-describedby="bell-count">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+        <span class="badge" id="bell-count" aria-hidden="true">3</span>
+      </button>
+      <button class="avatar" type="button" aria-label="Account: Class teacher, Class 8-A">KT</button>
+    </header>
+
+    <main class="content" id="main" tabindex="-1">
+      <section class="page-intro" id="overview" aria-labelledby="page-title">
+        <div>
+          <h2 id="page-title">Good morning, Class 8-A</h2>
+          <p>Here is how Greenwood High is doing today — attendance, marks and notices at a glance.</p>
+        </div>
+        <span class="term">Academic year 2025–26</span>
+      </section>
+
+      <section aria-labelledby="stats-title">
+        <h2 id="stats-title" class="visually-hidden">Key statistics</h2>
+        <div class="stats">
+          <article class="card stat">
+            <div class="stat-top"><span class="stat-label">Students</span><span class="stat-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15.2c2.6.3 4.7 1.9 5.5 4.8"/></svg></span></div>
+            <span class="stat-value">1,248</span>
+            <span class="stat-sub"><strong>▲ 12</strong> new admissions this term</span>
+          </article>
+          <article class="card stat">
+            <div class="stat-top"><span class="stat-label">Teachers</span><span class="stat-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12.5V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5"/></svg></span></div>
+            <span class="stat-value">72</span>
+            <span class="stat-sub">Across all classes &amp; subjects</span>
+          </article>
+          <article class="card stat">
+            <div class="stat-top"><span class="stat-label">Attendance today</span><span class="stat-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+            <span class="stat-value">95.2%</span>
+            <span class="stat-sub"><strong>1,188 present</strong> · 60 absent</span>
+            <div class="progress" role="img" aria-label="Attendance today: 95.2 percent"><span style="transform:scaleX(.952)"></span></div>
+          </article>
+          <article class="card stat">
+            <div class="stat-top"><span class="stat-label">Fees collected</span><span class="stat-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg></span></div>
+            <span class="stat-value">84%</span>
+            <span class="stat-sub">₹25.2L of ₹30L collected</span>
+            <div class="progress" role="img" aria-label="Fees collected: 84 percent of 30 lakh rupees"><span style="transform:scaleX(.84);background:var(--color-accent)"></span></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="attendance" aria-labelledby="trend-title">
+        <div class="section-head"><h2 id="trend-title">Attendance trend</h2><p>Mon–Fri this week · % of students present</p></div>
+        <div class="card">
+          <div class="chart-wrap" role="img" aria-label="Attendance trend, Monday to Friday: 94, 96, 93, 97 and 95 percent. Highest on Thursday at 97 percent.">
+            <div class="bar-col"><span class="bar-val">94%</span><div class="bar-track"><div class="bar" style="height:94%" tabindex="0" role="img" aria-label="Monday: 94 percent"></div></div><span class="bar-label">Mon</span></div>
+            <div class="bar-col"><span class="bar-val">96%</span><div class="bar-track"><div class="bar" style="height:96%" tabindex="0" role="img" aria-label="Tuesday: 96 percent"></div></div><span class="bar-label">Tue</span></div>
+            <div class="bar-col"><span class="bar-val">93%</span><div class="bar-track"><div class="bar" style="height:93%" tabindex="0" role="img" aria-label="Wednesday: 93 percent"></div></div><span class="bar-label">Wed</span></div>
+            <div class="bar-col"><span class="bar-val">97%</span><div class="bar-track"><div class="bar" style="height:97%" tabindex="0" role="img" aria-label="Thursday: 97 percent, highest this week"></div></div><span class="bar-label">Thu</span></div>
+            <div class="bar-col"><span class="bar-val">95%</span><div class="bar-track"><div class="bar today" style="height:95%" tabindex="0" role="img" aria-label="Friday, today: 95 percent"></div></div><span class="bar-label">Fri</span></div>
+          </div>
+          <p class="legend"><span><i class="sw-day"></i>Mon–Thu</span><span><i class="sw-today"></i>Today (Fri)</span></p>
+          <p class="chart-note"><strong>Highest: Thursday, 97%.</strong> Weekly average 95.0% — steady across the week, no day below 93%.</p>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <section id="students" aria-labelledby="students-title">
+          <div class="section-head"><h2 id="students-title">Class 8-A students</h2><p id="result-count">12 students</p></div>
+          <div class="card" style="padding:0">
+            <div class="table-scroll">
+              <table id="student-table">
+                <caption>Attendance and marks for all 12 students in Class 8-A. Select a column heading to sort.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" aria-sort="none"><button type="button" data-sort="name">Student <span aria-hidden="true">↕</span></button></th>
+                    <th scope="col">Roll</th>
+                    <th scope="col" class="num" aria-sort="none"><button type="button" data-sort="att">Attendance <span aria-hidden="true">↕</span></button></th>
+                    <th scope="col" class="num" aria-sort="none"><button type="button" data-sort="marks">Marks <span aria-hidden="true">↕</span></button></th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="student-body"></tbody>
+              </table>
+              <p class="empty" id="empty-state" hidden>No students match your search. Try a different name or roll number.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="notices" aria-labelledby="notices-title">
+          <div class="section-head"><h2 id="notices-title">Notices</h2><p>3 unread</p></div>
+          <div class="card">
+            <ul class="notices">
+              <li>
+                <span class="notice-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.7 1 1.5 1 2.5h6c0-1 .2-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg></span>
+                <div><strong>Science fair on Friday</strong><span>Projects due by Thursday · Hall A</span></div>
+              </li>
+              <li>
+                <span class="notice-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+                <div><strong>Fee deadline 20 Nov</strong><span>16% of fees still pending</span></div>
+              </li>
+              <li>
+                <span class="notice-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15.2c2.6.3 4.7 1.9 5.5 4.8"/></svg></span>
+                <div><strong>Parent-teacher meet 25 Nov</strong><span>Slots open 9:00 AM – 1:00 PM</span></div>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Primary mobile">
+  <a href="#overview" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+  <a href="#students"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15.2c2.6.3 4.7 1.9 5.5 4.8"/></svg>Students</a>
+  <a href="#attendance"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Trend</a>
+  <a href="#notices" style="position:relative"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>Notices<span class="badge nav-badge" aria-hidden="true">3</span><span class="visually-hidden">, 3 unread</span></a>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+  var students=[
+    {name:"Aarav Sharma",roll:"8A-01",att:96,marks:88},
+    {name:"Diya Patel",roll:"8A-02",att:94,marks:91},
+    {name:"Kabir Singh",roll:"8A-03",att:89,marks:76},
+    {name:"Ananya Gupta",roll:"8A-04",att:98,marks:93},
+    {name:"Rohan Mehta",roll:"8A-05",att:92,marks:82},
+    {name:"Ishita Verma",roll:"8A-06",att:97,marks:89},
+    {name:"Arjun Nair",roll:"8A-07",att:90,marks:79},
+    {name:"Sneha Reddy",roll:"8A-08",att:95,marks:86},
+    {name:"Vikram Joshi",roll:"8A-09",att:88,marks:74},
+    {name:"Priya Das",roll:"8A-10",att:99,marks:95},
+    {name:"Aditya Rao",roll:"8A-11",att:93,marks:84},
+    {name:"Kavya Iyer",roll:"8A-12",att:96,marks:90}
+  ];
+  var body=document.getElementById("student-body"),
+      count=document.getElementById("result-count"),
+      empty=document.getElementById("empty-state"),
+      search=document.getElementById("search"),
+      sortKey=null, sortDir=1;
+  function initials(n){return n.split(" ").map(function(w){return w[0]}).join("").slice(0,2).toUpperCase()}
+  function status(att){return att>=95
+    ? '<span class="pill pill-good">Excellent</span>'
+    : att>=90 ? '<span class="pill pill-good">Good</span>'
+    : '<span class="pill pill-watch">Needs attention</span>'}
+  function render(){
+    var q=(search.value||"").trim().toLowerCase();
+    var rows=students.filter(function(s){return !q || s.name.toLowerCase().indexOf(q)>-1 || s.roll.toLowerCase().indexOf(q)>-1});
+    if(sortKey){rows=rows.slice().sort(function(a,b){
+      var d = sortKey==="name" ? a.name.localeCompare(b.name) : a[sortKey]-b[sortKey];
+      return d*sortDir;});}
+    body.innerHTML=rows.map(function(s){
+      return '<tr><td><span class="student-cell"><span class="initials" aria-hidden="true">'+initials(s.name)+'</span><span class="name">'+s.name+'</span></span></td>'
+        +'<td>'+s.roll+'</td><td class="num">'+s.att+'%</td><td class="num">'+s.marks+'%</td><td>'+status(s.att)+'</td></tr>';
+    }).join("");
+    empty.hidden=rows.length>0;
+    count.textContent=rows.length+(rows.length===1?" student":" students")+(q?' matching "'+search.value.trim()+'"':"");
+  }
+  document.querySelectorAll("th button[data-sort]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var key=btn.getAttribute("data-sort");
+      if(sortKey===key){sortDir*=-1}else{sortKey=key;sortDir=key==="name"?1:-1;}
+      document.querySelectorAll("th[aria-sort]").forEach(function(th){th.setAttribute("aria-sort", th.contains(btn) ? (sortDir===1?"ascending":"descending") : "none");});
+      render();
+    });
+  });
+  var t; search.addEventListener("input",function(){clearTimeout(t); t=setTimeout(render,120);});
+  document.getElementById("bell").addEventListener("click",function(){
+    document.getElementById("notices").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  });
+  // Keep one active nav item in sync (sidebar + bottom nav share anchors)
+  var links=document.querySelectorAll(".nav-link, .bottom-nav a");
+  links.forEach(function(a){a.addEventListener("click",function(){
+    links.forEach(function(x){x.removeAttribute("aria-current")});
+    document.querySelectorAll('a[href="'+a.getAttribute("href")+'"]').forEach(function(x){x.setAttribute("aria-current","page")});
+  });});
+  render();
+})();
+</script>
+</body>
+</html>

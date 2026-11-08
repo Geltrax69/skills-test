@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+/*
+ * shadcn/ui adaptation note (see SKILLS_ACTUALLY_READ.md):
+ * shadcn/ui is a React + Tailwind component system (components added as
+ * source via `npx shadcn@latest add`). There is no React build step here,
+ * so this file is a faithful hand-rendering of the shadcn component
+ * anatomy in plain HTML/CSS, following the skill's principles:
+ *  - Semantic tokens only: --background/--foreground/--primary/--secondary/
+ *    --muted/--accent/--border/--input/--ring (default "new-york" light
+ *    theme values from shadcn's default preset). No raw color utilities.
+ *  - Compose, don't reinvent: Sidebar + Card + Table + Badge + Avatar +
+ *    Input + Button + Separator + Alert + Progress, per the skill's
+ *    Component Selection table ("Dashboard = Sidebar + Card + Chart +
+ *    Table").
+ *  - Full Card composition: CardHeader / CardTitle / CardDescription /
+ *    CardContent / CardFooter — never everything dumped in CardContent.
+ *  - Variants before custom styles: Button variants (default / outline /
+ *    secondary / ghost), Badge variants (default / secondary / outline /
+ *    destructive), size-sm where appropriate.
+ *  - Spacing with gap-*, never space-x-*/space-y-*; equal dimensions via
+ *    a single size token; `truncate` for long text; Separator instead of
+ *    <hr>; Badge instead of custom styled spans; Avatar always with a
+ *    fallback (initials here, since no external images are allowed).
+ *  - Radius scale pinned to shadcn's default --radius: 0.625rem.
+ *  - Buttons carry data-icon on their inline icons (lucide-style inline
+ *    SVG, drawn locally — no icon font, no external assets).
+ */
+:root{
+  /* shadcn default light theme tokens (oklch values converted to hex) */
+  --background:#ffffff;
+  --foreground:#0a0a0a;
+  --card:#ffffff;
+  --card-foreground:#0a0a0a;
+  --popover:#ffffff;
+  --popover-foreground:#0a0a0a;
+  --primary:#18181b;
+  --primary-foreground:#fafafa;
+  --secondary:#f4f4f5;
+  --secondary-foreground:#18181b;
+  --muted:#f4f4f5;
+  --muted-foreground:#71717a;
+  --accent:#f4f4f5;
+  --accent-foreground:#18181b;
+  --destructive:#dc2626;
+  --destructive-foreground:#fafafa;
+  --border:#e4e4e7;
+  --input:#e4e4e7;
+  --ring:#71717a;
+  --radius:0.625rem;
+  --sidebar:#fafafa;
+  --sidebar-foreground:#3f3f46;
+  --sidebar-border:#e4e4e7;
+  --chart-1:#18181b;
+  --chart-2:#a1a1aa;
+  --chart-3:#d4d4d8;
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-sans);
+  background:var(--background);
+  color:var(--foreground);
+  font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+svg{display:block;flex:none}
+
+/* ---------- App shell: Sidebar + main (shadcn Sidebar pattern) ---------- */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:16rem;flex:none;
+  background:var(--sidebar);color:var(--sidebar-foreground);
+  border-right:1px solid var(--sidebar-border);
+  display:flex;flex-direction:column;gap:0.25rem;
+  position:sticky;top:0;height:100vh;
+  padding:0.75rem;
+}
+.sidebar-header{display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.5rem 0.75rem}
+.sidebar-logo{
+  width:2rem;height:2rem;border-radius:calc(var(--radius) - 2px);
+  background:var(--primary);color:var(--primary-foreground);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:0.875rem;letter-spacing:-0.02em;
+}
+.sidebar-title{font-weight:600;font-size:0.9375rem;color:var(--foreground);line-height:1.25}
+.sidebar-subtitle{font-size:0.75rem;color:var(--muted-foreground);line-height:1.25}
+.sidebar-group-label{
+  padding:0.5rem 0.5rem 0.25rem;font-size:0.75rem;font-weight:500;
+  color:var(--muted-foreground);
+}
+.sidebar-menu{display:flex;flex-direction:column;gap:0.125rem}
+.sidebar-menu-item{
+  display:flex;align-items:center;gap:0.625rem;
+  padding:0.5rem 0.5rem;border-radius:calc(var(--radius) - 2px);
+  font-size:0.875rem;font-weight:500;color:var(--sidebar-foreground);
+  text-align:left;width:100%;
+}
+.sidebar-menu-item:hover{background:var(--accent);color:var(--accent-foreground)}
+.sidebar-menu-item[data-active="true"]{background:var(--accent);color:var(--foreground);font-weight:600}
+.sidebar-menu-item svg{width:1rem;height:1rem}
+.sidebar-menu-badge{margin-left:auto}
+.sidebar-footer{margin-top:auto;padding-top:0.75rem;border-top:1px solid var(--sidebar-border)}
+.sidebar-user{display:flex;align-items:center;gap:0.625rem;padding:0.25rem 0.5rem}
+.sidebar-user-name{font-size:0.875rem;font-weight:500;color:var(--foreground);line-height:1.25}
+.sidebar-user-role{font-size:0.75rem;color:var(--muted-foreground);line-height:1.25}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* ---------- Header ---------- */
+.header{
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;gap:0.75rem;
+  height:3.5rem;padding:0 1.5rem;
+  background:color-mix(in srgb,var(--background) 80%,transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+}
+.header-menu-btn{display:none}
+.header-title{font-size:1rem;font-weight:600;letter-spacing:-0.01em;white-space:nowrap}
+.header-search{flex:1;display:flex;justify-content:center;min-width:0}
+.header-actions{display:flex;align-items:center;gap:0.5rem;margin-left:auto}
+
+/* ---------- Primitives: Button / Input / Badge / Avatar / Separator ---------- */
+/* Button — shadcn variants: default, secondary, outline, ghost; sizes default/sm/icon */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;
+  height:2.25rem;padding:0 1rem;border-radius:calc(var(--radius) - 2px);
+  font-size:0.875rem;font-weight:500;white-space:nowrap;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease;
+}
+.btn[data-variant="default"]{background:var(--primary);color:var(--primary-foreground)}
+.btn[data-variant="default"]:hover{background:color-mix(in srgb,var(--primary) 90%,#000)}
+.btn[data-variant="secondary"]{background:var(--secondary);color:var(--secondary-foreground)}
+.btn[data-variant="secondary"]:hover{background:color-mix(in srgb,var(--secondary) 80%,#000)}
+.btn[data-variant="outline"]{border:1px solid var(--input);background:var(--background)}
+.btn[data-variant="outline"]:hover{background:var(--accent)}
+.btn[data-variant="ghost"]:hover{background:var(--accent);color:var(--accent-foreground)}
+.btn[data-size="sm"]{height:2rem;padding:0 0.75rem;font-size:0.8125rem}
+.btn[data-size="icon"]{width:2.25rem;height:2.25rem;padding:0}
+.btn[data-icon="inline-start"] svg,.btn svg[data-icon]{width:1rem;height:1rem}
+.btn:focus-visible,.input:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+/* Input — shadcn Input: h-9, rounded-md, border-input, ring on focus */
+.input{
+  height:2.25rem;width:100%;max-width:22rem;
+  padding:0 0.75rem 0 2.25rem;
+  border:1px solid var(--input);border-radius:calc(var(--radius) - 2px);
+  background:var(--background);font-size:0.875rem;
+}
+.input::placeholder{color:var(--muted-foreground)}
+.input-wrap{position:relative;width:100%;max-width:22rem;min-width:0}
+.input-wrap svg{position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);width:1rem;height:1rem;color:var(--muted-foreground);pointer-events:none}
+
+/* Badge — shadcn variants: default, secondary, destructive, outline */
+.badge{
+  display:inline-flex;align-items:center;gap:0.25rem;
+  height:1.375rem;padding:0 0.5rem;border-radius:9999px;
+  font-size:0.75rem;font-weight:600;line-height:1;white-space:nowrap;
+  border:1px solid transparent;
+}
+.badge[data-variant="default"]{background:var(--primary);color:var(--primary-foreground)}
+.badge[data-variant="secondary"]{background:var(--secondary);color:var(--secondary-foreground)}
+.badge[data-variant="destructive"]{background:var(--destructive);color:var(--destructive-foreground)}
+.badge[data-variant="outline"]{border-color:var(--border);color:var(--foreground);background:var(--background)}
+.badge-dot{width:0.375rem;height:0.375rem;border-radius:9999px;background:currentColor}
+
+/* Avatar — always with AvatarFallback (initials) */
+.avatar{
+  width:2rem;height:2rem;border-radius:9999px;flex:none;
+  background:var(--secondary);color:var(--secondary-foreground);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;font-weight:600;
+}
+.avatar-lg{width:2.5rem;height:2.5rem;font-size:0.875rem}
+
+.separator{height:1px;background:var(--border);border:0}
+
+/* ---------- Card — full shadcn composition ---------- */
+.card{
+  background:var(--card);color:var(--card-foreground);
+  border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 1px 2px rgb(0 0 0 / 0.04);
+  display:flex;flex-direction:column;min-width:0;
+}
+.card-header{display:flex;flex-direction:column;gap:0.375rem;padding:1.5rem 1.5rem 0}
+.card-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem}
+.card-title{font-size:1rem;font-weight:600;line-height:1.25;letter-spacing:-0.01em}
+.card-description{font-size:0.875rem;color:var(--muted-foreground);line-height:1.4}
+.card-content{padding:1.5rem}
+.card-content-tight{padding:0 1.5rem 1.5rem}
+.card-footer{display:flex;align-items:center;gap:0.5rem;padding:0 1.5rem 1.5rem;font-size:0.875rem;color:var(--muted-foreground)}
+
+/* ---------- Page content ---------- */
+.content{
+  flex:1;display:flex;flex-direction:column;gap:1.5rem;
+  padding:1.5rem;width:100%;max-width:80rem;margin:0 auto;
+}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.page-head h1{font-size:1.5rem;font-weight:700;letter-spacing:-0.02em;line-height:1.25}
+.page-head p{font-size:0.875rem;color:var(--muted-foreground);margin-top:0.25rem}
+.page-head-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
+
+/* Stat cards */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.stat-card .card-header{padding-bottom:0}
+.stat-top{display:flex;align-items:center;justify-content:space-between;gap:0.5rem}
+.stat-label{font-size:0.875rem;font-weight:500;color:var(--muted-foreground)}
+.stat-icon{
+  width:2rem;height:2rem;border-radius:calc(var(--radius) - 2px);
+  background:var(--secondary);color:var(--secondary-foreground);
+  display:flex;align-items:center;justify-content:center;
+}
+.stat-icon svg{width:1rem;height:1rem}
+.stat-value{font-size:1.875rem;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-top:0.75rem}
+.stat-sub{display:flex;align-items:center;gap:0.5rem;margin-top:0.375rem;font-size:0.8125rem;color:var(--muted-foreground);flex-wrap:wrap}
+.stat-sub .delta{font-weight:600;color:var(--foreground)}
+
+/* Progress — shadcn Progress (indicator fills track) */
+.progress{
+  height:0.5rem;width:100%;border-radius:9999px;
+  background:var(--secondary);overflow:hidden;
+}
+.progress-indicator{height:100%;border-radius:9999px;background:var(--primary);transition:width .3s ease}
+
+/* Chart — shadcn Chart wraps a chart lib; here CSS bars keep the single-file
+   constraint (TASK.md: "CSS bars — no external chart library"). Bars use the
+   chart tokens, not raw colors. */
+.chart{display:flex;align-items:flex-end;gap:1rem;height:11rem;padding:0.5rem 0 0}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.5rem;min-width:0;height:100%}
+.chart-value{font-size:0.8125rem;font-weight:600}
+.chart-track{flex:1;min-height:0;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.chart-bar{width:100%;max-width:3rem;border-radius:calc(var(--radius) - 4px) calc(var(--radius) - 4px) 0 0;background:var(--chart-1)}
+.chart-bar.today{background:var(--chart-1);outline:2px solid var(--chart-2);outline-offset:2px}
+.chart-label{font-size:0.75rem;color:var(--muted-foreground)}
+.chart-foot{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap}
+
+/* Table — shadcn Table: header row muted, row borders, hover accent */
+.table-scroll{overflow-x:auto}
+.table{width:100%;border-collapse:collapse;font-size:0.875rem;min-width:34rem}
+.table caption{text-align:left;padding:0 0 0.75rem;font-size:0.875rem;color:var(--muted-foreground)}
+.table th{
+  text-align:left;font-weight:500;color:var(--muted-foreground);
+  padding:0.625rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.table td{padding:0.75rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+.table tbody tr:last-child td{border-bottom:0}
+.table tbody tr:hover{background:var(--accent)}
+.table tbody tr[data-hidden="true"]{display:none}
+.student-cell{display:flex;align-items:center;gap:0.75rem;min-width:0}
+.student-name{font-weight:500}
+.student-sub{font-size:0.75rem;color:var(--muted-foreground)}
+.num{font-variant-numeric:tabular-nums;font-weight:500}
+.att-cell{display:flex;align-items:center;gap:0.625rem;min-width:8rem}
+.att-cell .progress{flex:1;min-width:4rem}
+
+/* Notices — shadcn Alert composition (icon + title + description) */
+.notices{display:flex;flex-direction:column;gap:0.75rem}
+.alert{
+  display:flex;gap:0.75rem;align-items:flex-start;
+  padding:0.875rem 1rem;border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);
+  background:var(--background);
+}
+.alert-icon{
+  width:1.5rem;height:1.5rem;border-radius:9999px;flex:none;
+  background:var(--secondary);color:var(--secondary-foreground);
+  display:flex;align-items:center;justify-content:center;margin-top:0.125rem;
+}
+.alert-icon svg{width:0.875rem;height:0.875rem}
+.alert-title{font-size:0.875rem;font-weight:600;line-height:1.4}
+.alert-desc{font-size:0.8125rem;color:var(--muted-foreground);line-height:1.4;margin-top:0.125rem}
+.alert-meta{margin-left:auto;flex:none}
+
+/* Bottom grid: table + notices */
+.grid-main{display:grid;grid-template-columns:minmax(0,1fr) 22rem;gap:1rem;align-items:start}
+
+/* Footer */
+.footer{
+  border-top:1px solid var(--border);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;
+  font-size:0.8125rem;color:var(--muted-foreground);
+}
+
+/* Bottom nav (mobile) — shadcn mobile pattern: icon + label tabs */
+.bottom-nav{
+  display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;
+  background:var(--background);border-top:1px solid var(--border);
+  padding:0.375rem 0.5rem calc(0.375rem + env(safe-area-inset-bottom));
+}
+.bottom-nav-inner{display:grid;grid-template-columns:repeat(5,1fr);gap:0.25rem}
+.bottom-nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:0.1875rem;
+  padding:0.375rem 0;font-size:0.6875rem;font-weight:500;color:var(--muted-foreground);
+  border-radius:calc(var(--radius) - 2px);
+}
+.bottom-nav-item svg{width:1.25rem;height:1.25rem}
+.bottom-nav-item[data-active="true"]{color:var(--foreground)}
+
+/* Bell dropdown (simple popover, shadcn Popover pattern) */
+.popover{position:relative}
+.popover-panel{
+  position:absolute;right:0;top:calc(100% + 0.5rem);z-index:30;
+  width:19rem;max-width:calc(100vw - 2rem);
+  background:var(--popover);color:var(--popover-foreground);
+  border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 10px 30px rgb(0 0 0 / 0.12);
+  padding:0.5rem;display:none;
+}
+.popover-panel[data-open="true"]{display:block}
+.popover-panel .alert{border:0;padding:0.625rem 0.5rem}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1023px){
+  .grid-main{grid-template-columns:minmax(0,1fr)}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:767px){
+  .sidebar{display:none}
+  .hide-mobile{display:none}
+  .sidebar[data-open="true"]{
+    display:flex;position:fixed;inset:0 auto 0 0;z-index:40;
+    width:16rem;box-shadow:0 0 40px rgb(0 0 0 / 0.2);
+  }
+  .header{padding:0 1rem}
+  .header-menu-btn{display:inline-flex}
+  .header-title{display:none}
+  .header-search{justify-content:flex-start}
+  .content{padding:1rem 1rem 5.5rem;gap:1rem}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:0.75rem}
+  .stat-value{font-size:1.5rem}
+  .card-header,.card-content{padding-left:1rem;padding-right:1rem}
+  .card-header{padding-top:1rem}
+  .card-content{padding-top:1rem;padding-bottom:1rem}
+  .card-footer{padding-left:1rem;padding-right:1rem;padding-bottom:1rem}
+  .bottom-nav{display:block}
+  .chart{gap:0.5rem}
+}
+@media (max-width:389px){
+  .stats{grid-template-columns:minmax(0,1fr)}
+  .page-head h1{font-size:1.25rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ Sidebar (shadcn Sidebar) ============ -->
+  <aside class="sidebar" id="sidebar" aria-label="Primary">
+    <div class="sidebar-header">
+      <div class="sidebar-logo" aria-hidden="true">GH</div>
+      <div>
+        <div class="sidebar-title">Greenwood High</div>
+        <div class="sidebar-subtitle">Class 8-A · 2025–26</div>
+      </div>
+    </div>
+    <hr class="separator">
+    <div class="sidebar-group-label">Menu</div>
+    <nav class="sidebar-menu" aria-label="Dashboard sections">
+      <button class="sidebar-menu-item" data-active="true" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="sidebar-menu-item" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Students
+        <span class="badge sidebar-menu-badge" data-variant="secondary">12</span>
+      </button>
+      <button class="sidebar-menu-item" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+        Attendance
+      </button>
+      <button class="sidebar-menu-item" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Analytics
+      </button>
+      <button class="sidebar-menu-item" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>
+        Fees
+        <span class="badge sidebar-menu-badge" data-variant="outline">84%</span>
+      </button>
+      <button class="sidebar-menu-item" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Notices
+        <span class="badge sidebar-menu-badge" data-variant="destructive">3</span>
+      </button>
+    </nav>
+    <div class="sidebar-group-label">Settings</div>
+    <nav class="sidebar-menu" aria-label="Settings">
+      <button class="sidebar-menu-item" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar avatar-lg" aria-hidden="true">AT</div>
+        <div>
+          <div class="sidebar-user-name">Anita Thomas</div>
+          <div class="sidebar-user-role">Class Teacher · 8-A</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Main ============ -->
+  <div class="main">
+    <header class="header">
+      <button class="btn header-menu-btn" data-variant="ghost" data-size="icon" type="button" id="menuBtn" aria-label="Open navigation" aria-expanded="false">
+        <svg data-icon="inline-start" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+      </button>
+      <span class="header-title">Dashboard</span>
+      <div class="header-search">
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="input" id="searchInput" type="search" placeholder="Search students…" aria-label="Search students">
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="popover">
+          <button class="btn" data-variant="ghost" data-size="icon" type="button" id="bellBtn" aria-label="Notifications, 3 unread" aria-expanded="false" style="position:relative">
+            <svg data-icon="inline-start" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span class="badge" data-variant="destructive" style="position:absolute;top:0.125rem;right:0.125rem;height:1rem;min-width:1rem;padding:0 0.25rem;font-size:0.625rem;justify-content:center">3</span>
+          </button>
+          <div class="popover-panel" id="bellPanel" role="dialog" aria-label="Notifications">
+            <div class="alert">
+              <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/></svg></div>
+              <div><div class="alert-title">Science fair on Friday</div><div class="alert-desc">Final projects due Thursday.</div></div>
+            </div>
+            <div class="alert">
+              <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+              <div><div class="alert-title">Fee deadline 20 Nov</div><div class="alert-desc">16% of fees still pending.</div></div>
+            </div>
+            <div class="alert">
+              <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+              <div><div class="alert-title">Parent-teacher meet 25 Nov</div><div class="alert-desc">Slots open from 9:00 AM.</div></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn hide-mobile" data-variant="outline" data-size="sm" type="button">
+          <svg data-icon="inline-start" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Add Student
+        </button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="page-head">
+        <div>
+          <h1>Class 8-A Overview</h1>
+          <p>Greenwood High · Academic year 2025–26 · 12 students</p>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn" data-variant="outline" data-size="sm" type="button">This week</button>
+          <button class="btn" data-variant="default" data-size="sm" type="button">Download report</button>
+        </div>
+      </div>
+
+      <!-- ============ Stat cards (shadcn Card) ============ -->
+      <section class="stats" aria-label="Key statistics">
+        <article class="card stat-card">
+          <div class="card-header">
+            <div class="stat-top">
+              <span class="stat-label">Students</span>
+              <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            </div>
+            <div class="stat-value">1,248</div>
+            <div class="stat-sub"><span class="badge" data-variant="secondary">+12 this term</span><span>72 teachers</span></div>
+          </div>
+          <div class="card-content" style="padding-top:1rem"></div>
+        </article>
+
+        <article class="card stat-card">
+          <div class="card-header">
+            <div class="stat-top">
+              <span class="stat-label">Teachers</span>
+              <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></span>
+            </div>
+            <div class="stat-value">72</div>
+            <div class="stat-sub"><span class="delta">1 : 17</span><span>teacher–student ratio</span></div>
+          </div>
+          <div class="card-content" style="padding-top:1rem"></div>
+        </article>
+
+        <article class="card stat-card">
+          <div class="card-header">
+            <div class="stat-top">
+              <span class="stat-label">Attendance today</span>
+              <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></span>
+            </div>
+            <div class="stat-value">95.2%</div>
+            <div class="stat-sub"><span>1,188 present · 60 absent</span></div>
+          </div>
+          <div class="card-content" style="padding-top:1rem">
+            <div class="progress" role="progressbar" aria-valuenow="95.2" aria-valuemin="0" aria-valuemax="100" aria-label="Attendance today"><div class="progress-indicator" style="width:95.2%"></div></div>
+          </div>
+        </article>
+
+        <article class="card stat-card">
+          <div class="card-header">
+            <div class="stat-top">
+              <span class="stat-label">Fees collected</span>
+              <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg></span>
+            </div>
+            <div class="stat-value">84%</div>
+            <div class="stat-sub"><span>₹25.2L of ₹30L</span></div>
+          </div>
+          <div class="card-content" style="padding-top:1rem">
+            <div class="progress" role="progressbar" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100" aria-label="Fees collected"><div class="progress-indicator" style="width:84%"></div></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ============ Attendance trend (shadcn Chart → CSS bars) ============ -->
+      <section class="card" aria-label="Attendance trend">
+        <div class="card-header">
+          <div class="card-header-row">
+            <div>
+              <h2 class="card-title">Attendance trend</h2>
+              <p class="card-description">Daily attendance for Class 8-A, this week</p>
+            </div>
+            <span class="badge" data-variant="secondary">Avg 95%</span>
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="chart" role="img" aria-label="Attendance: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95">
+            <div class="chart-col"><span class="chart-value">94%</span><div class="chart-track"><div class="chart-bar" style="height:78%"></div></div><span class="chart-label">Mon</span></div>
+            <div class="chart-col"><span class="chart-value">96%</span><div class="chart-track"><div class="chart-bar" style="height:86%"></div></div><span class="chart-label">Tue</span></div>
+            <div class="chart-col"><span class="chart-value">93%</span><div class="chart-track"><div class="chart-bar" style="height:74%"></div></div><span class="chart-label">Wed</span></div>
+            <div class="chart-col"><span class="chart-value">97%</span><div class="chart-track"><div class="chart-bar" style="height:90%"></div></div><span class="chart-label">Thu</span></div>
+            <div class="chart-col"><span class="chart-value">95%</span><div class="chart-track"><div class="chart-bar today" style="height:82%"></div></div><span class="chart-label">Fri</span></div>
+          </div>
+        </div>
+        <hr class="separator">
+        <div class="card-footer" style="padding-top:1rem">
+          <span class="chart-foot" style="width:100%">
+            <span>Best day: <strong style="color:var(--foreground)">Thursday · 97%</strong></span>
+            <span>Lowest: Wednesday · 93%</span>
+          </span>
+        </div>
+      </section>
+
+      <!-- ============ Students table + Notices ============ -->
+      <div class="grid-main">
+        <section class="card" aria-label="Class 8-A students">
+          <div class="card-header">
+            <div class="card-header-row">
+              <div>
+                <h2 class="card-title">Class 8-A students</h2>
+                <p class="card-description">12 students · attendance and marks this term</p>
+              </div>
+              <button class="btn" data-variant="outline" data-size="sm" type="button">View all</button>
+            </div>
+          </div>
+          <div class="card-content card-content-tight">
+            <div class="table-scroll">
+              <table class="table" id="studentTable">
+                <caption id="tableCaption">Showing 12 of 12 students</caption>
+                <thead>
+                  <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">AS</div><div><div class="student-name">Aarav Sharma</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-01</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:96%"></div></div><span class="num">96%</span></div></td><td class="num">88%</td><td><span class="badge" data-variant="default">Excellent</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">DP</div><div><div class="student-name">Diya Patel</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-02</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="94" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:94%"></div></div><span class="num">94%</span></div></td><td class="num">91%</td><td><span class="badge" data-variant="default">Excellent</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">KS</div><div><div class="student-name">Kabir Singh</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-03</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="89" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:89%"></div></div><span class="num">89%</span></div></td><td class="num">76%</td><td><span class="badge" data-variant="secondary">Good</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">AG</div><div><div class="student-name">Ananya Gupta</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-04</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:98%"></div></div><span class="num">98%</span></div></td><td class="num">93%</td><td><span class="badge" data-variant="default">Excellent</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">RM</div><div><div class="student-name">Rohan Mehta</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-05</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:92%"></div></div><span class="num">92%</span></div></td><td class="num">82%</td><td><span class="badge" data-variant="secondary">Good</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">IV</div><div><div class="student-name">Ishita Verma</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-06</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="97" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:97%"></div></div><span class="num">97%</span></div></td><td class="num">89%</td><td><span class="badge" data-variant="default">Excellent</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">AN</div><div><div class="student-name">Arjun Nair</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-07</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:90%"></div></div><span class="num">90%</span></div></td><td class="num">79%</td><td><span class="badge" data-variant="secondary">Good</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">SR</div><div><div class="student-name">Sneha Reddy</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-08</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:95%"></div></div><span class="num">95%</span></div></td><td class="num">86%</td><td><span class="badge" data-variant="default">Excellent</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">VJ</div><div><div class="student-name">Vikram Joshi</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-09</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:88%"></div></div><span class="num">88%</span></div></td><td class="num">74%</td><td><span class="badge" data-variant="outline">Watch</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">PD</div><div><div class="student-name">Priya Das</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-10</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="99" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:99%"></div></div><span class="num">99%</span></div></td><td class="num">95%</td><td><span class="badge" data-variant="default">Excellent</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">AR</div><div><div class="student-name">Aditya Rao</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-11</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="93" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:93%"></div></div><span class="num">93%</span></div></td><td class="num">84%</td><td><span class="badge" data-variant="secondary">Good</span></td></tr>
+                  <tr><td><div class="student-cell"><div class="avatar" aria-hidden="true">KI</div><div><div class="student-name">Kavya Iyer</div><div class="student-sub">Class 8-A</div></div></div></td><td class="num">8A-12</td><td><div class="att-cell"><div class="progress" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100"><div class="progress-indicator" style="width:96%"></div></div><span class="num">96%</span></div></td><td class="num">90%</td><td><span class="badge" data-variant="default">Excellent</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p id="noResults" style="display:none;padding:1rem 0 0.5rem;font-size:0.875rem;color:var(--muted-foreground)">No students match your search.</p>
+          </div>
+        </section>
+
+        <section class="card" aria-label="Notices">
+          <div class="card-header">
+            <div class="card-header-row">
+              <div>
+                <h2 class="card-title">Notices</h2>
+                <p class="card-description">Latest announcements</p>
+              </div>
+              <span class="badge" data-variant="destructive">3 new</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="notices">
+              <div class="alert">
+                <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg></div>
+                <div><div class="alert-title">Science fair on Friday</div><div class="alert-desc">Final projects due Thursday. Hall setup starts at 8:00 AM.</div></div>
+                <span class="badge alert-meta" data-variant="outline">Fri</span>
+              </div>
+              <div class="alert">
+                <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                <div><div class="alert-title">Fee deadline 20 Nov</div><div class="alert-desc">Term fees for 2025–26 are due by 20 November.</div></div>
+                <span class="badge alert-meta" data-variant="outline">20 Nov</span>
+              </div>
+              <div class="alert">
+                <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <div><div class="alert-title">Parent-teacher meet 25 Nov</div><div class="alert-desc">Meetings run 9:00 AM – 1:00 PM. Book a slot with the class teacher.</div></div>
+                <span class="badge alert-meta" data-variant="outline">25 Nov</span>
+              </div>
+            </div>
+          </div>
+          <hr class="separator">
+          <div class="card-footer" style="padding-top:1rem">
+            <button class="btn" data-variant="ghost" data-size="sm" type="button" style="margin-left:-0.75rem">View all notices →</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <span>Fictional demo data — UI Forge Experiment 1</span>
+      <span>Greenwood High · Class 8-A · 2025–26</span>
+    </footer>
+  </div>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav" aria-label="Mobile">
+  <div class="bottom-nav-inner">
+    <button class="bottom-nav-item" data-active="true" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Home</button>
+    <button class="bottom-nav-item" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students</button>
+    <button class="bottom-nav-item" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>Attend.</button>
+    <button class="bottom-nav-item" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>Analytics</button>
+    <button class="bottom-nav-item" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Notices</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  // Mobile sidebar toggle (shadcn Sheet-style drawer, CSS-only positioning)
+  var menuBtn=document.getElementById('menuBtn');
+  var sidebar=document.getElementById('sidebar');
+  menuBtn.addEventListener('click',function(){
+    var open=sidebar.getAttribute('data-open')==='true';
+    sidebar.setAttribute('data-open',String(!open));
+    menuBtn.setAttribute('aria-expanded',String(!open));
+  });
+
+  // Bell popover toggle
+  var bellBtn=document.getElementById('bellBtn');
+  var bellPanel=document.getElementById('bellPanel');
+  bellBtn.addEventListener('click',function(e){
+    e.stopPropagation();
+    var open=bellPanel.getAttribute('data-open')==='true';
+    bellPanel.setAttribute('data-open',String(!open));
+    bellBtn.setAttribute('aria-expanded',String(!open));
+  });
+  document.addEventListener('click',function(e){
+    if(!bellPanel.contains(e.target)){bellPanel.setAttribute('data-open','false');bellBtn.setAttribute('aria-expanded','false');}
+  });
+
+  // Live search filters the student table (shadcn Input + Table composition)
+  var search=document.getElementById('searchInput');
+  var rows=Array.prototype.slice.call(document.querySelectorAll('#studentTable tbody tr'));
+  var caption=document.getElementById('tableCaption');
+  var noResults=document.getElementById('noResults');
+  search.addEventListener('input',function(){
+    var q=search.value.trim().toLowerCase();
+    var shown=0;
+    rows.forEach(function(row){
+      var match=!q||row.textContent.toLowerCase().indexOf(q)>-1;
+      row.setAttribute('data-hidden',String(!match));
+      if(match)shown++;
+    });
+    caption.textContent='Showing '+shown+' of 12 students';
+    noResults.style.display=shown===0?'block':'none';
+  });
+
+  // Nav active state (sidebar + bottom nav)
+  document.querySelectorAll('.sidebar-menu-item,.bottom-nav-item').forEach(function(item){
+    item.addEventListener('click',function(){
+      document.querySelectorAll('.sidebar-menu-item').forEach(function(i){i.setAttribute('data-active','false');});
+      document.querySelectorAll('.bottom-nav-item').forEach(function(i){i.setAttribute('data-active','false');});
+      item.setAttribute('data-active','true');
+      if(window.innerWidth<768){sidebar.setAttribute('data-open','false');menuBtn.setAttribute('aria-expanded','false');}
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwood High — Class 8-A Dashboard</title>
+<style>
+  /* Impeccable, Operate mode, code-led. Restrained colour strategy.
+     World: the school register — ink on paper, one working accent.
+     One system sans family, fixed rem scale, tabular numerals for data. */
+  :root{
+    --paper:#edf0f3;          /* page ground, cool neutral tinted from ink */
+    --surface:#ffffff;
+    --surface-2:#f6f8fa;      /* second neutral layer for sidebar/panels */
+    --ink:#17233b;
+    --ink-2:#3d4a63;          /* secondary text tinted from ink, never grey */
+    --ink-3:#66738c;
+    --line:#d8dee7;
+    --line-soft:#e6eaef;
+    --accent:#0f766e;         /* teal — primary actions, current selection */
+    --accent-ink:#0b5d57;
+    --accent-soft:#e2f2f0;
+    --good:#15803d;
+    --good-soft:#e3f2e8;
+    --warn:#b45309;
+    --warn-soft:#fdf0dc;
+    --low:#b91c1c;
+    --low-soft:#fbe7e7;
+    --focus:#0f766e;
+    --radius:12px;
+    --shadow:0 1px 2px rgba(23,35,59,.07), 0 8px 24px rgba(23,35,59,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:1rem;line-height:1.5;color:var(--ink);background:var(--paper);
+    font-variant-numeric:tabular-nums;
+  }
+  ::selection{background:var(--accent);color:#fff}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+  input{caret-color:var(--accent)}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#b9c3d0;border-radius:6px;border:2px solid var(--paper)}
+  ::-webkit-scrollbar-track{background:transparent}
+  a{color:var(--accent-ink)}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  svg{display:block}
+
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+
+  /* ---------- Sidebar (second neutral layer) ---------- */
+  .sidebar{background:var(--surface-2);border-right:1px solid var(--line);
+    padding:20px 14px;display:flex;flex-direction:column;gap:4px;
+    position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .brand-mark{width:38px;height:38px;flex:0 0 38px;border-radius:10px;background:var(--ink);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:1.05rem;letter-spacing:-.02em}
+  .brand-name{font-weight:700;font-size:1rem;line-height:1.2;letter-spacing:-.01em}
+  .brand-sub{font-size:.78rem;color:var(--ink-3);line-height:1.3}
+  .nav-label{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-3);padding:10px 10px 6px}
+  .nav-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+    padding:9px 10px;border-radius:9px;font-size:.94rem;color:var(--ink-2);text-decoration:none;
+    transition:background-color 180ms ease,color 180ms ease}
+  .nav-item svg{width:18px;height:18px;flex:0 0 18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .nav-item:hover{background:#e9edf1;color:var(--ink)}
+  .nav-item.active{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+  .nav-count{margin-left:auto;font-size:.75rem;font-weight:600;background:#e9edf1;color:var(--ink-2);
+    border-radius:999px;padding:1px 7px}
+  .nav-item.active .nav-count{background:#cbe6e2;color:var(--accent-ink)}
+  .side-foot{margin-top:auto;padding:12px 10px 2px;border-top:1px solid var(--line);
+    font-size:.8rem;color:var(--ink-3);line-height:1.45}
+  .side-foot strong{color:var(--ink-2);font-weight:600}
+
+  /* ---------- Header ---------- */
+  .main{min-width:0;display:flex;flex-direction:column}
+  header.topbar{position:sticky;top:0;z-index:20;background:rgba(237,240,243,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:16px;padding:12px 28px}
+  .page-id h1{font-size:1.25rem;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+  .page-id p{font-size:.85rem;color:var(--ink-3)}
+  .search{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--surface);
+    border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 13px;min-width:230px}
+  .search svg{width:16px;height:16px;flex:0 0 16px;stroke:var(--ink-3);fill:none;stroke-width:2;stroke-linecap:round}
+  .search input{border:0;outline:0;background:transparent;font:inherit;font-size:.92rem;color:var(--ink);width:100%;min-width:0}
+  .search input::placeholder{color:var(--ink-3)}
+  .search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .search kbd{font:600 .72rem/1 inherit;color:var(--ink-3);background:var(--surface-2);
+    border:1px solid var(--line);border-radius:5px;padding:3px 6px;white-space:nowrap}
+  .bell{position:relative;width:38px;height:38px;flex:0 0 38px;border-radius:50%;
+    background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;
+    transition:background-color 180ms ease,border-color 180ms ease}
+  .bell:hover{background:var(--surface-2);border-color:#c4cdd9}
+  .bell svg{width:18px;height:18px;stroke:var(--ink-2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .bell-badge{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;border-radius:999px;
+    background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;
+    padding:0 4px;border:2px solid var(--paper)}
+  .avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:var(--ink);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:.85rem;letter-spacing:.02em}
+
+  /* ---------- Content ---------- */
+  .content{padding:24px 28px 8px;display:flex;flex-direction:column;gap:20px;max-width:1180px;width:100%;margin:0 auto}
+  .section-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .section-head h2{font-size:1.12rem;font-weight:700;letter-spacing:-.015em}
+  .section-head p{font-size:.88rem;color:var(--ink-3)}
+  .section-head .spacer{flex:1}
+  .link-btn{font-size:.88rem;font-weight:600;color:var(--accent-ink);text-decoration:none;padding:4px 2px}
+  .link-btn:hover{text-decoration:underline;text-underline-offset:3px}
+
+  /* Stat band: one ruled strip, not four identical cards.
+     Each stat carries its own context line and meter — the numbers differ in kind. */
+  .stat-band{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);display:grid;grid-template-columns:repeat(4,1fr)}
+  .stat{padding:18px 20px 16px;min-width:0}
+  .stat + .stat{border-left:1px solid var(--line-soft)}
+  .stat-label{font-size:.82rem;font-weight:600;color:var(--ink-2)}
+  .stat-value{font-size:1.9rem;font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-top:4px}
+  .stat-value .unit{font-size:1.05rem;font-weight:600;letter-spacing:-.01em;color:var(--ink-2)}
+  .stat-note{font-size:.82rem;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat-note strong{color:var(--ink-2);font-weight:600}
+  .meter{height:5px;border-radius:99px;background:var(--line-soft);margin-top:10px;overflow:hidden}
+  .meter i{display:block;height:100%;border-radius:99px;background:var(--accent);width:0;
+    transition:width 600ms cubic-bezier(.22,1,.36,1)}
+  .meter.good i{background:var(--good)}
+  .meter.warn i{background:var(--warn)}
+  .stat .delta{font-size:.78rem;font-weight:600;color:var(--good);margin-top:8px}
+  .stat .delta.down{color:var(--warn)}
+
+  /* Two-column work area */
+  .work{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel-head{display:flex;align-items:baseline;gap:10px;padding:16px 20px 0}
+  .panel-head h3{font-size:1rem;font-weight:700;letter-spacing:-.01em}
+  .panel-head p{font-size:.83rem;color:var(--ink-3)}
+  .panel-head .spacer{flex:1}
+  .panel-head .today{font-size:.8rem;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);
+    border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .panel-body{padding:16px 20px 20px}
+
+  /* Attendance bars — one authored motion moment: bars grow once on load */
+  .bars{display:flex;align-items:flex-end;gap:14px;height:190px;padding-top:8px}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;min-width:0}
+  .bar-val{font-size:.85rem;font-weight:700}
+  .bar-track{flex:1;width:100%;max-width:52px;display:flex;align-items:flex-end;
+    background:var(--surface-2);border-radius:7px 7px 3px 3px;overflow:hidden}
+  .bar-track i{display:block;width:100%;background:#9db4c8;border-radius:7px 7px 0 0;
+    height:0;transition:height 650ms cubic-bezier(.22,1,.36,1)}
+  .bar-col.today .bar-track i{background:var(--accent)}
+  .bar-col.today .bar-val{color:var(--accent-ink)}
+  .bar-day{font-size:.82rem;font-weight:600;color:var(--ink-2)}
+  .bar-col.today .bar-day{color:var(--accent-ink)}
+  .bars-foot{display:flex;justify-content:space-between;border-top:1px solid var(--line-soft);
+    margin-top:14px;padding-top:12px;font-size:.85rem;color:var(--ink-3)}
+  .bars-foot strong{color:var(--ink);font-weight:700}
+
+  /* Notices */
+  .notices{list-style:none;display:flex;flex-direction:column}
+  .notices li{display:flex;gap:12px;padding:13px 20px;border-top:1px solid var(--line-soft);align-items:flex-start}
+  .notices li:first-child{border-top:0}
+  .notice-dot{width:34px;height:34px;flex:0 0 34px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft)}
+  .notice-dot svg{width:17px;height:17px;stroke:var(--accent-ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .notice-dot.amber{background:var(--warn-soft)}
+  .notice-dot.amber svg{stroke:var(--warn)}
+  .notice-dot.navy{background:#e6eaf1}
+  .notice-dot.navy svg{stroke:var(--ink-2)}
+  .notice-text{min-width:0}
+  .notice-text p{font-size:.93rem;font-weight:600;line-height:1.35}
+  .notice-text span{font-size:.82rem;color:var(--ink-3)}
+  .notice-tag{margin-left:auto;flex:0 0 auto;font-size:.72rem;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--accent-ink);background:var(--accent-soft);
+    border-radius:999px;padding:3px 8px;white-space:nowrap}
+  .notice-tag.amber{color:var(--warn);background:var(--warn-soft)}
+  .notice-tag.navy{color:var(--ink-2);background:#e6eaf1}
+
+  /* Student register — full-width panel below the work area */
+  .table-wrap{overflow-x:auto;border-top:1px solid var(--line-soft);margin-top:14px;
+    scrollbar-width:thin}
+  table{width:100%;min-width:640px;border-collapse:collapse;font-size:.93rem}
+  th,td{padding:11px 20px 11px 0;text-align:left;white-space:nowrap}
+  th:first-child,td:first-child{padding-left:20px}
+  th:last-child,td:last-child{padding-right:20px}
+  thead th{font-size:.75rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+    border-bottom:1px solid var(--line);padding-top:12px;padding-bottom:10px}
+  tbody td{border-bottom:1px solid var(--line-soft)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr{transition:background-color 150ms ease}
+  tbody tr:hover{background:var(--surface-2)}
+  .student{display:flex;align-items:center;gap:11px;min-width:0}
+  .initials{width:34px;height:34px;flex:0 0 34px;border-radius:50%;display:grid;place-items:center;
+    font-size:.78rem;font-weight:700;color:#fff;background:var(--ink)}
+  .initials.teal{background:var(--accent)}
+  .initials.steel{background:#54678a}
+  .student-name{font-weight:600;line-height:1.3}
+  .student-sub{font-size:.8rem;color:var(--ink-3)}
+  .roll{font-weight:600;color:var(--ink-2)}
+  .pct{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+  .mini-meter{width:64px;height:5px;border-radius:99px;background:var(--line-soft);overflow:hidden;flex:0 0 64px}
+  .mini-meter i{display:block;height:100%;border-radius:99px}
+  .pill{display:inline-block;font-size:.78rem;font-weight:700;border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .pill.good{color:var(--good);background:var(--good-soft)}
+  .pill.warn{color:var(--warn);background:var(--warn-soft)}
+  .pill.low{color:var(--low);background:var(--low-soft)}
+  .empty-state{display:none;padding:28px 20px;text-align:center;color:var(--ink-3);font-size:.92rem}
+  .empty-state strong{display:block;color:var(--ink);font-size:1rem;margin-bottom:2px}
+  .empty-state button{margin-top:10px;font-weight:600;color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px}
+
+  footer{padding:22px 28px 34px;text-align:center;font-size:.85rem;color:var(--ink-3)}
+  footer b{color:var(--ink-2);font-weight:600}
+
+  /* Mobile bottom nav — hidden on desktop */
+  .bottom-nav{display:none}
+
+  /* ---------- 1280 and below: tighten, keep sidebar ---------- */
+  @media (max-width:1100px){
+    .work{grid-template-columns:1fr}
+    .stat-value{font-size:1.65rem}
+  }
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr}
+    .sidebar{display:none}
+    header.topbar{padding:10px 16px;gap:10px;flex-wrap:wrap}
+    .page-id h1{font-size:1.12rem}
+    .page-id p{display:none}
+    .search{order:3;flex:1 1 100%;min-width:0;margin-left:0}
+    .search kbd{display:none}
+    .content{padding:16px 16px 8px;gap:16px}
+    .stat-band{grid-template-columns:1fr 1fr}
+    .stat:nth-child(3){border-left:0}
+    .stat:nth-child(n+3){border-top:1px solid var(--line-soft)}
+    .stat-note{white-space:normal}
+    .bars{gap:8px;height:170px}
+    .bar-track{max-width:44px}
+    .notices li{padding:12px 16px}
+    .notice-tag{display:none}
+    .panel-body{padding:14px 16px 16px}
+    .panel-head{padding:14px 16px 0}
+    th,td{padding:10px 14px 10px 0}
+    th:first-child,td:first-child{padding-left:16px}
+    th:last-child,td:last-child{padding-right:16px}
+    footer{padding:18px 16px 96px}
+    .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;
+      background:var(--surface);border-top:1px solid var(--line);
+      padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+    .bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+      padding:5px 2px;font-size:.7rem;font-weight:600;color:var(--ink-3);text-decoration:none;border-radius:8px}
+    .bottom-nav a svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .bottom-nav a.active{color:var(--accent-ink)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar navigation (desktop) -->
+  <nav class="sidebar" aria-label="Primary">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>
+        <span class="brand-name">Greenwood High</span><br>
+        <span class="brand-sub">Student Management · 2025–26</span>
+      </span>
+    </div>
+    <p class="nav-label">Manage</p>
+    <a class="nav-item active" href="#" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="#students">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M17.5 15.4c2 .6 3.5 2 4 4.6"/></svg>
+      Students <span class="nav-count">12</span>
+    </a>
+    <a class="nav-item" href="#attendance">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/><path d="m9 16 2 2 4-4.5"/></svg>
+      Attendance
+    </a>
+    <a class="nav-item" href="#notices">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+      Notices <span class="nav-count">3</span>
+    </a>
+    <p class="nav-label">School</p>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V6a2 2 0 0 1 2-2h13v13H6a2 2 0 0 0-2 2Zm0 0a2 2 0 0 0 2 2h13"/></svg>
+      Classes
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+      Timetable
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+      Fees
+    </a>
+    <div class="side-foot">
+      <strong>Class 8-A</strong><br>
+      Class teacher: Room 12 · Morning assembly 8:00
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- Header -->
+    <header class="topbar">
+      <div class="page-id">
+        <h1>Class 8-A — Overview</h1>
+        <p>Greenwood High · Today, Friday · 2025–26</p>
+      </div>
+      <label class="search" for="student-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+        <input id="student-search" type="search" placeholder="Search students by name or roll…" autocomplete="off" aria-label="Search students by name or roll">
+        <kbd>/</kbd>
+      </label>
+      <button class="bell" type="button" id="bell" aria-label="3 new notices — go to notices">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+        <span class="bell-badge" aria-hidden="true">3</span>
+      </button>
+      <span class="avatar" title="Class teacher" aria-label="Class teacher">KT</span>
+    </header>
+
+    <main class="content">
+      <!-- Four stats: one ruled band, each stat with its own context -->
+      <section class="stat-band" aria-label="School at a glance">
+        <div class="stat">
+          <p class="stat-label">Students</p>
+          <p class="stat-value">1,248</p>
+          <p class="stat-note">Across <strong>42 classes</strong></p>
+          <div class="meter" aria-hidden="true"><i data-w="100"></i></div>
+          <p class="delta">▲ 18 new this term</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Teachers</p>
+          <p class="stat-value">72</p>
+          <p class="stat-note"><strong>1 : 17</strong> teacher–student ratio</p>
+          <div class="meter" aria-hidden="true"><i data-w="72"></i></div>
+          <p class="delta">▲ 3 joined this year</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Attendance today</p>
+          <p class="stat-value">95.2<span class="unit">%</span></p>
+          <p class="stat-note"><strong>1,188</strong> present · <strong>60</strong> absent</p>
+          <div class="meter good" aria-hidden="true"><i data-w="95.2"></i></div>
+          <p class="delta">▲ 1.1 pts vs yesterday</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Fees collected</p>
+          <p class="stat-value">84<span class="unit">%</span></p>
+          <p class="stat-note"><strong>₹25.2L</strong> of ₹30L</p>
+          <div class="meter warn" aria-hidden="true"><i data-w="84"></i></div>
+          <p class="delta down">₹4.8L still due</p>
+        </div>
+      </section>
+
+      <div class="work">
+        <!-- Attendance trend -->
+        <section class="panel" id="attendance" aria-labelledby="att-title">
+          <div class="panel-head">
+            <h3 id="att-title">Attendance trend</h3>
+            <p>This week · Class 8-A</p>
+            <span class="spacer"></span>
+            <span class="today">Today · 95%</span>
+          </div>
+          <div class="panel-body">
+            <div class="bars" role="img" aria-label="Attendance by day: Monday 94 percent, Tuesday 96, Wednesday 93, Thursday 97, Friday 95.">
+              <div class="bar-col"><span class="bar-val">94%</span><div class="bar-track"><i data-h="94"></i></div><span class="bar-day">Mon</span></div>
+              <div class="bar-col"><span class="bar-val">96%</span><div class="bar-track"><i data-h="96"></i></div><span class="bar-day">Tue</span></div>
+              <div class="bar-col"><span class="bar-val">93%</span><div class="bar-track"><i data-h="93"></i></div><span class="bar-day">Wed</span></div>
+              <div class="bar-col"><span class="bar-val">97%</span><div class="bar-track"><i data-h="97"></i></div><span class="bar-day">Thu</span></div>
+              <div class="bar-col today"><span class="bar-val">95%</span><div class="bar-track"><i data-h="95"></i></div><span class="bar-day">Fri</span></div>
+            </div>
+            <div class="bars-foot">
+              <span>Weekly average <strong>95.0%</strong></span>
+              <span>Best day <strong>Thu · 97%</strong></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Notices -->
+        <section class="panel" id="notices" aria-labelledby="notices-title">
+          <div class="panel-head">
+            <h3 id="notices-title">Notices</h3>
+            <p>3 unread</p>
+            <span class="spacer"></span>
+            <a class="link-btn" href="#">View all</a>
+          </div>
+          <ul class="notices">
+            <li>
+              <span class="notice-dot" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5.5L4.8 17a2 2 0 0 0 1.8 3h10.8a2 2 0 0 0 1.8-3L14 8.5V3"/><path d="M7.5 14h9"/></svg></span>
+              <div class="notice-text"><p>Science fair on Friday</p><span>Hall A · 10:00 — bring your project boards</span></div>
+              <span class="notice-tag">Event</span>
+            </li>
+            <li>
+              <span class="notice-dot amber" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+              <div class="notice-text"><p>Fee deadline 20 Nov</p><span>Term 2 fees due — ₹4.8L outstanding school-wide</span></div>
+              <span class="notice-tag amber">Fees</span>
+            </li>
+            <li>
+              <span class="notice-dot navy" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M17.5 15.4c2 .6 3.5 2 4 4.6"/></svg></span>
+              <div class="notice-text"><p>Parent-teacher meet 25 Nov</p><span>Slots 9:00–13:00 · sign-up sheet at the office</span></div>
+              <span class="notice-tag navy">Meeting</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Student register -->
+      <section class="panel" id="students" aria-labelledby="students-title">
+        <div class="panel-head">
+          <h3 id="students-title">Class 8-A register</h3>
+          <p><span id="shown-count">12</span> of 12 students</p>
+          <span class="spacer"></span>
+          <a class="link-btn" href="#">Export list</a>
+        </div>
+        <div class="table-wrap">
+          <table id="student-table">
+            <thead>
+              <tr><th scope="col">Student</th><th scope="col">Roll</th><th scope="col">Attendance</th><th scope="col">Marks</th><th scope="col">Standing</th></tr>
+            </thead>
+            <tbody id="student-rows">
+              <tr data-name="aarav sharma 8a-01"><td><div class="student"><span class="initials">AS</span><span><span class="student-name">Aarav Sharma</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-01</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:96%"></i></span>96%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:88%"></i></span>88%</span></td><td><span class="pill good">Excellent</span></td></tr>
+              <tr data-name="diya patel 8a-02"><td><div class="student"><span class="initials teal">DP</span><span><span class="student-name">Diya Patel</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-02</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:94%"></i></span>94%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:91%"></i></span>91%</span></td><td><span class="pill good">Excellent</span></td></tr>
+              <tr data-name="kabir singh 8a-03"><td><div class="student"><span class="initials steel">KS</span><span><span class="student-name">Kabir Singh</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-03</td><td><span class="pct"><span class="mini-meter"><i style="background:#b45309;width:89%"></i></span>89%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:76%"></i></span>76%</span></td><td><span class="pill warn">Watch</span></td></tr>
+              <tr data-name="ananya gupta 8a-04"><td><div class="student"><span class="initials">AG</span><span><span class="student-name">Ananya Gupta</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-04</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:98%"></i></span>98%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:93%"></i></span>93%</span></td><td><span class="pill good">Excellent</span></td></tr>
+              <tr data-name="rohan mehta 8a-05"><td><div class="student"><span class="initials teal">RM</span><span><span class="student-name">Rohan Mehta</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-05</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:92%"></i></span>92%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:82%"></i></span>82%</span></td><td><span class="pill good">Good</span></td></tr>
+              <tr data-name="ishita verma 8a-06"><td><div class="student"><span class="initials steel">IV</span><span><span class="student-name">Ishita Verma</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-06</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:97%"></i></span>97%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:89%"></i></span>89%</span></td><td><span class="pill good">Excellent</span></td></tr>
+              <tr data-name="arjun nair 8a-07"><td><div class="student"><span class="initials">AN</span><span><span class="student-name">Arjun Nair</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-07</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:90%"></i></span>90%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:79%"></i></span>79%</span></td><td><span class="pill good">Good</span></td></tr>
+              <tr data-name="sneha reddy 8a-08"><td><div class="student"><span class="initials teal">SR</span><span><span class="student-name">Sneha Reddy</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-08</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:95%"></i></span>95%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:86%"></i></span>86%</span></td><td><span class="pill good">Good</span></td></tr>
+              <tr data-name="vikram joshi 8a-09"><td><div class="student"><span class="initials steel">VJ</span><span><span class="student-name">Vikram Joshi</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-09</td><td><span class="pct"><span class="mini-meter"><i style="background:#b45309;width:88%"></i></span>88%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:74%"></i></span>74%</span></td><td><span class="pill warn">Watch</span></td></tr>
+              <tr data-name="priya das 8a-10"><td><div class="student"><span class="initials">PD</span><span><span class="student-name">Priya Das</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-10</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:99%"></i></span>99%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:95%"></i></span>95%</span></td><td><span class="pill good">Excellent</span></td></tr>
+              <tr data-name="aditya rao 8a-11"><td><div class="student"><span class="initials teal">AR</span><span><span class="student-name">Aditya Rao</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-11</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:93%"></i></span>93%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:84%"></i></span>84%</span></td><td><span class="pill good">Good</span></td></tr>
+              <tr data-name="kavya iyer 8a-12"><td><div class="student"><span class="initials steel">KI</span><span><span class="student-name">Kavya Iyer</span><br><span class="student-sub">Class 8-A</span></span></div></td><td class="roll">8A-12</td><td><span class="pct"><span class="mini-meter"><i style="background:#15803d;width:96%"></i></span>96%</span></td><td><span class="pct"><span class="mini-meter"><i style="background:#0f766e;width:90%"></i></span>90%</span></td><td><span class="pill good">Excellent</span></td></tr>
+            </tbody>
+          </table>
+          <div class="empty-state" id="empty-state" role="status">
+            <strong>No students match that search</strong>
+            Try a different name or roll number, or clear the search to see all 12 students.
+            <br><button type="button" id="clear-search">Clear search</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer><b>Greenwood High</b> · Class 8-A · 2025–26 — Fictional demo data — UI Forge Experiment 1</footer>
+  </div>
+</div>
+
+<!-- Bottom navigation (mobile) -->
+<nav class="bottom-nav" aria-label="Primary mobile">
+  <a href="#" class="active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>Home</a>
+  <a href="#students"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M17.5 15.4c2 .6 3.5 2 4 4.6"/></svg>Students</a>
+  <a href="#attendance"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/><path d="m9 16 2 2 4-4.5"/></svg>Attend.</a>
+  <a href="#notices"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>Notices</a>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+  /* One authored motion moment: bars and meters grow once, after first paint. */
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      document.querySelectorAll(".bar-track i").forEach(function(b){
+        b.style.height = b.getAttribute("data-h") + "%";
+      });
+      document.querySelectorAll(".meter i").forEach(function(m){
+        m.style.width = m.getAttribute("data-w") + "%";
+      });
+    });
+  });
+
+  /* Live search: filters the register, updates the count, shows an empty state. */
+  var input = document.getElementById("student-search");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#student-rows tr"));
+  var count = document.getElementById("shown-count");
+  var empty = document.getElementById("empty-state");
+  var table = document.getElementById("student-table");
+  function applyFilter(){
+    var q = input.value.trim().toLowerCase();
+    var shown = 0;
+    rows.forEach(function(r){
+      var hit = !q || r.getAttribute("data-name").indexOf(q) !== -1;
+      r.style.display = hit ? "" : "none";
+      if (hit) shown++;
+    });
+    count.textContent = shown;
+    var none = shown === 0;
+    empty.style.display = none ? "block" : "none";
+    table.style.display = none ? "none" : "";
+  }
+  input.addEventListener("input", applyFilter);
+  document.getElementById("clear-search").addEventListener("click", function(){
+    input.value = ""; applyFilter(); input.focus();
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "/" && document.activeElement !== input){
+      e.preventDefault(); input.focus();
+    }
+  });
+
+  /* Bell scrolls to the notices panel and focuses its heading. */
+  document.getElementById("bell").addEventListener("click", function(){
+    var panel = document.getElementById("notices");
+    panel.scrollIntoView({behavior:"smooth", block:"start"});
+    var h = document.getElementById("notices-title");
+    h.setAttribute("tabindex", "-1"); h.focus({preventScroll:true});
+  });
+})();
+</script>
+</body>
+</html>
